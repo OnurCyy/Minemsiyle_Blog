@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hakkında | Minemsiyle</title>
+    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
+    <script>
+        (function () {
+            // Hafızaya bak, yoksa 'light' yap
+            var savedTheme = localStorage.getItem('theme') || 'light';
+            // Sayfa yüklenmeden HTML'e rengi bas
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/about.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+</head>
+
+<body id="top">
+    <header class="header" id="header">
+        <div class="container header__inner">
+            <div class="brand">
+                <div class="brand__kicker">KİTAP & YAZI</div>
+                <a class="brand__logo" href="index.html" aria-label="Ana Sayfa">
+                    <img src="assets/images/Logo.png" alt="Minemsiyle.com">
+                </a>
+                <div class="brand__sub">Kelimelerin dünyasında, <b>Mümine'msi</b> bir mola.</div>
+            </div>
+
+            <nav class="nav" aria-label="Ana menü">
+
+                <a href="index.html" class="nav__link">Öne Çıkan</a>
+                <a href="index.html#books" class="nav__link">Kitaplar</a>
+                <a href="index.html#blog" class="nav__link">Blog</a>
+
+                <a href="about.html" class="nav__link is-active">Hakkında</a>
+
+            </nav>
+
+            <div class="header__actions">
+                <button id="themeToggle" class="theme-toggle" aria-label="Tema değiştir">
+                    <span class="theme-icon moon">☀️</span>
+                    <span class="theme-thumb"></span>
+                    <span class="theme-icon sun">🌙</span>
+                </button>
+
+                <button class="icon-btn mobile-toggle" id="menuToggle" aria-label="Menüyü Aç" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+
+            </div>
+        </div>
+    </header>
+
+    <main class="layout section">
+
+        <div class="about-grid">
+
+            <aside class="about-sidebar">
+                <div class="profile-frame">
+                    <img src="assets/images/Müminiş.jpg" alt="Mümine" class="profile-img">
+                </div>
+
+                <div class="profile-info">
+                    <h1 class="profile-name">Mümine</h1>
+                    <p class="profile-title">Okur, Yazar & Hayalperest</p>
+                </div>
+
+                <hr class="rule" style="margin: 20px 0;">
+
+                <div class="contact-list">
+                    <a href="mailto:ornek@gmail.com" class="contact-item">
+                        <span class="contact-icon">✉️</span>
+                        <div class="contact-text">
+                            <span class="label">E-Posta</span>
+                            <span class="value">iletisim@minemsiyle.com</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="contact-item">
+                        <span class="contact-icon">📷</span>
+                        <div class="contact-text">
+                            <span class="label">Instagram</span>
+                            <span class="value">@minemsiyle</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="contact-item">
+                        <span class="contact-icon">📚</span>
+                        <div class="contact-text">
+                            <span class="label">1000Kitap</span>
+                            <span class="value">@mümineokur</span>
+                        </div>
+                    </a>
+                </div>
+            </aside>
+
+            <article class="about-content">
+                <h2 class="headline">Kelimelerin ardındaki kişi.</h2>
+                <p class="dek" style="margin-bottom: 30px;">
+                    "Bir kitabı okumak, yazarın zihninde sessiz bir yürüyüşe çıkmaktır."
+                </p>
+
+                <div class="prose">
+                    <p>
+                        Merhaba, ben Mümine. Burası benim dijital sığınağım.
+                        Çocukluğumdan beri kelimelerin gücüne, kâğıdın kokusuna ve iyi anlatılmış bir hikâyenin insanı
+                        iyileştirebileceğine inandım.
+                    </p>
+                    <p>
+                        Minemsiyle.com'u kurarken amacım sadece okuduğum kitapları listelemek değildi; o kitapların
+                        bende bıraktığı izleri, altını çizdiğim cümlelerin bana fısıldadıklarını saklamak istedim.
+                    </p>
+
+                    <h3>Nelerden Hoşlanırım?</h3>
+                    <p>
+                        Yağmurlu havalarda pencere kenarına sığınmaktan, kahvenin sütsüz olanından ve eski basım
+                        kitapların saman kâğıdı dokusundan...
+                        Burada okuyacağınız her satır, benim dünyamdan size uzatılmış bir eldir.
+                    </p>
+
+                    <div
+                        style="margin-top: 40px; font-family: 'Libre Baskerville', serif; font-style: italic; font-size: 1.2rem; color: var(--accent);">
+                        Sevgilerle,<br>Mümine.
+                    </div>
+                </div>
+            </article>
+
+        </div>
+
+    </main>
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+    <aside class="mobile-menu" id="mobileMenu" style="
+    z-index: 99999; 
+    background: var(--panel) !important; 
+    color: var(--ink) !important;
+">
+        <button class="icon-btn close-menu" id="closeMenu" style="
+        align-self: flex-end; 
+        margin-bottom: 20px; 
+        background: transparent !important; 
+        border: none !important; 
+        font-size: 24px; 
+        color: var(--ink) !important; 
+        cursor: pointer;
+    ">✕</button>
+
+        <span class="mobile-menu__title" style="
+        font-family: serif; 
+        font-size: 24px; 
+        margin-bottom: 20px; 
+        display:block; 
+        color: var(--ink) !important;
+    ">Menü</span>
+
+        <nav class="mobile-nav" style="display: flex; flex-direction: column; gap: 15px;">
+            <a href="index.html" class="mobile-link"
+                style="color: var(--ink); text-decoration: none; font-size: 18px;">Ana Sayfa</a>
+            <a href="index.html#books" class="mobile-link"
+                style="color: var(--ink); text-decoration: none; font-size: 18px;">Kitaplar</a>
+            <a href="index.html#blog" class="mobile-link"
+                style="color: var(--ink); text-decoration: none; font-size: 18px;">Blog Yazıları</a>
+            <a href="about.html" class="mobile-link"
+                style="color: #c07d56; font-weight: bold; text-decoration: none; font-size: 18px;">Hakkında</a>
+        </nav>
+    </aside>
+
+    <script>
+        (function () {
+            const btn = document.getElementById('menuToggle');
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileMenuOverlay');
+            const close = document.getElementById('closeMenu');
+
+            function toggleAboutMenu() {
+                if (menu) menu.classList.toggle('is-open');
+                if (overlay) overlay.classList.toggle('is-active');
+            }
+
+            if (btn) btn.onclick = function (e) {
+                e.preventDefault();
+                toggleAboutMenu();
+            };
+            if (close) close.onclick = toggleAboutMenu;
+            if (overlay) overlay.onclick = toggleAboutMenu;
+        })();
+    </script>
+
+    <script src="js/about.js"></script>
+    <script src="js/thema.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

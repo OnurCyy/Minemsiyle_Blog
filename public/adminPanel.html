@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mümine'msi Panel | Yönetim</title>
+    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #121212;
+            --panel: #1e1e1e;
+            --border: #333;
+            --text: #e0e0e0;
+            --accent: #c07d56;
+            --danger: #ff4757;
+            --success: #2ecc71;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* GİRİŞ EKRANI */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: var(--panel);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+            width: 350px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #252525;
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .login-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* PANEL */
+        .sidebar {
+            width: 250px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .menu-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #aaa;
+            display: flex;
+            gap: 10px;
+        }
+
+        .menu-item.active,
+        .menu-item:hover {
+            background: rgba(192, 125, 86, 0.1);
+            color: var(--accent);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        /* FORMLAR */
+        .form-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 800px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background: #252525;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #fff;
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .action-btn {
+            padding: 12px 30px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Bildirim */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            transform: translateX(200%);
+            transition: 0.3s;
+            z-index: 10000;
+        }
+
+        #notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="font-family: 'Libre Baskerville'; color: var(--accent); margin-bottom: 20px;">Mümine'msi Panel
+            </h2>
+            <input type="email" id="emailInput" class="login-input" placeholder="E-posta (admin@minemsiyle.com)">
+            <input type="password" id="passwordInput" class="login-input" placeholder="Kasa Şifresi">
+            <button class="login-btn" id="loginBtn">Kasayı Aç 🔐</button>
+            <p id="loginMsg" style="color: var(--danger); font-size: 13px; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div style="text-align: center; margin-bottom: 30px; color: var(--accent); font-family: 'Libre Baskerville';">
+            YÖNETİM</div>
+        <div class="menu-item active" onclick="switchTab('add-post', this)">📝 Yazı Ekle</div>
+        <div class="menu-item" onclick="switchTab('add-book', this)">📚 Kitap Ekle</div>
+        <button onclick="logout()"
+            style="margin-top: auto; background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 10px; border-radius: 6px; cursor: pointer;">Çıkış
+            Yap</button>
+    </div>
+
+    <div class="main-content">
+        <div id="notification">İşlem Başarılı! ✅</div>
+
+        <div id="add-post" class="view-section active">
+            <h1 style="margin-bottom: 20px;">Yeni Blog Yazısı</h1>
+            <div class="form-card">
+                <div class="form-group"><label class="form-label">Başlık</label><input type="text" id="postTitle"
+                        class="form-control"></div>
+                <div class="form-group"><label class="form-label">Kategori</label>
+                    <select id="postCategory" class="form-control">
+                        <option>Deneme</option>
+                        <option>Notlar</option>
+                        <option>Roman</option>
+                        <option>Öykü</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Özet (Kısa Açıklama)</label><input type="text"
+                        id="postExcerpt" class="form-control"></div>
+                <div class="form-group"><label class="form-label">İçerik</label><textarea id="postContent"
+                        class="form-control"></textarea></div>
+                <button class="action-btn" id="savePostBtn">Yayınla 🚀</button>
+            </div>
+        </div>
+
+        <div id="add-book" class="view-section">
+            <h1 style="margin-bottom: 20px;">Kitap Ekle</h1>
+            <div class="form-card">
+                <div class="form-group"><label class="form-label">Kitap Adı</label><input type="text" id="bookTitle"
+                        class="form-control"></div>
+                <div class="form-group"><label class="form-label">Yazar</label><input type="text" id="bookAuthor"
+                        class="form-control"></div>
+                <div class="form-group"><label class="form-label">Tür</label><select id="bookTag" class="form-control">
+                        <div class="form-group">
+                            <label class="form-label">Kapak Resmi Linki (URL)</label>
+                            <input type="text" id="bookCover" class="form-control"
+                                placeholder="https://ornek-resim.com/resim.jpg">
+                            <small style="color: #666; font-size: 11px;">İnternetten bir resme sağ tıkla 'Resim Adresini
+                                Kopyala' de buraya yapıştır.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Kısa Açıklama</label>
+                            <textarea id="bookDesc" class="form-control" style="min-height: 80px;"
+                                placeholder="Kitap ne anlatıyor?"></textarea>
+                        </div>
+                        <option>Roman</option>
+                        <option>Tarih</option>
+                        <option>Kişisel Gelişim</option>
+                    </select></div>
+                <button class="action-btn" id="saveBookBtn">Kütüphaneye Ekle 📚</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. AYARLAR
+        const API_URL = "http://localhost:5000/api";
+
+        // 2. GİRİŞ KONTROLÜ
+        window.onload = () => {
+            const token = localStorage.getItem('userToken');
+            const role = localStorage.getItem('userRole');
+
+            if (token && role === 'admin') {
+                document.getElementById('login-screen').style.display = 'none';
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+            }
+        };
+
+        // 3. GİRİŞ YAP BUTONU
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const btn = document.getElementById('loginBtn');
+
+            btn.innerText = "Giriliyor...";
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && (data.user?.role === 'admin' || data.role === 'admin')) {
+                    localStorage.setItem('userToken', data.token);
+                    localStorage.setItem('userRole', 'admin');
+                    document.getElementById('login-screen').style.display = 'none';
+                    alert("Hoş geldin Kral! 👋");
+                } else {
+                    alert("Hata: " + (data.message || "Yetkisiz giriş!"));
+                }
+            } catch (err) {
+                alert("Sunucuya bağlanılamadı! Terminal açık mı?");
+            } finally {
+                btn.innerText = "Giriş Yap";
+            }
+        });
+
+        // 4. KİTAP EKLE BUTONU (GÜNCELLENMİŞ VERSİYON)
+        document.getElementById('saveBookBtn').addEventListener('click', async () => {
+            const title = document.getElementById('bookTitle').value;
+            const author = document.getElementById('bookAuthor').value;
+            const tag = document.getElementById('bookTag').value;
+            const token = localStorage.getItem('userToken');
+
+            if (!title || !author) { alert("Lütfen boş alan bırakma!"); return; }
+
+            try {
+                console.log("İstek atılıyor: /admin/add-book");
+
+                // DİKKAT: Adres '/api/admin/add-book' olmalı
+                const res = await fetch(`${API_URL}/admin/add-book`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, author, tag })
+                });
+
+                // HATA VARSA DETAYINI GÖSTER
+                if (!res.ok) {
+                    const errData = await res.json();
+                    alert(`HATA OLUŞTU (${res.status}):\n${errData.message || "Bilinmeyen hata"}`);
+                    return;
+                }
+
+                // BAŞARILIYSA
+                alert("Kitap Başarıyla Eklendi! 📚");
+                document.getElementById('bookTitle').value = ""; // Formu temizle
+
+            } catch (error) {
+                console.error(error);
+                alert("Bağlantı Hatası! Sunucu kapalı olabilir.");
+            }
+        });
+
+        // 5. YAZI EKLE BUTONU
+        document.getElementById('savePostBtn').addEventListener('click', async () => {
+            const title = document.getElementById('postTitle').value;
+            const category = document.getElementById('postCategory').value;
+            const excerpt = document.getElementById('postExcerpt').value;
+            const content = document.getElementById('postContent').value;
+            const token = localStorage.getItem('userToken');
+
+            try {
+                const res = await fetch(`${API_URL}/admin/add-post`, { // Burası da /admin/add-post olmalı
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, category, excerpt, content })
+                });
+
+                if (res.ok) {
+                    alert("Yazı Yayınlandı! 📝");
+                    document.getElementById('postTitle').value = "";
+                } else {
+                    const d = await res.json();
+                    alert("Hata: " + d.message);
+                }
+            } catch (e) { alert("Hata: " + e.message); }
+        });
+
+        // TAB DEĞİŞTİRME
+        window.switchTab = (id, btn) => {
+            document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.menu-item').forEach(e => e.classList.remove('active'));
+            btn.classList.add('active');
+        };
+
+        // ÇIKIŞ
+        window.logout = () => { localStorage.clear(); location.reload(); }
+    </script>
+
+
+</body>
+
+</html>

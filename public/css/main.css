@@ -1,0 +1,1675 @@
+/* =========================================
+   1. VARIABLES & THEME SETUP
+   ========================================= */
+:root {
+    /* Renk Paleti: Krem zemin + Kömür metin + Bordo vurgu */
+    --bg: #f4efe3;
+    --panel: #fbf6ea;
+    --ink: #2c2c2c;
+    --muted: #666666;
+    --line: rgba(44, 44, 44, .12);
+    --shadow: 0 14px 40px rgba(0, 0, 0, .06);
+
+    /* --- DEĞİŞEN KISIM --- */
+    --accent: #c07d56;
+    /* Tarçın / Yanık Turuncu */
+    --accent2: #7a8264;
+    /* Zeytin Yeşili */
+    /* -------------------- */
+
+    /* Tipografi */
+    --serif: "Libre Baskerville", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+    /* Ölçüler */
+    --radius: 14px;
+    --radius2: 18px;
+    --max: 1120px;
+}
+
+[data-theme="dark"] {
+    /* Acı kahve, siyaha yakın */
+    --bg: #171412;
+    --panel: #211d1a;
+
+    /* Metin: Sütlü kahve köpüğü beyazı */
+    --ink: #ede6e1;
+    --muted: #968c86;
+
+    --line: rgba(237, 230, 225, .1);
+    --shadow: 0 18px 55px rgba(0, 0, 0, .5);
+
+    /* Vurgu: Tarçın ve pastel toprak */
+    --accent: #dca685;
+    --accent2: #a3ad85;
+}
+
+/* =========================================
+   2. RESET & BASE STYLES
+   ========================================= */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    z-index: 1;
+    position: relative;
+}
+
+/* Arkaplan Animasyon Efekti */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    clip-path: circle(0% at var(--wave-x, 50%) var(--wave-y, 50%));
+    transition: clip-path .6s cubic-bezier(.4, 0, .2, 1);
+    z-index: -1;
+}
+
+/* Erişilebilirlik (Skip Link) */
+.skip-link {
+    position: absolute;
+    left: -999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.skip-link:focus {
+    left: 18px;
+    top: 18px;
+    width: auto;
+    height: auto;
+    background: var(--panel);
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    z-index: 9999;
+}
+
+/* =========================================
+   3. LAYOUT & UTILITIES
+   ========================================= */
+.container {
+    width: min(var(--max), calc(100% - 40px));
+    margin-inline: auto;
+}
+
+.main {
+    padding: 22px 0 40px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1.65fr .9fr;
+    gap: 22px;
+}
+
+.section {
+    margin-top: 22px;
+}
+
+.section__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 18px 0 10px;
+}
+
+.section__title {
+    font-family: var(--serif);
+    margin: 0;
+    font-size: 22px;
+}
+
+.section__sub {
+    font-size: 13px;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.small {
+    font-size: 12.5px;
+}
+
+/* =========================================
+   4. HEADER & NAVIGATION
+   ========================================= */
+/* Topbar */
+.topbar {
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.00), rgba(255, 255, 255, 0.06));
+}
+
+.topbar__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel);
+    font-size: 12px;
+    letter-spacing: .2px;
+}
+
+/* Sticky Header */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 75%, transparent);
+    animation: headerFade .6s ease both;
+}
+
+.header__inner {
+    display: flex;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+}
+
+/* Brand */
+.brand__kicker {
+    font-size: 11px;
+    letter-spacing: .22em;
+    color: var(--muted);
+}
+
+.brand__logo img {
+    height: 75px;
+    max-width: 180px;
+    object-fit: contain;
+    transition: transform .35s ease, filter .35s ease;
+}
+
+.brand__logo:hover img {
+    transform: translateY(-1px) scale(1.02);
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .12));
+}
+
+.brand__sub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+/* Navigation Links */
+.nav {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.nav__link {
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    padding: 8px 10px;
+    border-radius: 10px;
+    position: relative;
+    white-space: nowrap;
+    transition: background-color .25s ease, transform .2s ease;
+}
+
+.nav__link:hover {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    transform: translateY(-1px);
+}
+
+.header__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Search Bar */
+.search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel);
+    min-width: 260px;
+}
+
+.search__icon {
+    color: var(--muted);
+}
+
+.search input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--ink);
+    font-size: 13px;
+}
+
+/* =========================================
+   5. COMPONENTS (Buttons, Cards, Chips)
+   ========================================= */
+/* Buttons */
+.btn {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    filter: brightness(0.98);
+}
+
+.btn--primary {
+    background: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 72%, var(--line));
+    color: #fff;
+}
+
+.btn--ghost {
+    background: transparent;
+}
+
+.btn--link {
+    border: none;
+    background: transparent;
+    padding: 10px 0;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Base Card */
+.card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius2);
+    box-shadow: var(--shadow);
+}
+
+/* Tags & Badges */
+.tag {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 12px;
+}
+
+.tag--accent {
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+    background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+    color: color-mix(in srgb, var(--accent) 88%, var(--ink));
+}
+
+.badge {
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+
+/* --- FİLTRE & SIRALAMA ALANI --- */
+
+/* Tüm satırı kapsayan alan */
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    /* Mobilde sığmazsa alt satıra geçsin */
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--line);
+    /* Altına ince, şık bir çizgi */
+}
+
+/* Sol Taraf: Kategori Butonları (Chips) */
+#chipRow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.chip {
+    background: transparent;
+    /* Arka plan yok */
+    border: 1px solid var(--line);
+    /* İncecik, silik bir çerçeve */
+    color: var(--muted);
+    /* Sönük yazı rengi */
+    padding: 6px 18px;
+    /* Hap şekli için genişlik */
+    border-radius: 50px;
+    /* Tam yuvarlak köşeler */
+    font-size: 13px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Üzerine gelince (Hover) */
+.chip:hover {
+    border-color: var(--accent);
+    /* Tema renginde çerçeve */
+    color: var(--accent);
+    transform: translateY(-1px);
+    /* Hafifçe zıplasın */
+}
+
+/* Seçili Olan Buton (Active) */
+.chip.is-active {
+    background: var(--accent);
+    /* İçi dolsun */
+    border-color: var(--accent);
+    color: #fff !important;
+    /* Yazısı beyaz olsun */
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* Hafif gölge */
+}
+
+/* Sağ Taraf: Sıralama Menüsü */
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sort-wrapper label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+#sortSelect {
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    /* Metin rengi */
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+#sortSelect:hover {
+    background: var(--panel);
+    /* Üstüne gelince hafif renk */
+}
+
+/* =========================================
+   6. MODULES (Featured, Books, Sidebar)
+   ========================================= */
+/* Featured Module */
+.featured {
+    padding: 22px;
+}
+
+.featured__meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.headline {
+    font-family: var(--serif);
+    font-size: 34px;
+    line-height: 1.15;
+    margin: 14px 0 10px;
+}
+
+.dek {
+    margin: 0;
+    font-size: 15.5px;
+    color: var(--muted);
+    max-width: 68ch;
+}
+
+.featured__cta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.rule {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 18px 0;
+}
+
+.mini-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.mini {
+    padding: 12px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--panel) 70%, transparent);
+}
+
+.mini__k {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.mini__v {
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* Books Module */
+.books-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+select {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 10px;
+    color: var(--ink);
+}
+
+.books {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+/* --- YENİ KİTAP KARTLARI (Dergi Stili) --- */
+.book {
+    display: flex;
+    /* Yan yana dizilim */
+    gap: 18px;
+    /* Kapak ve yazı arasındaki boşluk */
+    align-items: flex-start;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Üzerine gelince havalanma efekti */
+.book:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    border-color: var(--accent);
+    /* Kenarlık rengi değişsin */
+}
+
+/* Sol Taraftaki Kapak Resmi */
+.book__cover-art {
+    width: 90px;
+    height: 135px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    /* Kapak gölgesi */
+    flex-shrink: 0;
+    /* Küçülmesini engelle */
+    background-color: var(--line);
+    /* Resim yoksa gri fon */
+}
+
+/* Sağ Taraftaki Bilgiler */
+.book__info {
+    flex: 1;
+    /* Kalan alanı kapla */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    min-height: 135px;
+    /* Kapakla aynı boyda olsun */
+}
+
+/* Başlık ve Yazar */
+.book__title {
+    font-family: var(--serif);
+    font-size: 19px;
+    margin: 0 0 6px;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.book__author {
+    margin: 0 0 10px;
+    color: var(--accent);
+    /* Yazar adı vurgu renginde olsun */
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.book__desc {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.5;
+    /* 3 satırdan sonrasını ... ile kes (modern CSS) */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Alt Kısım (Etiket ve Puan) */
+.book__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    /* En alta it */
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    /* İnce bir çizgi */
+}
+
+.book__btn {
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: gap 0.2s;
+}
+
+.book__btn:hover {
+    color: var(--accent);
+    gap: 8px;
+    /* Ok işareti sağa kayar */
+}
+
+/* Posts Module */
+.posts {
+    display: grid;
+    gap: 12px;
+}
+
+.post {
+    padding: 16px;
+}
+
+.post__meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.post__title {
+    margin: 10px 0 8px;
+    font-family: var(--serif);
+    font-size: 18px;
+}
+
+.post__p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13.5px;
+}
+
+/* Sidebar (Aside) */
+.aside {
+    padding: 16px;
+}
+
+.aside__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--line);
+    /* Başlığın altına hafif bir çizgi */
+}
+
+.aside__title {
+    font-family: var(--serif);
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.aside__p {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 13.5px;
+}
+
+.aside__list {
+    display: grid;
+    gap: 8px;
+}
+
+.kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--panel) 72%, transparent);
+}
+
+/* Quote Component */
+.quote {
+    margin: 0;
+    padding: 12px;
+    border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+    border-radius: 12px;
+}
+
+.quote::before {
+    content: "“";
+    position: absolute;
+    top: -20px;
+    right: 10px;
+    font-family: var(--serif);
+    font-size: 100px;
+    /* Kocaman */
+    color: var(--accent);
+    opacity: 0.06;
+    /* ÇOK SİLİK (Sadece hissettirsin) */
+    pointer-events: none;
+    /* Tıklamayı engellemesin */
+    z-index: -1;
+}
+
+.quote__text {
+    margin: 0 0 8px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    position: relative;
+    line-height: 1.45;
+}
+
+.quote__by {
+    color: var(--muted);
+    font-size: 12.5px;
+}
+
+/* Theme Toggle Button */
+/* Tema Butonu - Düzeltilmiş Hali */
+.theme-toggle {
+    position: relative;
+    width: 68px;
+    /* Genişlik */
+    height: 34px;
+    /* Yükseklik */
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    cursor: pointer;
+    padding: 0;
+    /* İçindeki ikonları hizalamak için flex yapısı */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    /* Kenarlardan boşluk */
+    transition: all .25s ease;
+    overflow: hidden;
+    /* Dışarı taşmaları engelle */
+}
+
+/* İkonlar (Güneş ve Ay) */
+/* Tema Butonu - Revize Edilmiş (Tam Ortalanmış) */
+.theme-toggle {
+    position: relative;
+    width: 74px;
+    /* Genişliği biraz artırdım, ikonlar rahatlasın */
+    height: 36px;
+    /* Yükseklik */
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    /* Çerçeveyi belirginleştirdim */
+    background: var(--panel);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    /* İkonları kenardan uzaklaştırdım */
+    box-sizing: border-box;
+    /* Ölçü hesabını sabitler */
+    overflow: hidden;
+}
+
+/* İkonlar */
+.theme-icon {
+    font-size: 16px;
+    /* İkonlar bir tık büyüdü */
+    z-index: 1;
+    line-height: 0;
+    transition: opacity .3s;
+}
+
+.theme-icon.sun {
+    opacity: 0.4;
+}
+
+.theme-icon.moon {
+    opacity: 0.4;
+}
+
+[data-theme="light"] .theme-icon.sun {
+    opacity: 1;
+    color: #f59e0b;
+    /* Güneş sarısı */
+}
+
+[data-theme="dark"] .theme-icon.moon {
+    opacity: 1;
+    color: #f2ede2;
+    /* Ay rengi */
+}
+
+/* Hareketli Top (Thumb) */
+.theme-thumb {
+    position: absolute;
+    top: 3px;
+    /* (36px yükseklik - 2px border*2 - 26px top)/2 ≈ ortalar */
+    left: 6px;
+    /* Başlangıç boşluğu */
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: transform 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    z-index: 0;
+    /* İkonların arkasında kalsın (isteğe bağlı, şu an ikonlar üstte değil gibi ama top ikonları eziyor olabilir, z-index ile oynayabilirsin) */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* DARK MODE DURUMU */
+/* Hesap: 74px (genişlik) - 26px (top) - 4px (sol) - 4px (sağ pay) = 40px kaymalı */
+/* Ama "fazla gidiyor" dediğin için bunu 38px'e çektim, tam sınırda durmasın diye */
+[data-theme="dark"] .theme-thumb {
+    transform: translateX(32px);
+    background: #fff;
+}
+
+/* =========================================
+   7. MODAL
+   ========================================= */
+.modal {
+    border: none;
+    padding: 0;
+    max-width: 860px;
+    width: min(860px, calc(100% - 24px));
+    border-radius: 22px;
+    background: transparent;
+}
+
+.modal::backdrop {
+    background: rgba(0, 0, 0, .45);
+}
+
+.modal__inner {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    box-sizing: border-box;
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.modal__close {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+}
+
+.modal__body {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 16px;
+    padding: 18px;
+}
+
+.modal__cover {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(135deg,
+            color-mix(in srgb, var(--accent) 10%, var(--panel)),
+            color-mix(in srgb, var(--accent2) 10%, var(--panel)));
+    min-height: 240px;
+    position: relative;
+    overflow: hidden;
+}
+
+.cover__spine {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    background: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+.cover__face {
+    position: absolute;
+    inset: 0;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.cover__title {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.cover__author {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.modal__meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.modal__h {
+    font-family: var(--serif);
+    margin: 12px 0 8px;
+    font-size: 22px;
+}
+
+.modal__p {
+    margin: 0 0 14px;
+    color: var(--muted);
+}
+
+.modal__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rating__stars {
+    letter-spacing: 2px;
+    font-size: 16px;
+}
+
+.rating__num {
+    font-weight: 800;
+}
+
+/* =========================================
+   8. FOOTER
+   ========================================= */
+.footer {
+    border-top: 1px solid var(--line);
+    padding: 20px 0;
+    margin-top: 26px;
+}
+
+.footer__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+}
+
+.footer__brand {
+    font-family: var(--serif);
+    font-weight: 700;
+}
+
+.footer__link {
+    color: var(--ink);
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 10px;
+}
+
+.footer__link:hover {
+    background: var(--panel);
+    border: 1px solid var(--line);
+}
+
+/* --- YENİ SIDEBAR MODÜLLERİ --- */
+
+/* Şu An Masamda Kutusu */
+.reading-card {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.reading-cover {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background: var(--line);
+    /* Resim yüklenmezse gri dursun */
+    border: 1px solid var(--line);
+}
+
+.reading-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 90px;
+    /* Kapakla aynı boyda ortalasın */
+}
+
+.reading-title {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+}
+
+.reading-author {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0 0 10px 0;
+}
+
+/* Progress Bar (Ortak) */
+.progress-wrapper {
+    width: 100%;
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--line);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent);
+    /* Mor renk */
+    border-radius: 99px;
+    transition: width 1s ease-out;
+    /* Animasyonlu dolsun */
+}
+
+/* Hedef Kutusu */
+.challenge-stat {
+    font-size: 28px;
+    font-family: var(--serif);
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: block;
+    color: var(--ink);
+}
+
+.challenge-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    display: block;
+}
+
+/* =========================================
+   9. ANIMATIONS
+   ========================================= */
+@keyframes headerFade {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================
+   10. MEDIA QUERIES (Responsive)
+   ========================================= */
+@media (max-width: 980px) {
+    .header__inner {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .nav {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .header__actions {
+        justify-content: flex-start;
+    }
+
+    .search {
+        min-width: 100%;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .books {
+        grid-template-columns: 1fr;
+    }
+
+    .modal__body {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================
+   11. VIEW TRANSITION ANIMATION (Dalga Efekti)
+   ========================================= */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* Karanlık moddayken "önceki" görüntü üstte kalsın,
+   Aydınlık modda "yeni" görüntü üstte olsun ayarı */
+::view-transition-image-pair(root) {
+    isolation: isolate;
+}
+
+/* Geçiş sırasında kaydırma çubuğunun çirkin görünmesini engeller */
+html {
+    view-transition-name: none;
+    /* Varsayılanı kapat */
+}
+
+/* Sidebar Kutularının Arasını Açma */
+.col--side {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    /* Burayı istediğin kadar artırıp azaltabilirsin */
+}
+
+/* --- YENİLEME BUTONU VE ALINTI DÜZENLEMESİ --- */
+
+/* Butonun kendisi */
+.icon-btn {
+    background: transparent;
+    /* Arkadaki beyazlığı kaldırır */
+    border: 1px solid transparent;
+    /* Çizgiyi sildik */
+    color: var(--muted);
+    /* Rengi yumuşattık */
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    /* Tam yuvarlak */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.4s ease;
+    /* Yumuşak geçiş */
+}
+
+/* Üzerine gelince (Hover) */
+.icon-btn:hover {
+    background: var(--line);
+    /* Hafif bir zemin gelsin */
+    color: var(--accent);
+    /* Vurgu rengini alsın (mor/yeşil/kahve) */
+    transform: rotate(180deg);
+    /* DÖNME EFEKTİ BURADA! */
+    border-color: var(--line);
+}
+
+/* Tıklandığında (Active) */
+.icon-btn:active {
+    transform: rotate(180deg) scale(0.9);
+    /* Hafifçe küçülsün */
+}
+
+/* --- MODAL (PENCERE) DÜZENLEMELERİ --- */
+
+/* Resmi kapsayan sol kutu */
+.modal__left {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: var(--line);
+    /* Resim arkasında hafif bir fon */
+    border-radius: 12px;
+    padding: 20px;
+}
+
+/* Resmin kendisi */
+.modal__img {
+    width: 100%;
+    max-width: 180px;
+    /* Çok devasa olmasın */
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    /* Havalı gölge */
+    transform: rotate(-2deg);
+    /* Hafif yamuk durup "gerçek kitap" hissi versin */
+    transition: transform 0.3s ease;
+}
+
+/* Üzerine gelince resim düzelsin */
+.modal__img:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+/* Modal İç Yapısı (Responsive ayarı) */
+.modal__body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    /* Sol taraf resim genişliği, sağ taraf kalan */
+    gap: 24px;
+    padding: 24px;
+}
+
+/* Mobilde alt alta geçsin */
+@media (max-width: 700px) {
+    .modal__body {
+        grid-template-columns: 1fr;
+    }
+
+    .modal__left {
+        padding: 10px;
+    }
+
+    .modal__img {
+        max-width: 120px;
+        /* Mobilde daha küçük */
+    }
+}
+
+/* --- BLOG KISMI DÜZENLEMESİ --- */
+
+/* Blog Yazılarını 2 Sütun Yap */
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* Sığdığı kadar yan yana */
+    gap: 24px;
+    margin-top: 20px;
+}
+
+/* Kartın Kendisi */
+.blog-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid var(--accent);
+    /* Sol tarafa renkli çizgi */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Üzerine gelince */
+.blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Blog Başlığı */
+.blog-title {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    color: var(--ink);
+    line-height: 1.3;
+}
+
+/* Tarih ve Etiket */
+.blog-meta {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Etiket Kutucuğu */
+.blog-tag {
+    background: var(--line);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+/* Özet Metin */
+.blog-excerpt {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    /* 3 satırdan sonrasını ... yap */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* "Devamını Oku" Linki */
+.read-more {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: gap 0.2s;
+}
+
+.read-more:hover {
+    gap: 10px;
+    /* Ok sağa kayar */
+    text-decoration: underline;
+}
+
+/* CANLI ARAMA SONUÇ KUTUSU (BÜYÜTÜLMÜŞ VERSİYON) */
+.search-results {
+    position: absolute;
+    top: 110%;
+    /* Inputtan biraz daha uzaklaşsın */
+    left: -20px;
+    /* Hafif sola taşsın */
+    right: -20px;
+    /* Hafif sağa taşsın */
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    /* Gölgeyi artırdık */
+    max-height: 400px;
+    /* Daha çok kitap sığsın */
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    padding: 10px;
+    /* İç boşluk */
+}
+
+.search-results.active {
+    display: block;
+}
+
+/* Sonuç Satırları */
+.search-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    /* Resim ve yazı arası açılsın */
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 12px;
+    /* Satırlar da yuvarlansın */
+    transition: background 0.2s;
+    text-decoration: none;
+    margin-bottom: 4px;
+}
+
+.search-item:hover {
+    background: var(--line);
+}
+
+/* Resim Büyüdü */
+.s-img {
+    width: 50px;
+    /* 30'dan 50'ye çıktı */
+    height: 75px;
+    /* Orantılı büyüdü */
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.s-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.s-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+/* Yazı büyüdü */
+.s-author {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* =========================================
+   CİLA 1: ÖZEL KAYDIRMA ÇUBUĞU
+   ========================================= */
+/* Çubuğun genişliği */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+/* Çubuğun arkasındaki yol (Zemin rengi olsun) */
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+/* Hareket eden çubuk (Bizim Tarçın Rengi) */
+::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent) 60%, transparent);
+    /* Biraz şeffaf olsun */
+    border-radius: 10px;
+    /* Yuvarlak hatlar */
+}
+
+/* Üzerine gelince koyulaşsın */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* =========================================
+   CİLA 2: METİN SEÇİM RENGİ
+   ========================================= */
+::selection {
+    background: var(--accent);
+    /* Arka plan turuncu */
+    color: #fff;
+    /* Yazı beyaz */
+}
+
+/* Firefox için (bazen lazım olur) */
+::-moz-selection {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* =========================================
+   GÜZELLEŞTİRİLMİŞ LOGIN MODALI
+   ========================================= */
+
+/* Sekmeler */
+.auth-tab {
+    flex: 1;
+    padding: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: 0.3s;
+}
+
+.auth-tab.is-active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--panel);
+    /* Aktif sekme biraz aydınlansın */
+}
+
+/* İkonlu Inputlar */
+.input-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.7;
+    z-index: 2;
+}
+
+.auth-input-fancy {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    /* İkon için soldan boşluk bıraktık */
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.auth-input-fancy:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(192, 125, 86, 0.1);
+    /* Hafif turuncu hale */
+    background: var(--panel);
+}
+
+/* "veya" Çizgisi */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--line);
+}
+
+.auth-divider span {
+    padding: 0 10px;
+}
+
+/* Google Butonu (Özel Tasarım) */
+.btn-google {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    /* Her zaman beyaz */
+    color: #333;
+    /* Yazı koyu */
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: var(--sans);
+}
+
+.btn-google:hover {
+    background: #f5f5f5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================================
+   MOBİL MENÜ AYARLARI (Responsive)
+   ========================================= */
+
+/* 1. Yan Menü Tasarımı (Gizli Başlar) */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    background: var(--panel);
+    z-index: 1000;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
+    transform: translateX(100%);
+    /* Sağ tarafa sakla */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+.mobile-menu.is-open {
+    transform: translateX(0);
+}
+
+/* Açılınca buraya gelir */
+
+/* Link Tasarımları */
+.mobile-link {
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 500;
+    padding: 10px;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.mobile-link:hover {
+    background: var(--line);
+    color: var(--accent);
+}
+
+/* Arka Plan Karartması */
+.mobile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(4px);
+}
+
+.mobile-menu-overlay.is-active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* 2. RESPONSIVE KURALLAR (Sadece Telefonda Çalışır) */
+@media (max-width: 900px) {
+
+    /* Masaüstü menüyü GİZLE */
+    .nav {
+        display: none !important;
+    }
+
+    /* Hamburger butonunu GÖSTER */
+    .mobile-toggle {
+        display: flex !important;
+    }
+
+    /* Arama kutusunu biraz küçült sığsın */
+    .search input {
+        width: 80px;
+    }
+
+    /* "Takip Et" butonunu gizle (zaten menüye koyduk) */
+    #subscribeBtn {
+        display: none;
+    }
+}

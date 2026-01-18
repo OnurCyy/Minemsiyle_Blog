@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim | Minemsiyle</title>
+    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
+
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body id="top">
+
+    <header class="header">
+        <div class="container header__inner">
+            <a href="index.html" class="brand__logo">
+                <img src="assets/images/Logo.png" alt="Minemsiyle" style="height:50px;">
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav__link">Ana Sayfa</a>
+                <a href="blog.html" class="nav__link">Blog</a>
+            </nav>
+
+            <div class="header__actions">
+                <a href="profile.html" class="icon-btn" style="color:var(--accent);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+                <button id="themeToggle" class="theme-toggle">
+                    <span class="theme-icon moon">☀️</span>
+                    <span class="theme-thumb"></span>
+                    <span class="theme-icon sun">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main" style="margin-top: 40px; margin-bottom: 80px;">
+
+        <div class="profile-layout">
+
+            <aside class="profile-sidebar">
+                <div class="profile-card">
+                    <div class="profile-cover"
+                        style="background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000&auto=format&fit=crop');">
+                    </div>
+
+                    <div class="profile-card-inner">
+                        <div class="profile-avatar-box">
+                            <img src="https://i.pravatar.cc/150?u=8" alt="Profil">
+                            <button class="edit-btn">✎</button>
+                        </div>
+
+                        <h1 class="p-name">Onur C.</h1>
+                        <p class="p-username">@onurcode</p>
+
+                        <div class="level-container">
+                            <div class="level-info">
+                                <span class="level-badge">Seviye 3</span>
+                                <span class="level-title">Kelime Avcısı</span>
+                            </div>
+                            <div class="xp-bar-bg">
+                                <div class="xp-bar-fill" style="width: 65%;"></div>
+                            </div>
+                            <div class="xp-text">Sonraki seviyeye: 120 XP</div>
+                        </div>
+
+                        <p class="p-bio">
+                            "İyi bir kitap, iyi bir dosttur." 📚
+                        </p>
+
+                        <div class="p-stats">
+                            <div class="stat-item">
+                                <span class="stat-num">8</span>
+                                <span class="stat-label">Kaydedilen</span>
+                            </div>
+                            <div class="stat-line"></div>
+                            <div class="stat-item">
+                                <span class="stat-num">12</span>
+                                <span class="stat-label">Yorum</span>
+                            </div>
+                        </div>
+
+                        <div class="p-actions">
+                            <button class="btn btn--primary" style="width:100%">Profili Düzenle</button>
+                            <button class="btn btn--ghost" style="width:100%; margin-top:8px;">Ayarlar</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+
+            <section class="profile-feed">
+
+                <div class="modern-tabs">
+                    <button class="tab-link is-active" onclick="openTab(event, 'saved-posts')">
+                        🔖 Kaydedilenler
+                    </button>
+                    <button class="tab-link" onclick="openTab(event, 'badges')">
+                        🏆 Rozet Koleksiyonu
+                    </button>
+                </div>
+
+                <div id="saved-posts" class="tab-content active-content">
+                    <div class="section-info">Beğendiğin ve daha sonra okumak için ayırdığın yazılar.</div>
+
+                    <div class="blog-list-simple">
+                        <article class="saved-post-row">
+                            <div class="sp-date">12<br>Oca</div>
+                            <div class="sp-info">
+                                <h3>Okurla yazar arasında sessiz bir anlaşma</h3>
+                                <span class="tag">Deneme</span>
+                            </div>
+                            <div class="sp-action">
+                                <button class="icon-btn" title="Kaldır">🗑️</button>
+                            </div>
+                        </article>
+
+                        <article class="saved-post-row">
+                            <div class="sp-date">05<br>Oca</div>
+                            <div class="sp-info">
+                                <h3>Ocak ayının getirdiği huzur</h3>
+                                <span class="tag">Günlük</span>
+                            </div>
+                            <div class="sp-action">
+                                <button class="icon-btn" title="Kaldır">🗑️</button>
+                            </div>
+                        </article>
+
+                        <article class="saved-post-row">
+                            <div class="sp-date">01<br>Oca</div>
+                            <div class="sp-info">
+                                <h3>Kürk Mantolu Madonna üzerine notlar</h3>
+                                <span class="tag">İnceleme</span>
+                            </div>
+                            <div class="sp-action">
+                                <button class="icon-btn" title="Kaldır">🗑️</button>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <div id="badges" class="tab-content" style="display: none;">
+                    <div class="section-info">Yorum yaptıkça ve okudukça yeni rozetlerin kilidini aç!</div>
+
+                    <div class="badge-grid">
+
+                        <div class="badge-card unlocked">
+                            <div class="badge-icon">🐛</div>
+                            <div class="badge-name">Kitap Kurdu</div>
+                            <div class="badge-desc">İlk yazıyı okudun.</div>
+                        </div>
+
+                        <div class="badge-card unlocked">
+                            <div class="badge-icon">✍️</div>
+                            <div class="badge-name">İlk Merhaba</div>
+                            <div class="badge-desc">İlk yorumunu yaptın.</div>
+                        </div>
+
+                        <div class="badge-card locked">
+                            <div class="badge-icon">🔥</div>
+                            <div class="badge-name">Seri Okur</div>
+                            <div class="badge-desc">5 yazıyı art arda oku.</div>
+                            <div class="badge-lock">🔒</div>
+                        </div>
+
+                        <div class="badge-card locked">
+                            <div class="badge-icon">🎭</div>
+                            <div class="badge-name">Eleştirmen</div>
+                            <div class="badge-desc">10 farklı yazıya yorum yap.</div>
+                            <div class="badge-lock">🔒</div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer__inner" style="justify-content:center;">
+            <div class="muted">© 2026 Minemsiyle</div>
+        </div>
+    </footer>
+
+    <script>
+        function openTab(evt, tabName) {
+            // Tüm içerikleri gizle
+            var i, content, tablinks;
+            content = document.getElementsByClassName("tab-content");
+            for (i = 0; i < content.length; i++) {
+                content[i].style.display = "none";
+            }
+            // Tüm butonların aktifliğini kaldır
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" is-active", "");
+            }
+            // İsteneni göster
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " is-active";
+        }
+        // Tema scripti
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        });
+    </script>
+</body>
+
+</html>

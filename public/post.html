@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Krem zemin neden daha “yakın” hissettirir?</title>
+    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. AYARLAR (VARIABLES)
+           ========================================= */
+        :root {
+            --p-bg: #f4efe3;
+            --p-text: #2c2c2c;
+            --p-accent: #c07d56;
+            --p-panel: #fbf6ea;
+            --p-line: rgba(0, 0, 0, 0.1);
+            --p-muted: #666666;
+        }
+
+        [data-theme="dark"] {
+            --p-bg: #171412;
+            --p-text: #ede6e1;
+            --p-accent: #dca685;
+            --p-panel: #211d1a;
+            --p-line: rgba(255, 255, 255, 0.1);
+            --p-muted: #968c86;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--p-bg);
+            color: var(--p-text);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: 0.2s;
+        }
+
+        /* =========================================
+           2. HEADER (ORTALI DÜZEN)
+           ========================================= */
+        #custom-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--p-line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .ch-logo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .ch-logo-img {
+            height: 55px;
+            object-fit: contain;
+            margin: 4px 0;
+            transition: transform 0.2s;
+        }
+
+        .ch-logo-img:hover {
+            transform: scale(1.05);
+        }
+
+        .ch-logo-text {
+            font-size: 10px;
+            color: var(--p-muted);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .ch-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .ch-link {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--p-text);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .ch-link:hover {
+            background-color: var(--p-panel);
+            color: var(--p-accent);
+        }
+
+        #ch-theme-btn {
+            background: var(--p-panel);
+            border: 2px solid var(--p-line);
+            border-radius: 30px;
+            width: 54px;
+            height: 28px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px;
+            outline: none;
+        }
+
+        .toggle-circle {
+            width: 16px;
+            height: 16px;
+            background-color: var(--p-accent);
+            border-radius: 50%;
+            position: absolute;
+            left: 4px;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        [data-theme="dark"] .toggle-circle {
+            transform: translateX(24px);
+            background-color: #fff;
+        }
+
+        .icon-sun,
+        .icon-moon {
+            font-size: 10px;
+            opacity: 0.5;
+        }
+
+        /* =========================================
+           3. İÇERİK & YAZAR ALANLARI
+           ========================================= */
+        #post-wrapper {
+            max-width: 740px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .post-meta-top {
+            text-align: center;
+            color: var(--p-muted);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .post-main-title {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 2.2rem;
+            text-align: center;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            color: var(--p-text);
+        }
+
+        .post-lead {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--p-muted);
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        /* --- ÜST YAZAR BİLGİSİ (Minik) --- */
+        .author-mini {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .author-mini img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--p-panel);
+        }
+
+        .author-mini span {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--p-text);
+        }
+
+        .author-mini small {
+            color: var(--p-accent);
+            font-weight: 500;
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+
+        .post-hero-img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-body {
+            font-size: 1.1rem;
+            font-family: 'Libre Baskerville', serif;
+            color: var(--p-text);
+        }
+
+        .post-body p {
+            margin-bottom: 1.5em;
+        }
+
+        .post-body blockquote {
+            border-left: 3px solid var(--p-accent);
+            padding-left: 20px;
+            margin: 30px 0;
+            font-style: italic;
+            font-size: 1.25rem;
+            color: var(--p-text);
+        }
+
+        /* --- ALT YAZAR KUTUSU (Detaylı) --- */
+        .author-box {
+            margin-top: 60px;
+            padding: 30px;
+            background-color: var(--p-panel);
+            border: 1px solid var(--p-line);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .author-box img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--p-bg);
+        }
+
+        .author-info h4 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: var(--p-text);
+        }
+
+        .author-info p {
+            font-size: 0.95rem;
+            color: var(--p-muted);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .author-social {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--p-accent);
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            #custom-header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .ch-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+                background: var(--p-panel);
+                padding: 10px;
+                border-radius: 12px;
+            }
+
+            .author-box {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header id="custom-header">
+        <div class="ch-logo-area">
+            <span class="ch-logo-text">KİTAP & YAZI</span>
+            <a href="index.html">
+                <img src="assets/images/Logo.png" alt="Logo" class="ch-logo-img">
+            </a>
+            <span class="ch-logo-text">MÜMİNE'MSİ BİR MOLA</span>
+        </div>
+        <nav class="ch-nav">
+            <a href="index.html" class="ch-link">Ana Sayfa</a>
+            <a href="index.html#books" class="ch-link">Kitaplar</a>
+            <a href="index.html#blog" class="ch-link">Blog</a>
+            <a href="about.html" class="ch-link">Hakkında</a>
+        </nav>
+        <button id="ch-theme-btn" aria-label="Temayı Değiştir">
+            <span class="icon-sun">☀️</span><span class="toggle-circle"></span><span class="icon-moon">🌙</span>
+        </button>
+    </header>
+
+    <main id="post-wrapper">
+        <div class="post-meta-top">Deneme • 12 Ocak 2026</div>
+        <h1 class="post-main-title">Krem zemin neden daha “yakın” hissettirir?</h1>
+        <p class="post-lead">Beyaz, klinik ve soğuk olabilir. Krem tonlar ise eski bir kitabın sayfası gibi sıcaklık
+            verir.</p>
+
+        <div class="author-mini">
+            <img src="assets/images/author.jpg" alt="Mümine E."
+                onerror="this.src='https://ui-avatars.com/api/?name=Mümine+E&background=c07d56&color=fff'">
+            <div>
+                <span>Mümine E.</span>
+                <small>Editör</small>
+            </div>
+        </div>
+
+        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=1200&q=80"
+            alt="Kitaplar" class="post-hero-img">
+
+        <div class="post-body">
+            <p>Bir web sitesini tasarlarken, genelde en temiz rengin "beyaz" (#FFFFFF) olduğu düşünülür. Ancak okuma
+                deneyimi söz konusu olduğunda, saf beyaz gözü çabuk yorar. Ekranın arkasından gelen güçlü ışık,
+                harflerin kontrastını sertleştirir.</p>
+            <blockquote>
+                “Okumak, sadece kelimeleri taramak değil; o atmosferin içine girmektir. Zemin rengi, bu atmosferin
+                havasıdır.”
+            </blockquote>
+            <p>Sahaflarda bulduğumuz o eski kitapları düşünün. Sayfalar zamanla sararmış, krem rengine dönmüştür. Bu
+                sadece kağıdın eskimesi değil, aynı zamanda yaşanmışlığın rengidir. Biz bu sitede, o sıcaklığı dijitale
+                taşımak istedik.</p>
+            <p>Krem ve toprak tonları (Earth Tones), insanda doğal bir sakinlik hissi uyandırır. Mümine'msi bir mola
+                vermek istediğinizde, gözlerinizi kısmak zorunda kalmadan, kahvenizi yudumlar gibi okumanızı istedik.
+            </p>
+        </div>
+
+        <div class="author-box">
+            <img src="assets/images/author.jpg" alt="Mümine E."
+                onerror="this.src='https://ui-avatars.com/api/?name=Mümine+E&background=c07d56&color=fff'">
+            <div class="author-info">
+                <h4>Mümine E.</h4>
+                <p>Kitapların arasında kaybolmayı seven bir okur, kelimelerle dünyalar kurmaya çalışan bir yazar. Kahve
+                    ve sessizlik vazgeçilmezi.</p>
+                <div class="author-social">@minemsiyle</div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const btn = document.getElementById('ch-theme-btn');
+        const html = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+
+        btn.addEventListener('click', () => {
+            const current = html.getAttribute('data-theme');
+            const target = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+        });
+    </script>
+</body>
+
+</html>

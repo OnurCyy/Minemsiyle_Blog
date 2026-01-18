@@ -1,0 +1,755 @@
+/* =========================================
+   1. SİTENİN DNA'SI (Main.css'ten Alındı)
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+    /* Renk Paleti: Krem zemin + Kömür metin + Tarçın vurgu */
+    --bg: #f4efe3;
+    --panel: #fbf6ea;
+    --ink: #2c2c2c;
+    --muted: #666666;
+    --line: rgba(44, 44, 44, .12);
+    --shadow: 0 14px 40px rgba(0, 0, 0, .06);
+
+    /* Vurgu Renkleri */
+    --accent: #c07d56;
+    /* Tarçın / Yanık Turuncu */
+    --accent2: #7a8264;
+    /* Zeytin Yeşili */
+
+    /* Fontlar */
+    --serif: "Libre Baskerville", Georgia, serif;
+    --sans: "Inter", system-ui, sans-serif;
+
+    /* Ölçüler */
+    --radius: 14px;
+    --radius2: 18px;
+}
+
+/* Karanlık Mod */
+[data-theme="dark"] {
+    --bg: #171412;
+    --panel: #211d1a;
+    --ink: #ede6e1;
+    --muted: #968c86;
+    --line: rgba(237, 230, 225, .1);
+    --shadow: 0 18px 55px rgba(0, 0, 0, .5);
+    --accent: #dca685;
+    --accent2: #a3ad85;
+}
+
+/* Temel Ayarlar */
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* =========================================
+      2. HEADER (Main.css ile BİREBİR AYNI)
+      ========================================= */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 75%, transparent);
+    padding: 12px 0;
+}
+
+/* Header İç Düzeni */
+.header__inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* --- Logo Alanı (Sandviç Düzen) --- */
+.brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-decoration: none;
+}
+
+.brand__kicker {
+    font-size: 11px;
+    letter-spacing: .22em;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.brand__logo img {
+    height: 60px;
+    /* Logo boyutu */
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.brand__sub {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.brand__sub b {
+    color: var(--ink);
+}
+
+/* --- MENÜ LİNKLERİ GÖRÜNÜMÜ --- */
+.nav {
+    display: flex;
+    gap: 16px;
+    /* Linkler arası boşluk */
+    align-items: center;
+}
+
+.nav__link {
+    color: var(--ink);
+    /* Koyu yazı rengi */
+    text-decoration: none;
+    /* Alt çizgiyi kaldır */
+    font-size: 13px;
+    /* Ana sayfadaki font boyutu */
+    font-weight: 500;
+    letter-spacing: .02em;
+    /* Harfleri hafif aç */
+    padding: 8px 10px;
+    /* Etrafına boşluk ver (Buton hissi için) */
+    border-radius: 10px;
+    /* Köşeleri yuvarla */
+    border: 1px solid transparent;
+    /* Görünmez çerçeve (zıplamayı önler) */
+    transition: all 0.25s ease;
+    /* Yumuşak geçiş */
+}
+
+/* Üzerine gelince (Hover) - Ana Sayfa Stili */
+.nav__link:hover {
+    background: var(--panel);
+    /* Arkası hafif renkli olsun */
+    border-color: var(--line);
+    /* İnce çerçeve çıksın */
+    transform: translateY(-1px);
+    /* Çok hafif yukarı kalksın */
+}
+
+/* Aktif Sayfa (Hakkında) - Mor/Turuncu Yanması İçin */
+.nav__link.active,
+.nav__link.is-active {
+    color: var(--accent);
+    /* Tema rengi (Tarçın/Mor) */
+    background: var(--panel);
+    border-color: var(--line);
+    font-weight: 600;
+}
+
+/* --- Sağ Taraf (Arama & Butonlar) --- */
+.header__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Arama Kutusu (Yuvarlak ve Şık) */
+.search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel);
+    width: 240px;
+}
+
+.search__icon {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.search input {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: var(--ink);
+    font-size: 13px;
+    width: 100%;
+    font-family: var(--sans);
+}
+
+/* Takip Et Butonu */
+.btn--ghost {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn--ghost:hover {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+}
+
+/* Tema Butonu (Main.css'ten alındı) */
+.theme-toggle {
+    position: relative;
+    width: 64px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    overflow: hidden;
+}
+
+.theme-icon {
+    font-size: 14px;
+    z-index: 1;
+    line-height: 1;
+}
+
+.theme-icon.sun {
+    color: #f59e0b;
+    opacity: 0.8;
+}
+
+.theme-icon.moon {
+    color: #f2ede2;
+    opacity: 0.8;
+}
+
+.theme-thumb {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: transform 0.3s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    z-index: 0;
+}
+
+/* Karanlık Modda Topun Kayması */
+[data-theme="dark"] .theme-thumb {
+    transform: translateX(30px);
+    background: #fff;
+}
+
+/* =========================================
+      3. HAKKINDA SAYFASI ÖZEL TASARIMI
+      ========================================= */
+.layout {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 60px;
+    margin-top: 40px;
+    margin-bottom: 80px;
+    align-items: start;
+}
+
+/* --- Sol Taraf (Sticky Profil) --- */
+.about-sidebar {
+    position: sticky;
+    top: 100px;
+    /* Header'ın altından başlar */
+}
+
+.profile-frame {
+    background: var(--panel);
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius2);
+    box-shadow: var(--shadow);
+    transform: rotate(-2deg);
+    transition: transform 0.3s ease;
+}
+
+.profile-frame:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+.profile-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+}
+
+.profile-info {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.profile-name {
+    font-family: var(--serif);
+    font-size: 1.8rem;
+    margin: 0;
+    color: var(--ink);
+}
+
+.profile-title {
+    color: var(--accent);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 5px;
+}
+
+/* İletişim Butonları */
+.contact-list {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.contact-item:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+}
+
+.contact-text .label {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.contact-text .value {
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+}
+
+/* --- Sağ Taraf (Hikaye) --- */
+.headline {
+    font-family: var(--serif);
+    font-size: 2.5rem;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 20px;
+}
+
+.dek {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-style: italic;
+    border-left: 3px solid var(--accent);
+    padding-left: 15px;
+    margin-bottom: 40px;
+}
+
+.prose p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--muted);
+    margin-bottom: 24px;
+}
+
+/* İlk Harf Büyütme (Dergi Stili) */
+.prose p:first-of-type::first-letter {
+    float: left;
+    font-family: var(--serif);
+    font-size: 4rem;
+    line-height: 0.8;
+    margin-right: 12px;
+    margin-top: 5px;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* Mobil Ayarlar */
+@media (max-width: 800px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .about-sidebar {
+        position: static;
+        max-width: 400px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .headline {
+        font-size: 2rem;
+    }
+
+    .header__inner {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .nav {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .search {
+        width: 100%;
+    }
+}
+
+/* =========================================
+   CİLA 1: ÖZEL KAYDIRMA ÇUBUĞU
+   ========================================= */
+/* Çubuğun genişliği */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+/* Çubuğun arkasındaki yol (Zemin rengi olsun) */
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+/* Hareket eden çubuk (Bizim Tarçın Rengi) */
+::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--accent) 60%, transparent);
+    /* Biraz şeffaf olsun */
+    border-radius: 10px;
+    /* Yuvarlak hatlar */
+}
+
+/* Üzerine gelince koyulaşsın */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* =========================================
+   CİLA 2: METİN SEÇİM RENGİ
+   ========================================= */
+::selection {
+    background: var(--accent);
+    /* Arka plan turuncu */
+    color: #fff;
+    /* Yazı beyaz */
+}
+
+/* Firefox için (bazen lazım olur) */
+::-moz-selection {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* AUTH MODAL STİLLERİ */
+.auth-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    box-sizing: border-box;
+    /* Taşmayı engeller */
+}
+
+.auth-input:focus {
+    border-color: var(--accent);
+}
+
+.auth-tab.is-active {
+    border-bottom: 2px solid var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+/* =========================================
+   ABOUT SAYFASI MODAL DÜZELTME (V2 - GARANTİLİ)
+   ========================================= */
+
+/* 1. Modalın Kendisi */
+dialog.modal {
+    width: 100% !important;
+    max-width: 400px !important;
+    border: none !important;
+    border-radius: 24px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    margin: auto;
+}
+
+dialog.modal::backdrop {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px);
+}
+
+/* 2. İçerik Alanı */
+.modal__inner {
+    background: var(--panel) !important;
+    padding: 0 !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    text-align: left !important;
+    /* Ortalamayı engelle */
+}
+
+/* 3. SEKMELERİ DÜZELTME (Flexbox Zorlaması) */
+/* Sekmeleri tutan kutuyu bul ve genişlet */
+.modal__inner>div:first-child {
+    display: flex !important;
+    width: 100% !important;
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.auth-tab {
+    flex: 1 !important;
+    /* Eşit dağıl */
+    width: 50% !important;
+    /* Yarı yarıya */
+    padding: 16px !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    color: var(--muted) !important;
+    text-align: center !important;
+    border-radius: 0 !important;
+    /* Yuvarlaklığı kaldır */
+    margin: 0 !important;
+}
+
+.auth-tab.is-active {
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+    background: var(--panel) !important;
+}
+
+/* 4. İKONLARI YERİNE OTURTMA */
+.input-wrapper {
+    position: relative !important;
+    margin-bottom: 16px !important;
+    text-align: left !important;
+    /* İkonu sola al */
+}
+
+.input-icon {
+    position: absolute !important;
+    left: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 5 !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    /* Hakkında sayfasındaki marginleri sil */
+}
+
+/* 5. Input Alanı */
+.auth-input-fancy {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 14px 14px 14px 44px !important;
+    /* İkon boşluğu */
+    height: 48px !important;
+    /* Yüksekliği sabitle */
+    border: 1px solid var(--line) !important;
+    border-radius: 12px !important;
+    background: var(--bg) !important;
+    color: var(--ink) !important;
+    font-family: inherit !important;
+}
+
+/* =========================================
+   YAZI TİPİ STANDARTLAŞTIRMA (About.css)
+   ========================================= */
+
+/* 1. Tüm Genel Yazılar, Inputlar ve Butonlar (Düz Yazı - Inter) */
+.modal__inner,
+.modal__inner input,
+.modal__inner button,
+.modal__inner p,
+.modal__inner a,
+.auth-tab,
+.btn-google {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    letter-spacing: normal !important;
+    /* Harf aralığını düzelt */
+}
+
+/* 2. Sadece Başlık (Tırnaklı - Libre Baskerville) */
+.modal__inner h3 {
+    font-family: 'Libre Baskerville', 'Times New Roman', serif !important;
+    font-weight: 700 !important;
+}
+
+/* 3. Inputların İçindeki Yazı (Placeholder) */
+.modal__inner input::placeholder {
+    font-family: 'Inter', sans-serif !important;
+    opacity: 0.6 !important;
+}
+
+/* =========================================
+   MOBİL MENÜ AYARLARI (Responsive)
+   ========================================= */
+
+/* 1. Yan Menü Tasarımı (Gizli Başlar) */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    background: var(--panel);
+    z-index: 1000;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
+    transform: translateX(100%);
+    /* Sağ tarafa sakla */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+.mobile-menu.is-open {
+    transform: translateX(0);
+}
+
+/* Açılınca buraya gelir */
+
+/* Link Tasarımları */
+.mobile-link {
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 500;
+    padding: 10px;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.mobile-link:hover {
+    background: var(--line);
+    color: var(--accent);
+}
+
+/* Arka Plan Karartması */
+.mobile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(4px);
+}
+
+.mobile-menu-overlay.is-active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* 2. RESPONSIVE KURALLAR (Sadece Telefonda Çalışır) */
+@media (max-width: 900px) {
+
+    /* Masaüstü menüyü GİZLE */
+    .nav {
+        display: none !important;
+    }
+
+    /* Hamburger butonunu GÖSTER */
+    .mobile-toggle {
+        display: flex !important;
+    }
+
+    /* Arama kutusunu biraz küçült sığsın */
+    .search input {
+        width: 80px;
+    }
+
+    /* "Takip Et" butonunu gizle (zaten menüye koyduk) */
+    #subscribeBtn {
+        display: none;
+    }
+}
+
+/* =========================================
+   HAMBURGER MENÜ DÜZELTME (About.css En Altına)
+   ========================================= */
+
+/* 1. Önce Butonun Tipini Düzelt (Beyaz kutuyu kaldır) */
+#menuToggle {
+    background-color: transparent !important;
+    /* Şeffaf yap */
+    border: none !important;
+    /* Kenarlığı sil */
+    box-shadow: none !important;
+    /* Gölgeyi sil */
+    padding: 0 !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    color: inherit !important;
+    /* İkon rengini yazı rengi yap */
+    display: flex !important;
+    /* İçini ortala */
+    align-items: center;
+    justify-content: center;
+}
+
+#menuToggle:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    /* Üstüne gelince hafif gri */
+}
+
+/* 2. Masaüstünde (PC) ZORLA GİZLE */
+@media (min-width: 901px) {
+    #menuToggle {
+        display: none !important;
+    }
+}

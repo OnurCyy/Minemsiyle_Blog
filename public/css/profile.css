@@ -1,0 +1,425 @@
+/* =========================================
+   profile.css - YENİ ASİMETRİK TASARIM
+   ========================================= */
+
+/* Ana Düzen: Masaüstünde Yan Yana */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    /* Sol sabit, Sağ esnek */
+    gap: 40px;
+    align-items: start;
+}
+
+/* --- SOL SÜTUN: KİMLİK KARTI --- */
+.profile-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    overflow: hidden;
+    position: sticky;
+    /* Aşağı kaydırınca sabit kalsın */
+    top: 100px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.profile-cover {
+    height: 120px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--accent);
+}
+
+.profile-card-inner {
+    padding: 0 24px 24px;
+    text-align: center;
+    margin-top: -50px;
+    /* Avatanı yukarı taşı */
+}
+
+.profile-avatar-box {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 12px;
+}
+
+.profile-avatar-box img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--panel);
+    /* Sayfa rengiyle çerçeve */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.edit-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.p-name {
+    font-family: var(--serif);
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--ink);
+}
+
+.p-username {
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.p-bio {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    margin-bottom: 20px;
+}
+
+/* İstatistikler */
+.p-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-num {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--ink);
+}
+
+.stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+}
+
+.stat-line {
+    width: 1px;
+    height: 30px;
+    background: var(--line);
+}
+
+/* --- SAĞ SÜTUN: İÇERİK --- */
+.modern-tabs {
+    display: flex;
+    gap: 30px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 30px;
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+    padding-bottom: 12px;
+    cursor: pointer;
+    position: relative;
+    transition: 0.3s;
+}
+
+.tab-link:hover {
+    color: var(--ink);
+}
+
+.tab-link.is-active {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.tab-link.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+}
+
+/* Kitap Grid (Daha sıkışık) */
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 20px;
+}
+
+.book-card {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
+.book-cover {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: 0.2s;
+}
+
+.book-cover:hover {
+    transform: translateY(-3px);
+}
+
+.book-info {
+    margin-top: 8px;
+    text-align: left;
+}
+
+.book-title {
+    font-size: 14px;
+    margin: 0 0 4px;
+}
+
+.rating__stars {
+    font-size: 12px;
+    color: #f59e0b;
+}
+
+/* Liste Görünümü (Yazılar için) */
+.saved-post-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: var(--bg);
+    transition: 0.2s;
+}
+
+.saved-post-row:hover {
+    border-color: var(--accent);
+    transform: translateX(5px);
+}
+
+.sp-date {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    width: 50px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.sp-info h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.sp-info .tag {
+    font-size: 11px;
+    background: var(--panel);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.saved-post-row .icon-btn {
+    margin-left: auto;
+    color: var(--muted);
+}
+
+.saved-post-row .icon-btn:hover {
+    color: red;
+    background: transparent;
+}
+
+.section-info {
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* Mobil Uyum */
+@media (max-width: 800px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+
+    /* Alt alta al */
+    .profile-card {
+        position: static;
+        margin-bottom: 30px;
+    }
+
+    /* Yapışkanlığı kaldır */
+}
+
+/* --- LEVEL & XP SİSTEMİ (Yeni) --- */
+.level-container {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 15px 0 20px;
+    text-align: left;
+    border: 1px solid var(--line);
+}
+
+.level-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.level-badge {
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.level-title {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.xp-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #e6b980);
+    border-radius: 99px;
+    transition: width 0.5s ease;
+}
+
+.xp-text {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+}
+
+/* --- ROZETLER GRİDİ --- */
+.badge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.badge-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px 10px;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.badge-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.badge-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+
+.badge-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.3;
+}
+
+/* Kilitli Rozet Efekti */
+.badge-card.locked {
+    opacity: 0.6;
+    filter: grayscale(100%);
+    background: var(--bg);
+    border-style: dashed;
+}
+
+.badge-lock {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 14px;
+}
+
+/* Açık Rozet Efekti */
+.badge-card.unlocked {
+    border-color: var(--accent);
+    box-shadow: 0 4px 10px rgba(192, 125, 86, 0.15);
+}
+
+.badge-card.unlocked:hover {
+    transform: translateY(-3px);
+}
+
+/* Liste Güncellemesi */
+.sp-date {
+    background: var(--panel);
+    padding: 8px;
+    border-radius: 8px;
+    min-width: 50px;
+}
+
+.sp-action {
+    margin-left: auto;
+}
+
+/* AUTH MODAL STİLLERİ */
+.auth-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    box-sizing: border-box;
+    /* Taşmayı engeller */
+}
+
+.auth-input:focus {
+    border-color: var(--accent);
+}
+
+.auth-tab.is-active {
+    border-bottom: 2px solid var(--accent) !important;
+    color: var(--accent) !important;
+}

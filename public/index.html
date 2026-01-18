@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kitaplık | Dergi Tadında</title>
+    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
+    <meta name="description" content="Kitap tanıtımları, notlar ve yazılar. Sakin, dergi gibi bir okuma deneyimi." />
+
+    <script>
+        (function () {
+            // Hafızaya bak, yoksa 'light' yap
+            var savedTheme = localStorage.getItem('theme') || 'light';
+            // Sayfa yüklenmeden HTML'e rengi bas
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="css/main.css" />
+</head>
+
+<body id="top">
+    <header class="header" id="header">
+        <div class="container header__inner">
+            <div class="brand">
+                <div class="brand__kicker">KİTAP & YAZI</div>
+                <a class="brand__logo" href="#" aria-label="Ana Sayfa">
+                    <img src="assets/images/Logo.png" alt="Minemsiyle.com">
+                </a>
+                <div class="brand__sub">Kelimelerin dünyasında, <b>Mümine'msi</b> bir mola.</div>
+            </div>
+
+            <nav class="nav" aria-label="Ana menü">
+                <a href="#featured" class="nav__link">Öne Çıkan</a>
+                <a href="#books" class="nav__link">Kitaplar</a>
+                <a href="#blog" class="nav__link">Blog</a>
+                <a href="about.html" class="nav__link">Hakkında</a>
+            </nav>
+
+            <div class="header__actions">
+                <div class="search-wrapper" style="position: relative;">
+                    <label class="search" aria-label="Kitap ara">
+                        <span class="search__icon">⌕</span>
+                        <input id="searchInput" type="search" placeholder="Kitap ara (isim / etiket)..."
+                            autocomplete="off">
+                    </label>
+
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+                <button class="btn btn--ghost" id="subscribeBtn">Takip et</button>
+
+                <button id="themeToggle" class="theme-toggle" aria-label="Tema değiştir">
+                    <span class="theme-icon moon">☀️</span>
+                    <span class="theme-thumb"></span>
+                    <span class="theme-icon sun">🌙</span>
+                </button>
+                <button class="icon-btn" onclick="document.getElementById('loginModal').showModal()"
+                    aria-label="Giriş Yap"
+                    style="background:none; border:none; cursor:pointer; color:var(--ink); display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+                <button class="icon-btn mobile-toggle" id="menuToggle" aria-label="Menüyü Aç" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+
+            </div>
+        </div>
+    </header>
+
+    <main id="main" class="container main">
+        <section class="grid">
+
+            <section class="col col--main">
+
+                <article id="featured" class="featured card">
+                    <div class="featured__meta">
+                        <span class="tag tag--accent">Editörün Notu</span>
+                        <span class="muted">• Başlangıç</span>
+                    </div>
+
+                    <h1 class="headline">Kelimelerin sığınağına hoş geldin.</h1>
+                    <p class="dek">
+                        Burası sadece bir kitap arşivi değil; okuduklarımın, hissettiklerimin ve altını çizdiğim o özel
+                        cümlelerin evi. Gösteriş yok, gürültü yok. Sadece sen, ben ve hikâyeler var. Kahveni
+                        aldıysan başlayalım mı?
+                    </p>
+
+                    <div class="featured__cta">
+                        <a href="post.html" class="btn btn--primary" style="text-decoration:none;">Son Yazıyı Oku</a>
+                        <a class="btn btn--link" href="#books">Kütüphaneye İn →</a>
+                    </div>
+
+                    <hr class="rule" />
+
+                    <div class="mini-row">
+                        <div class="mini">
+                            <div class="mini__k">Şu anki Mod</div>
+                            <div class="mini__v">Dingin & Huzurlu 🍂</div>
+                        </div>
+                        <div class="mini">
+                            <div class="mini__k">Eşlikçim</div>
+                            <div class="mini__v">Sütlü Kahve ☕</div>
+                        </div>
+                        <div class="mini">
+                            <div class="mini__k">Fonda Çalan</div>
+                            <div class="mini__v">Yağmur Sesi 🌧️</div>
+                        </div>
+                    </div>
+                </article>
+
+                <section id="books" class="section">
+                    <div class="section__head">
+                        <h2 class="section__title">Kitaplar</h2>
+                        <div class="section__sub muted">Rafların arasında sessiz bir yolculuk.</div>
+                    </div>
+
+                    <div class="books-toolbar">
+                        <div class="chips" id="chipRow" aria-label="Etikete göre filtrele">
+                        </div>
+                        <div class="sort">
+                            <label class="muted" for="sortSelect">Sırala:</label>
+                            <select id="sortSelect">
+                                <option value="new">En yeni</option>
+                                <option value="title">İsme göre</option>
+                                <option value="rating">Puana göre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="booksGrid" class="books">
+                    </div>
+                </section>
+
+                <section id="blog" class="section">
+                    <div class="section__head"
+                        style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+                        <div>
+                            <h2 class="section__title" style="margin: 0; line-height: 1.2;">Blog</h2>
+                            <div class="section__sub muted" style="margin-top: 4px;">Zihnimin dağınık köşelerinden
+                                dökülenler.</div>
+                        </div>
+                        <a href="blog.html"
+                            style="color: var(--accent); text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; margin-bottom: 4px;">
+                            Tümünü Gör →
+                        </a>
+                    </div>
+
+                    <div class="blog-grid">
+                        <article class="blog-card">
+                            <div class="blog-meta">
+                                <span class="blog-tag">Deneme</span>
+                                <span>• 12 Ocak 2026</span>
+                            </div>
+                            <h3 class="blog-title">Okurla yazar arasında sessiz bir anlaşma</h3>
+                            <p class="blog-excerpt">
+                                Hikâye, okurun zihninde tamamlanır. Yazar sadece kapıyı aralar.
+                                Bu sitede amaç; o kapıyı sade ama etkileyici açmak.
+                            </p>
+                            <a href="post.html" class="read-more">Devamını oku →</a>
+                        </article>
+
+                        <article class="blog-card">
+                            <div class="blog-meta">
+                                <span class="blog-tag">Notlar</span>
+                                <span>• 12 Ocak 2026</span>
+                            </div>
+                            <h3 class="blog-title">Krem zemin neden daha “yakın” hissettirir?</h3>
+                            <p class="blog-excerpt">
+                                Beyaz, klinik olabilir. Krem tonlar “sıcaklık” verir; metin de daha yumuşak akar.
+                            </p>
+                            <a href="post.html" class="read-more">Devamını oku →</a>
+                        </article>
+                    </div>
+                </section>
+
+            </section>
+            <aside class="col col--side">
+
+                <section class="aside card">
+                    <div class="aside__head">
+                        <h3 class="aside__title">Günün Sözü</h3>
+                        <button class="icon-btn" id="shuffleQuote" aria-label="Yeni söz getir">↻</button>
+                    </div>
+                    <blockquote class="quote" id="quoteBox">
+                        <p class="quote__text">“Okumak, insanın kendine açtığı en sakin kapıdır.”</p>
+                        <footer class="quote__by">— Seçki</footer>
+                    </blockquote>
+                </section>
+
+                <section class="aside card">
+                    <h3 class="aside__title">Şu An Masamda</h3>
+                    <div id="readingNow">
+                        <p class="muted small">Yükleniyor...</p>
+                    </div>
+                </section>
+
+                <section class="aside card">
+                    <h3 class="aside__title">2026 Hedefi</h3>
+                    <div id="readingChallenge">
+                    </div>
+                </section>
+
+            </aside>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer__inner">
+            <div class="footer__left">
+                <div class="footer__brand">Mümine’nin Kütüphanesi</div>
+                <div class="muted">© <span id="year"></span> • Created By Onur C.</div>
+            </div>
+            <div class="footer__right">
+                <a class="footer__link" href="#featured">Yukarı</a>
+                <a class="footer__link" href="#books">Kitaplar</a>
+                <a class="footer__link" href="#blog">Blog</a>
+            </div>
+        </div>
+    </footer>
+
+    <dialog class="modal" id="bookModal" aria-label="Kitap detayı">
+        <div class="modal__inner">
+            <button class="modal__close icon-btn" id="closeModal" aria-label="Kapat">✕</button>
+            <div class="modal__body">
+
+                <div class="modal__left">
+                    <img id="mCover" src="" alt="Kitap Kapağı" class="modal__img">
+                </div>
+
+                <div class="modal__content">
+                    <div class="modal__meta">
+                        <span class="tag tag--accent" id="mTag">Etiket</span>
+                        <span class="muted" id="mInfo">• Yıl</span>
+                    </div>
+                    <h3 class="modal__h" id="mHeading">Kitap Adı</h3>
+
+                    <p class="modal__author" id="mAuthorModal"
+                        style="color:var(--accent); font-weight:600; margin-bottom:12px;"></p>
+
+                    <p class="modal__p" id="mDesc"></p>
+
+                    <div class="rating" aria-label="Puan" style="margin-top: auto;">
+                        <span class="rating__stars" id="mStars" aria-hidden="true"></span>
+                        <span class="rating__num" id="mRating"></span>
+                    </div>
+
+                    <div class="modal__actions">
+                        <button class="btn btn--primary" id="editBtn">✎ Düzenle</button>
+                        <button class="btn btn--ghost" id="copyBtn">Bağlantıyı Paylaş</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+    <dialog class="modal" id="subscribeModal" style="max-width: 400px;">
+        <div class="modal__inner" style="text-align: center; padding: 40px;">
+            <button class="modal__close icon-btn" onclick="document.getElementById('subscribeModal').close()">✕</button>
+
+            <div style="font-size: 3rem; margin-bottom: 10px;">💌</div>
+            <h3 style="font-family: var(--serif); margin: 0 0 10px; color: var(--ink)">Mümine'msi Mektuplar</h3>
+            <p class="muted" style="margin-bottom: 24px; font-size: 14px;">
+                Yeni bir kitap incelemesi veya deneme yazısı geldiğinde ilk senin haberin olsun. Spam yok, sadece
+                edebiyat var.
+            </p>
+
+            <form
+                onsubmit="event.preventDefault(); alert('Şimdilik sadece demo! Veritabanına geçince çalışacak 😎'); document.getElementById('subscribeModal').close();">
+                <input type="email" placeholder="E-posta adresin..." required
+                    style="width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); margin-bottom: 12px;">
+
+                <button type="submit" class="btn btn--primary" style="width: 100%;">Abone Ol</button>
+            </form>
+
+            <div style="margin-top: 20px; font-size: 12px; color: var(--muted);">
+                veya sosyal medyadan takip et:<br>
+                <a href="#" style="color: var(--accent); font-weight: 600; text-decoration: none;">@minemsiyle</a>
+            </div>
+        </div>
+    </dialog>
+    <dialog class="modal" id="loginModal"
+        style="max-width: 400px; padding:0; border:none; border-radius:24px; background: transparent;">
+
+        <div class="modal__inner"
+            style="padding: 0; background: var(--panel); overflow: hidden; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+
+            <div style="display: flex; background: rgba(0,0,0,0.05);">
+                <button class="auth-tab is-active" onclick="switchAuth('login')" id="tab-login">Giriş Yap</button>
+                <button class="auth-tab" onclick="switchAuth('register')" id="tab-register">Kayıt Ol</button>
+            </div>
+
+            <div style="padding: 40px 30px 30px;">
+                <button class="modal__close icon-btn" onclick="document.getElementById('loginModal').close()"
+                    style="position:absolute; right:20px; top: 55px; z-index:10;">✕</button>
+
+                <form id="form-login" class="auth-form">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div style="font-size: 40px; margin-bottom: 10px;">👋</div>
+                        <h3 style="margin: 0; font-family:var(--serif); font-size: 1.5rem; color: var(--ink);">Tekrar
+                            Hoş Geldin</h3>
+                        <p style="color: var(--muted); font-size: 13px; margin-top: 5px;">Kaldığın yerden devam et.</p>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">✉️</span>
+                        <input type="email" placeholder="E-posta adresin" required class="auth-input-fancy">
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" placeholder="Şifren" required class="auth-input-fancy">
+                    </div>
+
+                    <div style="text-align:right; margin-bottom: 20px;">
+                        <a href="#" style="font-size:12px; color:var(--muted); text-decoration:none;">Şifremi
+                            unuttum?</a>
+                    </div>
+
+                    <button type="button" onclick="window.location.href='profile.html'" class="btn btn--primary"
+                        style="width:100%; padding: 14px; font-size: 15px;">Giriş Yap</button>
+                </form>
+
+                <form id="form-register" class="auth-form" style="display:none;">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div style="font-size: 40px; margin-bottom: 10px;">🚀</div>
+                        <h3 style="margin: 0; font-family:var(--serif); font-size: 1.5rem; color: var(--ink);">Aramıza
+                            Katıl</h3>
+                        <p style="color: var(--muted); font-size: 13px; margin-top: 5px;">Okur ailesinin bir parçası ol.
+                        </p>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" placeholder="Adın Soyadın" required class="auth-input-fancy">
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">✉️</span>
+                        <input type="email" placeholder="E-posta adresin" required class="auth-input-fancy">
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔑</span>
+                        <input type="password" placeholder="Şifre belirle" required class="auth-input-fancy">
+                    </div>
+
+                    <button type="submit" class="btn btn--primary"
+                        style="width:100%; padding: 14px; font-size: 15px; margin-top: 10px;">Hesap Oluştur</button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>veya</span>
+                </div>
+
+                <button type="button" class="btn-google">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20">
+                    <span>Google ile Devam Et</span>
+                </button>
+
+            </div>
+        </div>
+    </dialog>
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <aside class="mobile-menu" id="mobileMenu">
+        <button class="icon-btn close-menu" id="closeMenu" style="align-self: flex-end; margin-bottom: 20px;">✕</button>
+
+        <span class="mobile-menu__title"
+            style="font-family: var(--serif); font-size: 24px; margin-bottom: 20px; display:block;">Menü</span>
+
+        <nav class="mobile-nav" style="display: flex; flex-direction: column; gap: 15px;">
+            <a href="index.html" class="mobile-link">Ana Sayfa</a>
+            <a href="#books" class="mobile-link">Kitaplar</a>
+            <a href="#blog" class="mobile-link">Blog Yazıları</a>
+            <a href="about.html" class="mobile-link">Hakkında</a>
+        </nav>
+
+        <hr style="border:0; border-top:1px solid var(--line); margin: 30px 0;">
+
+        <button class="btn btn--primary" style="width:100%"
+            onclick="document.getElementById('subscribeModal').showModal()">Takip Et</button>
+    </aside>
+
+    <script src="js/main.js"></script>
+    <script src="js/thema.js"></script>
+</body>
+
+</html>
