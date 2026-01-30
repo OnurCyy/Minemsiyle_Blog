@@ -1171,46 +1171,6 @@ html {
     /* Burayı istediğin kadar artırıp azaltabilirsin */
 }
 
-/* --- YENİLEME BUTONU VE ALINTI DÜZENLEMESİ --- */
-
-/* Butonun kendisi */
-.icon-btn {
-    background: transparent;
-    /* Arkadaki beyazlığı kaldırır */
-    border: 1px solid transparent;
-    /* Çizgiyi sildik */
-    color: var(--muted);
-    /* Rengi yumuşattık */
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    /* Tam yuvarlak */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: all 0.4s ease;
-    /* Yumuşak geçiş */
-}
-
-/* Üzerine gelince (Hover) */
-.icon-btn:hover {
-    background: var(--line);
-    /* Hafif bir zemin gelsin */
-    color: var(--accent);
-    /* Vurgu rengini alsın (mor/yeşil/kahve) */
-    transform: rotate(180deg);
-    /* DÖNME EFEKTİ BURADA! */
-    border-color: var(--line);
-}
-
-/* Tıklandığında (Active) */
-.icon-btn:active {
-    transform: rotate(180deg) scale(0.9);
-    /* Hafifçe küçülsün */
-}
-
 /* --- MODAL (PENCERE) DÜZENLEMELERİ --- */
 
 /* Resmi kapsayan sol kutu */
@@ -1590,86 +1550,553 @@ html {
 }
 
 /* =========================================
-   MOBİL MENÜ AYARLARI (Responsive)
+   ROZET VE PROFİL EFEKTLERİ (DİSCORD STYLE)
    ========================================= */
 
-/* 1. Yan Menü Tasarımı (Gizli Başlar) */
-.mobile-menu {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 280px;
-    background: var(--panel);
-    z-index: 1000;
-    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
-    transform: translateX(100%);
-    /* Sağ tarafa sakla */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    padding: 24px;
+/* 1. ROZET GENEL YAPISI */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+    margin-left: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
 }
 
-.mobile-menu.is-open {
-    transform: translateX(0);
+/* 2. ÖZEL ROZETLER */
+
+/* VIP: Altın rengi ve parıltılı */
+.badge-vip {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    border: 1px solid #ffcc00;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.8);
+    animation: shine 3s infinite linear;
 }
 
-/* Açılınca buraya gelir */
-
-/* Link Tasarımları */
-.mobile-link {
-    text-decoration: none;
-    color: var(--ink);
-    font-size: 18px;
-    font-weight: 500;
-    padding: 10px;
-    border-radius: 8px;
-    transition: 0.2s;
+/* KIZÇE: Pembe ve tatlı */
+.badge-kizce {
+    background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+    color: #58002a;
+    border: 1px solid #ff9a9e;
 }
 
-.mobile-link:hover {
-    background: var(--line);
-    color: var(--accent);
+/* YAZAR: Mavi ve profesyonel */
+.badge-yazar {
+    background: #4facfe;
+    background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
 }
 
-/* Arka Plan Karartması */
-.mobile-menu-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-    backdrop-filter: blur(4px);
+/* YÖNETİCİ: Kırmızı ve güçlü */
+.badge-admin {
+    background: #eb3349;
+    background: linear-gradient(to right, #eb3349, #f45c43);
+    box-shadow: 0 0 10px rgba(235, 51, 73, 0.6);
 }
 
-.mobile-menu-overlay.is-active {
+/* 3. PROFİL FOTOĞRAFI EFEKTLERİ (Avatar) */
+.avatar-container {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid transparent;
+}
+
+/* VIP Üye Avatarı (Dönen Gökkuşağı Çerçeve) */
+.avatar-vip {
+    position: relative;
+    z-index: 1;
+}
+
+.avatar-vip::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    border-radius: 50%;
+    animation: spinBorder 2s linear infinite;
+}
+
+/* 4. ANİMASYONLAR */
+@keyframes shine {
+    0% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.3);
+    }
+
+    100% {
+        filter: brightness(1);
+    }
+}
+
+@keyframes spinBorder {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* SÖZ GEÇİŞ ANİMASYONU */
+.quote-fade {
     opacity: 1;
-    pointer-events: all;
+    transition: opacity 0.8s ease-in-out;
+    /* 0.8 saniyede yavaşça değiş */
 }
 
-/* 2. RESPONSIVE KURALLAR (Sadece Telefonda Çalışır) */
-@media (max-width: 900px) {
+.quote-fade.hidden {
+    opacity: 0;
+    /* Görünmez ol */
+}
 
-    /* Masaüstü menüyü GİZLE */
-    .nav {
+/* =========================================
+   CANLI PROGRESS BAR EFEKTLERİ ⚡
+   ========================================= */
+
+/* Barın dolan kısmı için genel stil */
+.progress-fill {
+    /* 1. Çizgili Doku (Stripes) */
+    background-image: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.2) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.2) 75%,
+            transparent 75%,
+            transparent);
+    background-size: 20px 20px;
+    /* Çizgilerin sıklığı */
+
+    /* 2. Hareket Animasyonu */
+    animation: move-stripes 1.5s linear infinite, grow-bar 1s ease-out forwards;
+
+    /* 3. Hafif Parlama (Glow) */
+    box-shadow: 0 0 10px rgba(212, 163, 115, 0.6);
+    /* Gold rengin parlaması */
+
+    /* Köşeleri yumuşat */
+    border-radius: 6px;
+    height: 100%;
+}
+
+/* Çizgileri hareket ettiren animasyon */
+@keyframes move-stripes {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 20px 0;
+    }
+}
+
+/* Yüklenirken soldan sağa büyüme animasyonu */
+@keyframes grow-bar {
+    from {
+        width: 0%;
+    }
+
+    /* Hedef genişlik JS'den inline style ile geliyor */
+}
+
+/* Barın arka planı (Boş kısım) */
+.progress-track {
+    background: rgba(0, 0, 0, 0.2);
+    /* Daha koyu ve transparan */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    /* İçeri göçüklük hissi */
+    border-radius: 6px;
+    overflow: hidden;
+    /* Taşmaları gizle */
+}
+
+/* --- FİLTRE BUTONLARI --- */
+.filter-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 30px 0;
+    /* Üstten alttan boşluk */
+}
+
+.filter-btn {
+    background: transparent;
+    color: #bbb;
+    border: 1px solid #444;
+    padding: 8px 20px;
+    border-radius: 25px;
+    /* Yuvarlak hatlar */
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: #fff;
+}
+
+/* Seçili Olan Buton */
+.filter-btn.active {
+    background: #f59e0b;
+    /* Senin Turuncu/Sarı rengin */
+    color: #000;
+    font-weight: bold;
+    border-color: #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    /* Hafif parlama */
+    transform: scale(1.05);
+}
+
+/* Animasyon */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- MOBİL ALT MENÜ TASARIMI --- */
+
+/* Masaüstünde GİZLE */
+.bottom-nav {
+    display: none;
+}
+
+/* Sadece Telefonda GÖSTER */
+@media (max-width: 768px) {
+    .bottom-nav {
+        display: flex;
+        /* Yan yana diz */
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 65px;
+        background: var(--panel);
+        /* Senin tema rengin */
+        border-top: 1px solid var(--line);
+        justify-content: space-around;
+        /* Eşit aralıklarla diz */
+        align-items: center;
+        z-index: 9999;
+        /* En üstte dursun */
+        backdrop-filter: blur(10px);
+        /* Hafif şeffaf cam efekti */
+        padding-bottom: env(safe-area-inset-bottom);
+        /* iPhone alt çizgi boşluğu */
+    }
+
+    /* Linklerin Tasarımı */
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: var(--muted);
+        /* Pasif renk */
+        font-size: 10px;
+        gap: 4px;
+        width: 100%;
+        /* Tıklama alanı geniş olsun */
+        height: 100%;
+    }
+
+    .nav-item svg {
+        width: 22px;
+        height: 22px;
+        transition: transform 0.2s;
+    }
+
+    /* Aktif Olan Link (Hangi sayfadaysan) */
+    .nav-item.active {
+        color: var(--accent);
+        /* Senin vurgu rengin (Turuncu/Sarı) */
+        font-weight: bold;
+    }
+
+    .nav-item.active svg {
+        transform: translateY(-2px);
+        /* Aktif olunca hafif zıplasın */
+    }
+}
+
+@media (max-width: 768px) {
+
+
+    .desktop-links {
         display: none !important;
     }
 
-    /* Hamburger butonunu GÖSTER */
-    .mobile-toggle {
-        display: flex !important;
-    }
-
-    /* Arama kutusunu biraz küçült sığsın */
-    .search input {
-        width: 80px;
-    }
-
-    /* "Takip Et" butonunu gizle (zaten menüye koyduk) */
     #subscribeBtn {
-        display: none;
+        display: none !important;
+    }
+}
+
+/* --- AMBİYANS WIDGET (PRO TASARIM) --- */
+.ambiance-widget {
+    position: fixed;
+    bottom: 90px;
+    left: 20px;
+    z-index: 99999 !important;
+    font-family: sans-serif;
+}
+
+/* Ana Yuvarlak Buton */
+.ambiance-toggle {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: var(--panel);
+    /* Temaya uyumlu */
+    border: 2px solid var(--line);
+    color: var(--accent);
+    /* İkon rengi */
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Zıplama efekti */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ambiance-toggle:hover {
+    transform: scale(1.1);
+    border-color: var(--accent);
+}
+
+/* Çalarken Etrafa Işık Yayma */
+.ambiance-toggle.playing {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent);
+    animation: spinSlow 10s linear infinite;
+}
+
+@keyframes spinSlow {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- AÇILIR PANEL --- */
+.ambiance-panel {
+    position: absolute;
+    bottom: 70px;
+    left: 0;
+    width: 260px;
+    /* Biraz genişlettik */
+    background: rgba(30, 30, 30, 0.95);
+    /* Koyu hafif şeffaf */
+    backdrop-filter: blur(10px);
+    /* Buzlu cam efekti */
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: none;
+    animation: slideUp 0.3s ease;
+}
+
+.ambiance-panel.active {
+    display: block;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+        scale: 0.9;
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        scale: 1;
+    }
+}
+
+.ambiance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+}
+
+/* --- SES KUTULARI (GRID 3x2) --- */
+.sound-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 3 Tane Yan Yana */
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.sound-item {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.sound-item:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.sound-item.active {
+    background: var(--accent);
+    color: #fff;
+    /* Seçilince yazı beyaz olsun */
+    border-color: var(--accent);
+    box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+}
+
+.sound-item span {
+    font-size: 22px;
+}
+
+.sound-item small {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* --- SES AYARI --- */
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    /* Tarayıcı desteklerse çubuk rengi */
+    cursor: pointer;
+    height: 4px;
+}
+
+@media (max-width: 768px) {
+
+    /* Müzik butonunu biraz içeri çek */
+    #focus-toggle-btn {
+        left: 15px !important;
+        /* 30px çok gelebilir */
+        bottom: 80px !important;
+        /* Menünün üstüne */
+    }
+
+    /* Müzik paneli ekrandan taşmasın */
+    #focus-panel {
+        width: 90% !important;
+        /* Genişlik 300px değil, ekranın %90'ı olsun */
+        left: 5% !important;
+        /* Ortala */
+        right: 5% !important;
+    }
+}
+
+/* 📱 MOBİL ALT MENÜ DÜZELTME */
+@media (max-width: 768px) {
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+
+        /* 👇 İŞTE SİHİRLİ DOKUNUŞ BURASI */
+        left: 0 !important;
+        right: 0 !important;
+        width: auto !important;
+        /* 100% yerine auto diyoruz */
+        margin: 0 !important;
+        max-width: 100vw !important;
+
+        background: var(--bg-card);
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        z-index: 9999;
+        box-sizing: border-box;
+        /* Padding şişirme yapmasın */
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* 📱 MOBİL HEADER DÜZELTME VE PROFİL GİZLEME */
+@media (max-width: 768px) {
+
+    /* 1. PROFİL KISMINI (miriba) GİZLE */
+    /* Hangi class'ı kullandığını tam bilmediğim için tüm ihtimalleri yazdım, kesin yakalar */
+    header .user-profile,
+    header .profile-section,
+    header .user-info,
+    header a[href="login.html"],
+    /* Login linki ise gizle */
+    header a[href="profile.html"] {
+        display: none !important;
+    }
+
+    /* 2. EĞER HALA GİTMEDİYSE: Header'ın en sağındaki son parçayı gizle */
+    /* Genelde profil en sağda olur */
+    header>div:last-child {
+        /* display: none !important;  <-- DİKKAT: Bunu sadece yukarıdakiler işe yaramazsa aç */
+    }
+
+    /* 3. LOGO VE MOD BUTONUNU DÜZENLE */
+    header {
+        justify-content: space-between !important;
+        /* Logo sol, Mod sağ */
+        padding-right: 10px !important;
+        /* Sağdan hafif boşluk bırak */
+        overflow-x: hidden !important;
+        /* Header içinden taşan her şeyi kes at */
+    }
+
+    /* Mod butonu (Güneş/Ay) sağa yaslansın */
+    header .theme-toggle {
+        margin-left: auto !important;
+        margin-right: 0 !important;
     }
 }

@@ -4,44 +4,64 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const User = require("../models/User");
-const SiteSettings = require("../models/SiteSettings");
-
-// EKSİK OLAN PARÇALAR: Modelleri buraya çağırmalıyız
-// Eğer models klasöründe Post.js ve Book.js yoksa hata verir, onları da oluşturacağız.
 const Post = require("../models/Post");
 const Book = require("../models/Book");
 
-// --- MEVCUT KODLARIN (DOKUNMADIM) ---
+// ==========================================
+// 👤 KULLANICI YÖNETİMİ (Ban, Rozet vs.)
+// ==========================================
 
-// TÜM KULLANICILARI LİSTELE
+// 1. TÜM KULLANICILARI LİSTELE
 router.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const users = await User.find().select("-password");
+        const users = await User.find().select("-password").sort({ createdAt: -1 });
         res.json({ message: "Kullanıcılar listelendi", total: users.length, users });
     } catch (err) {
         res.status(500).json({ message: "Sunucu hatası" });
     }
 });
 
-// UNBAN
+// 2. KULLANICIYI BANLA
+router.post("/ban/:id", authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { reason } = req.body;
+        const user = await User.findById(req.params.id);
+
+        if (!user) return res.status(404).json({ message: "Kullanıcı yok!" });
+
+        if (user.role === 'admin') {
+            return res.status(403).json({ message: "Yöneticiler banlanamaz! 🛡️" });
+        }
+
+        user.isBanned = true;
+        user.banReason = reason || "Belirtilmedi";
+        user.bannedAt = new Date();
+        await user.save();
+
+        res.json({ message: "Kullanıcı banlandı! 🚫" });
+    } catch (error) {
+        res.status(500).json({ message: "Ban işlemi başarısız." });
+    }
+});
+
+// 3. BAN KALDIR (UNBAN)
 router.post("/unban/:id", authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
-        if (!user.isBanned) return res.status(400).json({ message: "Kullanıcı zaten banlı değil" });
 
         user.isBanned = false;
         user.banReason = null;
         user.bannedAt = null;
         await user.save();
 
-        res.json({ message: "Kullanıcının banı kaldırıldı", userId: user._id });
+        res.json({ message: "Kullanıcının banı kaldırıldı 😇", userId: user._id });
     } catch (error) {
         res.status(500).json({ message: "Sunucu hatası" });
     }
 });
 
-// ROZET İŞLEMLERİ
+// 4. ROZET EKLE
 router.post("/badge/:id", authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const { badge } = req.body;
@@ -49,86 +69,54 @@ router.post("/badge/:id", authMiddleware, adminMiddleware, async (req, res) => {
         if (!user) return res.status(404).json({ message: "Kullanıcı yok" });
 
         if (user.badges.includes(badge)) return res.status(400).json({ message: "Bu rozet zaten var" });
+
         user.badges.push(badge);
         await user.save();
-        res.json({ message: "Rozet eklendi", badges: user.badges });
+        res.json({ message: "Rozet eklendi 🎖️", badges: user.badges });
     } catch (error) {
         res.status(500).json({ message: "Sunucu hatası" });
     }
 });
 
-router.post("/badge-remove/:id", authMiddleware, adminMiddleware, async (req, res) => {
-    const { badge } = req.body;
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "Kullanıcı yok" });
-    user.badges = user.badges.filter(b => b !== badge);
-    await user.save();
-    res.json({ message: "Rozet kaldırıldı", badges: user.badges });
-});
-
-// BAKIM MODU
-router.post("/maintenance", authMiddleware, adminMiddleware, async (req, res) => {
+// 5. ROZET SİL
+router.post("/remove-badge/:id", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const { enabled } = req.body;
-        let settings = await SiteSettings.findOne();
-        if (!settings) { settings = new SiteSettings({ maintenance: enabled }); }
-        else { settings.maintenance = enabled; }
-        await settings.save();
-        res.json({ message: `Bakım modu ${enabled ? "AÇILDI" : "KAPATILDI"}`, maintenance: enabled });
-    } catch (err) {
-        res.status(500).json({ message: "Sunucu hatası" });
+        const { badge } = req.body;
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: "Kullanıcı yok!" });
+
+        user.badges = user.badges.filter(b => b !== badge);
+        await user.save();
+
+        res.json({ message: `${badge} rozeti söküldü! 🗑️`, badges: user.badges });
+    } catch (error) {
+        res.status(500).json({ message: "Rozet silinemedi." });
     }
 });
 
-// --- İŞTE YENİ EKLENEN KISIMLAR (KAYIP HALKALAR) ---
+// ==========================================
+// 📝 İÇERİK EKLEME (Yedek Rotalar)
+// ==========================================
 
-// 1. YAZI EKLEME (POST)
+// YAZI EKLE
 router.post("/add-post", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        // Frontend'den gelen verileri al
-        const { title, category, excerpt, content, cover } = req.body;
-
-        // Yeni yazı oluştur
-        const newPost = new Post({
-            title,
-            category,
-            excerpt,
-            content,
-            cover, // Resim URL'si varsa
-            author: req.user.username // Token'dan gelen admin ismi
-        });
-
+        const newPost = new Post({ ...req.body, author: req.user.username });
         await newPost.save();
-
         res.json({ message: "Yazı başarıyla eklendi! 📝", post: newPost });
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Yazı eklenirken hata oluştu" });
+        res.status(500).json({ message: "Hata oluştu" });
     }
 });
 
-// 2. KİTAP EKLEME (GÜNCELLENMİŞ VERSİYON)
+// KİTAP EKLE
 router.post("/add-book", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        // ARTIK cover (Kapak) ve desc (Açıklama) DE ALIYORUZ
-        const { title, author, tag, rating, cover, desc } = req.body;
-
-        const newBook = new Book({
-            title,
-            author,
-            tag,
-            rating: rating || 5,
-            // Eğer resim gelmezse varsayılan bir kapak koyalım
-            cover: cover || "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80",
-            desc: desc || "Bu kitap için henüz açıklama girilmedi."
-        });
-
+        const newBook = new Book(req.body);
         await newBook.save();
-
         res.json({ message: "Kitap başarıyla eklendi! 📚", book: newBook });
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Kitap eklenirken hata oluştu" });
+        res.status(500).json({ message: "Hata oluştu" });
     }
 });
 

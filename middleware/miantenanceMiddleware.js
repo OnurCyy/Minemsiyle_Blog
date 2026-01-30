@@ -1,7 +1,7 @@
-const SiteSettings = require("../models/SiteSettings");
+const Settings = require("../models/Settings");
 
 const maintenanceMiddleware = async (req, res, next) => {
-    const settings = await SiteSettings.findOne();
+    const settings = await Settings.findOne();
 
     if (!settings || !settings.maintenanceMode) {
         return next();

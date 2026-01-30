@@ -5,25 +5,44 @@ const PostSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    category: {
-        type: String,
-        required: true
-    },
-    excerpt: {
-        type: String,
-        required: true
-    },
+    // 👇 İşte burası eksik olduğu için yazılar kayboluyor!
     content: {
         type: String,
         required: true
     },
+    category: {
+        type: String,
+        default: 'Genel'
+    },
+    // 👇 Kısa açıklama alanı (Burası yoksa özet kaydolmaz)
+    excerpt: {
+        type: String,
+        default: ''
+    },
+    // 👇 Resim alanları
+    image: {
+        type: String,
+        default: ''
+    },
     cover: {
         type: String,
-        default: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1200&q=80"
+        default: ''
+    },
+    tags: {
+        type: [String],
+        default: []
     },
     author: {
         type: String,
-        default: "Admin"
+        default: 'Anonim'
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    likes: {
+        type: Number,
+        default: 0
     },
     createdAt: {
         type: Date,

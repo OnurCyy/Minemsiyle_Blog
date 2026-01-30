@@ -5,225 +5,965 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profilim | Minemsiyle</title>
-    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
-
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="css/profile.css">
     <script>
         (function () {
+            // Hafızaya bak, yoksa 'light' yap
             var savedTheme = localStorage.getItem('theme') || 'light';
+            // Sayfa yüklenmeden HTML'e rengi bas
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
 
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/profile.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <style>
+        /* --- 🛠️ ÖZEL DÜZELTMELER --- */
+
+        /* 1. YAZI TAŞMASINI ENGELLEME */
+        .user-handle,
+        #profileBio,
+        .user-name {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+        }
+
+        /* 2. Avatar Düzenleme İkonu */
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .edit-avatar-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 5px;
+            background: var(--accent);
+            color: #1a1a1a;
+            border: 2px solid var(--bg-card);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        .edit-avatar-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 3. Taglar */
+        .user-tags {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .user-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #333;
+            color: #ccc;
+            border: 1px solid var(--border);
+        }
+
+        .owner-tag {
+            background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            animation: glowing 20s linear infinite;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes glowing {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 400% 0;
+            }
+        }
+
+        /* 4. Rozetler (KİLİTLİ GÖRÜNÜM AYARLARI) */
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            padding: 10px 0;
+        }
+
+        .badge-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            /* KİLİTLİ HALİ: Siyah Beyaz ve Şeffaf */
+            opacity: 0.5;
+            filter: grayscale(100%);
+            transition: 0.4s;
+        }
+
+        /* KAZANILMIŞ HALİ: Renkli ve Parlak */
+        .badge-item.earned {
+            opacity: 1;
+            filter: grayscale(0);
+            border-color: var(--accent);
+            box-shadow: 0 4px 15px rgba(196, 139, 94, 0.15);
+            transform: translateY(-3px);
+            background: rgba(196, 139, 94, 0.05);
+            /* Hafif turuncu zemin */
+        }
+
+        .badge-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--accent);
+        }
+
+        .badge-item h4 {
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .badge-item p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        /* 5. BOŞ DURUM (EMPTY STATE) TASARIMI */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .empty-state i {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+            color: var(--accent);
+        }
+
+        .empty-state h3 {
+            color: var(--text-main);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+
+        /* 5. Modallar ve Form Elemanları (DÜZELTİLDİ) */
+        .modal-box input,
+        .modal-box textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            outline: none;
+            font-family: sans-serif;
+            transition: 0.3s;
+        }
+
+        .modal-box input:focus,
+        .modal-box textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(196, 139, 94, 0.2);
+        }
+
+        .modal-box textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .password-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .password-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .cropper-container-box {
+            max-height: 400px;
+            background: #000;
+            margin-bottom: 15px;
+        }
+
+        .preview-box {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--accent);
+            margin: 0 auto 15px auto;
+        }
+
+        /* --- LOGO BOYUT AYARI --- */
+        .brand img {
+            height: 60px;
+            /* Yüksekliği sınırla (İsteğine göre 50px-80px yapabilirsin) */
+            width: auto;
+            /* Enini orantılı daralt */
+            object-fit: contain;
+            /* Resmi bozmadan sığdır */
+            display: block;
+            /* Kaymaları önle */
+        }
+
+        /* Mobilde biraz daha küçük olsun istersen: */
+        @media (max-width: 768px) {
+            .brand img {
+                height: 45px;
+            }
+        }
+
+        /* Profil Sayfasındaki Admin Butonu */
+        .admin-profile-btn {
+            display: block;
+            /* Tam genişlik kaplasın */
+            width: 100%;
+            background: var(--bg-card);
+            /* Kendi rengi yerine kart rengi */
+            color: var(--accent);
+            /* Turuncu yazı */
+            border: 2px solid var(--accent);
+            /* Turuncu çerçeve */
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .admin-profile-btn:hover {
+            background: var(--accent);
+            /* Üstüne gelince turuncu olsun */
+            color: white;
+            /* Yazı beyaz olsun */
+            transform: translateY(-3px);
+            /* Hafif yukarı zıplasın */
+            box-shadow: 0 5px 15px rgba(211, 84, 0, 0.3);
+        }
+
+        /* --- ROZET GÖRÜNÜMÜ VE PARILDAMA EFEKTİ --- */
+        .user-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin: 3px;
+            color: #fff;
+            /* Yazılar hep beyaz */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+            /* Parıldama için gerekli ayarlar */
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            transition: transform 0.2s;
+        }
+
+        /* Hover olunca hafif büyüsün */
+        .user-tag:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ✨ PARILDAMA ANİMASYONU (SHINE EFFECT) ✨ */
+        .user-tag::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .user-tag:hover::after {
+            left: 100%;
+        }
+
+        /* --- ROZET GÖRÜNÜMÜ (Profile Özel) --- */
+        .user-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin: 3px;
+            color: #fff !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            transition: transform 0.2s;
+            text-transform: uppercase;
+        }
+
+        .user-tag i {
+            font-size: 1rem;
+        }
+
+        /* İkon boyutu */
+
+        .user-tag:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ✨ PARILDAMA EFEKTİ */
+        .user-tag::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .user-tag:hover::after {
+            left: 100%;
+        }
+
+        /* --- PROFİL RESPONSIVE AYARLARI --- */
+        @media (max-width: 768px) {
+
+            /* Profil ana kutusu alt alta dizilsin */
+            .profile-container,
+            .profile-header {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center;
+            }
+
+            /* Sol taraftaki resim ve isim kısmı */
+            .profile-info {
+                width: 100% !important;
+                margin-bottom: 20px;
+                border-right: none !important;
+                /* Aradaki çizgiyi kaldır */
+                border-bottom: 1px solid var(--line);
+                /* Alta çizgi ekle */
+                padding-bottom: 20px;
+            }
+
+            /* Sağ taraftaki istatistikler */
+            .profile-stats {
+                width: 100% !important;
+                justify-content: center;
+                gap: 30px;
+            }
+
+            /* Sekme butonları tam otursun */
+            .profile-tabs {
+                justify-content: center;
+                gap: 15px;
+            }
+        }
+
+        /* 📱 MOBİL PROFİL: Başarımları Tam Genişlik Yap */
+        @media (max-width: 768px) {
+
+            /* Başarımlar Kutusunu Bul */
+            /* Not: Class ismini tahmin ediyorum, seninki .achievements-container falan olabilir */
+            .achievements-section,
+            .badges-container {
+                /* Kenar boşluklarını iptal et (Negatif Margin Tekniği) */
+                margin-left: -20px !important;
+                /* Sayfa kenar boşluğu ne kadarsa o kadar eksi ver */
+                margin-right: -20px !important;
+
+                /* Genişliği arttır ki kenarlara yapışsın */
+                width: calc(100% + 40px) !important;
+
+                /* Köşeleri sivri yap, tam otursun */
+                border-radius: 0 !important;
+                border-left: none !important;
+                border-right: none !important;
+
+                /* İçini biraz ferahlat */
+                padding: 20px 10px !important;
+                background-color: var(--bg-card);
+                /* Kart rengi olsun */
+            }
+
+            /* Rozetleri ortala ve sıkıştır */
+            .badges-grid {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                /* Ortala */
+                gap: 15px;
+                /* Rozetler arası boşluk */
+            }
+        }
+    </style>
 </head>
 
-<body id="top">
+<body>
 
-    <header class="header">
-        <div class="container header__inner">
-            <a href="index.html" class="brand__logo">
-                <img src="assets/images/Logo.png" alt="Minemsiyle" style="height:50px;">
+    <header>
+        <div class="container">
+            <a class="brand" href="index.html" aria-label="Ana Sayfa">
+                <img src="assets/images/Logo.png" alt="Minemsiyle.com">
             </a>
-
-            <nav class="nav">
-                <a href="index.html" class="nav__link">Ana Sayfa</a>
-                <a href="blog.html" class="nav__link">Blog</a>
+            <nav class="nav-links">
+                <a href="blog.html">Blog</a>
             </nav>
-
-            <div class="header__actions">
-                <a href="profile.html" class="icon-btn" style="color:var(--accent);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </a>
-                <button id="themeToggle" class="theme-toggle">
-                    <span class="theme-icon moon">☀️</span>
-                    <span class="theme-thumb"></span>
-                    <span class="theme-icon sun">🌙</span>
-                </button>
+            <div class="switch-container">
+                <label class="theme-switch">
+                    <input type="checkbox" id="themeCheckbox" onchange="toggleThemeSwitch()">
+                    <span class="slider">
+                        <i class="ph-fill ph-moon" style="font-size: 14px; color: #ccc;"></i>
+                        <i class="ph-fill ph-sun" style="font-size: 14px; color: #fff;"></i>
+                    </span>
+                </label>
             </div>
         </div>
     </header>
 
-    <main class="container main" style="margin-top: 40px; margin-bottom: 80px;">
+    <div class="main-layout">
 
-        <div class="profile-layout">
+        <aside class="profile-card">
+            <div class="avatar-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" class="avatar-img"
+                    id="avatarDisplay">
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                <label for="avatarInput" class="edit-avatar-btn"><i class="ph-bold ph-pencil-simple"></i></label>
+            </div>
 
-            <aside class="profile-sidebar">
-                <div class="profile-card">
-                    <div class="profile-cover"
-                        style="background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000&auto=format&fit=crop');">
-                    </div>
+            <h1 class="user-name" id="displayName">Yükleniyor...</h1>
 
-                    <div class="profile-card-inner">
-                        <div class="profile-avatar-box">
-                            <img src="https://i.pravatar.cc/150?u=8" alt="Profil">
-                            <button class="edit-btn">✎</button>
-                        </div>
+            <div style="margin-bottom: 15px;">
+                <span class="user-handle" id="displayEmail">@...</span>
+            </div>
 
-                        <h1 class="p-name">Onur C.</h1>
-                        <p class="p-username">@onurcode</p>
+            <div class="user-tags" id="userTagsContainer"></div>
 
-                        <div class="level-container">
-                            <div class="level-info">
-                                <span class="level-badge">Seviye 3</span>
-                                <span class="level-title">Kelime Avcısı</span>
-                            </div>
-                            <div class="xp-bar-bg">
-                                <div class="xp-bar-fill" style="width: 65%;"></div>
-                            </div>
-                            <div class="xp-text">Sonraki seviyeye: 120 XP</div>
-                        </div>
+            <p id="displayBio"
+                style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; font-style: italic;">
+                "Henüz bir biyografi eklenmemiş."
+            </p>
 
-                        <p class="p-bio">
-                            "İyi bir kitap, iyi bir dosttur." 📚
-                        </p>
+            <div class="stats">
+                <div class="stat-box"><strong id="statSaved">0</strong><span>Kaydedilen</span></div>
+                <div class="stat-box"><strong id="statComments">0</strong><span>Yorum</span></div>
+            </div>
 
-                        <div class="p-stats">
-                            <div class="stat-item">
-                                <span class="stat-num">8</span>
-                                <span class="stat-label">Kaydedilen</span>
-                            </div>
-                            <div class="stat-line"></div>
-                            <div class="stat-item">
-                                <span class="stat-num">12</span>
-                                <span class="stat-label">Yorum</span>
-                            </div>
-                        </div>
+            <div class="profile-info">
+                <div id="adminPanelBtnArea" style="margin: 20px 0;"></div>
+            </div>
 
-                        <div class="p-actions">
-                            <button class="btn btn--primary" style="width:100%">Profili Düzenle</button>
-                            <button class="btn btn--ghost" style="width:100%; margin-top:8px;">Ayarlar</button>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+            <button class="action-btn" onclick="openSettings()">Profili Düzenle ⚙️</button>
+            <button class="action-btn logout-btn" onclick="logout()">Güvenli Çıkış 🚪</button>
+        </aside>
 
+        <section class="content-area">
+            <div class="tabs">
+                <div class="tab" onclick="switchTab('badges')">🏆 Rozetler</div>
+            </div>
 
-            <section class="profile-feed">
+            <div id="saved-content" class="tab-content active"></div>
 
-                <div class="modern-tabs">
-                    <button class="tab-link is-active" onclick="openTab(event, 'saved-posts')">
-                        🔖 Kaydedilenler
-                    </button>
-                    <button class="tab-link" onclick="openTab(event, 'badges')">
-                        🏆 Rozet Koleksiyonu
-                    </button>
-                </div>
+            <div id="badges-content" class="tab-content" style="display: block !important;">
+                <div class="badges-grid" id="badgesList"></div>
+            </div>
+        </section>
+    </div>
 
-                <div id="saved-posts" class="tab-content active-content">
-                    <div class="section-info">Beğendiğin ve daha sonra okumak için ayırdığın yazılar.</div>
-
-                    <div class="blog-list-simple">
-                        <article class="saved-post-row">
-                            <div class="sp-date">12<br>Oca</div>
-                            <div class="sp-info">
-                                <h3>Okurla yazar arasında sessiz bir anlaşma</h3>
-                                <span class="tag">Deneme</span>
-                            </div>
-                            <div class="sp-action">
-                                <button class="icon-btn" title="Kaldır">🗑️</button>
-                            </div>
-                        </article>
-
-                        <article class="saved-post-row">
-                            <div class="sp-date">05<br>Oca</div>
-                            <div class="sp-info">
-                                <h3>Ocak ayının getirdiği huzur</h3>
-                                <span class="tag">Günlük</span>
-                            </div>
-                            <div class="sp-action">
-                                <button class="icon-btn" title="Kaldır">🗑️</button>
-                            </div>
-                        </article>
-
-                        <article class="saved-post-row">
-                            <div class="sp-date">01<br>Oca</div>
-                            <div class="sp-info">
-                                <h3>Kürk Mantolu Madonna üzerine notlar</h3>
-                                <span class="tag">İnceleme</span>
-                            </div>
-                            <div class="sp-action">
-                                <button class="icon-btn" title="Kaldır">🗑️</button>
-                            </div>
-                        </article>
-                    </div>
-                </div>
-
-                <div id="badges" class="tab-content" style="display: none;">
-                    <div class="section-info">Yorum yaptıkça ve okudukça yeni rozetlerin kilidini aç!</div>
-
-                    <div class="badge-grid">
-
-                        <div class="badge-card unlocked">
-                            <div class="badge-icon">🐛</div>
-                            <div class="badge-name">Kitap Kurdu</div>
-                            <div class="badge-desc">İlk yazıyı okudun.</div>
-                        </div>
-
-                        <div class="badge-card unlocked">
-                            <div class="badge-icon">✍️</div>
-                            <div class="badge-name">İlk Merhaba</div>
-                            <div class="badge-desc">İlk yorumunu yaptın.</div>
-                        </div>
-
-                        <div class="badge-card locked">
-                            <div class="badge-icon">🔥</div>
-                            <div class="badge-name">Seri Okur</div>
-                            <div class="badge-desc">5 yazıyı art arda oku.</div>
-                            <div class="badge-lock">🔒</div>
-                        </div>
-
-                        <div class="badge-card locked">
-                            <div class="badge-icon">🎭</div>
-                            <div class="badge-name">Eleştirmen</div>
-                            <div class="badge-desc">10 farklı yazıya yorum yap.</div>
-                            <div class="badge-lock">🔒</div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </section>
-
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-box">
+            <h2 style="margin-bottom: 20px; font-family: 'Merriweather', serif;">Profili Düzenle</h2>
+            <div class="form-group">
+                <label style="color: #888; font-size: 0.85rem;">Kullanıcı Adı</label>
+                <input type="text" id="editUsername" placeholder="İsminiz">
+            </div>
+            <div class="form-group" style="margin-top: 10px;">
+                <label style="color: #888; font-size: 0.85rem;">Hakkımda (Bio)</label>
+                <textarea id="editBio" placeholder="Kendinden bahset..."></textarea>
+            </div>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+            <p style="color: var(--accent); font-size: 0.8rem;">🔒 Şifre Değiştir</p>
+            <div class="password-grid">
+                <input type="password" id="newPass" placeholder="Yeni Şifre">
+                <input type="password" id="confirmPass" placeholder="Tekrar">
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="action-btn logout-btn" onclick="closeSettings()">İptal</button>
+                <button class="action-btn" onclick="saveSettings()">Kaydet</button>
+            </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="footer">
-        <div class="container footer__inner" style="justify-content:center;">
-            <div class="muted">© 2026 Minemsiyle</div>
+    <div class="modal-overlay" id="cropperModal">
+        <div class="modal-box" style="max-width: 500px;">
+            <h2 style="margin-bottom: 15px;">Fotoğrafı Ayarla</h2>
+            <div class="preview-box box-shadow"></div>
+            <div class="cropper-container-box">
+                <img id="imageToCrop" src="" alt="Resim" style="max-width: 100%;">
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="action-btn logout-btn" onclick="closeCropper()">Vazgeç</button>
+                <button class="action-btn" onclick="cropAndSave()">Böyle İyi ✅</button>
+            </div>
         </div>
-    </footer>
+    </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
-        function openTab(evt, tabName) {
-            // Tüm içerikleri gizle
-            var i, content, tablinks;
-            content = document.getElementsByClassName("tab-content");
-            for (i = 0; i < content.length; i++) {
-                content[i].style.display = "none";
+        // GLOBAL
+        let cropper;
+        const owners = ['admin@minemsiyle.com', 'sevgilim@minemsiyle.com', 'test@test.com', 'admin@test.com'];
+        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
+        // --- SAYFA YÜKLENİNCE ---
+        window.onload = function () {
+            initVisitCounter();
+
+            // Tema
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('themeCheckbox').checked = true;
             }
-            // Tüm butonların aktifliğini kaldır
-            tablinks = document.getElementsByClassName("tab-btn");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" is-active", "");
-            }
-            // İsteneni göster
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " is-active";
+
+            loadUserProfile();
+            renderSavedItems();
+            renderBadges();
         }
-        // Tema scripti
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
+
+        // --- ZİYARET SAYACI ---
+        function initVisitCounter() {
+            if (!sessionStorage.getItem('sessionCounted')) {
+                let visits = parseInt(localStorage.getItem('visitCount') || "0");
+                visits++;
+                localStorage.setItem('visitCount', visits);
+                sessionStorage.setItem('sessionCounted', "true");
+            }
+        }
+
+        function loadUserProfile() {
+            console.log("Profil yükleniyor...");
+
+            // 1. URL ve Kullanıcı Kontrolü
+            const params = new URLSearchParams(window.location.search);
+            const targetUsername = params.get('u');
+
+            // Veritabanından EN GÜNCEL veriyi çekiyoruz (Canlı veri)
+            const allUsers = JSON.parse(localStorage.getItem('users') || "[]");
+            const currentUserSession = JSON.parse(localStorage.getItem('user'));
+
+            let userToDisplay = null;
+
+            // Kimi göstereceğiz?
+            if (targetUsername) {
+                // Linkten geldiysek o kişiyi bul
+                userToDisplay = allUsers.find(u => u.username === targetUsername);
+
+                // Başkasıysa düzenleme butonlarını gizle
+                if (currentUserSession && currentUserSession.username !== targetUsername) {
+                    const actions = document.querySelector('.actions');
+                    if (actions) actions.style.display = 'none';
+                    const adminBtn = document.getElementById('adminPanelBtnArea');
+                    if (adminBtn) adminBtn.style.display = 'none';
+                }
+            } else {
+                // Kendimizsek, oturumdaki isme göre GÜNCEL VERİYİ listeden bul
+                // (Sadece 'user'a bakarsak eski rozetleri görürüz, 'allUsers'a bakmalıyız)
+                if (currentUserSession) {
+                    userToDisplay = allUsers.find(u => u.email === currentUserSession.email) || currentUserSession;
+                } else {
+                    window.location.href = "login.html";
+                    return;
+                }
+            }
+
+            if (!userToDisplay) return; // Hata varsa dur
+
+            // 2. Verileri Ekrana Bas
+            const avatarEl = document.getElementById('avatarDisplay');
+            if (avatarEl && userToDisplay.avatar) avatarEl.src = userToDisplay.avatar;
+
+            const nameEl = document.getElementById('displayName');
+            if (nameEl) nameEl.innerText = userToDisplay.username;
+
+            const bioEl = document.getElementById('displayBio');
+            if (bioEl) bioEl.innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
+
+            const emailEl = document.getElementById('displayEmail');
+            if (emailEl) emailEl.innerText = userToDisplay.email || "";
+
+            // --- 🔥 3. ROZET SİSTEMİ (FİNAL VERSİYON) ---
+            const tagsBox = document.getElementById('userTagsContainer');
+
+            if (tagsBox) {
+                tagsBox.innerHTML = ''; // Temizle
+
+                // 📒 ROZET SÖZLÜĞÜ (Admin Paneliyle Aynı ID'ler)
+                const badgeDictionary = {
+                    'admin': { label: 'Yönetici', color: '#00b894', icon: 'ph-shield-check' },
+                    'mod': { label: 'Moderatör', color: '#f39c12', icon: 'ph-shield' },
+                    'dev': { label: 'Geliştirici', color: '#e17055', icon: 'ph-code' },
+                    'vip': { label: 'VIP Üye', color: '#f1c40f', icon: 'ph-sparkle' },
+                    'supporter': { label: 'Destekçi', color: '#e84393', icon: 'ph-heart' },
+                    'verified': { label: 'Onaylı', color: '#0984e3', icon: 'ph-check-circle' },
+                    'writer': { label: 'Yazar', color: '#6c5ce7', icon: 'ph-pen-nib' },
+                    'poet': { label: 'Şair', color: '#a29bfe', icon: 'ph-feather' },
+                    'bug_hunter': { label: 'Bug Avcısı', color: '#00cec9', icon: 'ph-bug' },
+                    'bookworm': { label: 'Kitap Kurdu', color: '#badc58', icon: 'ph-book-open' },
+                    'coffee': { label: 'Kahve Sever', color: '#8d6e63', icon: 'ph-coffee' },
+                    'cat_lover': { label: 'Kedi Sever', color: '#636e72', icon: 'ph-cat' }
+                };
+
+                // Admin panelinden gelen veri 'badges' veya 'tags' içinde olabilir
+                // İkisini birleştirip tek bir liste yapıyoruz
+                let userBadges = userToDisplay.badges || userToDisplay.tags || [];
+
+                // Eğer string ise diziye çevir (Hata önleyici)
+                if (typeof userBadges === 'string') userBadges = [userBadges];
+
+                if (userBadges && userBadges.length > 0) {
+
+                    // Rozetleri dön ve bas
+                    tagsBox.innerHTML = userBadges.map(badgeId => {
+                        // Sözlükten bilgileri çek
+                        const info = badgeDictionary[badgeId];
+
+                        // Eğer sözlükte varsa süslü bas
+                        if (info) {
+                            const textColor = (info.color === '#f1c40f') ? '#000' : '#fff'; // Sarıysa siyah yazı
+                            return `
+                    <span class="user-tag" style="background:${info.color}; color:${textColor} !important;">
+                        <i class="ph-fill ${info.icon}"></i> ${info.label}
+                    </span>`;
+                        }
+                        // Sözlükte yoksa (Eski sistem veya bilinmeyen) gri bas
+                        else {
+                            return `<span class="user-tag" style="background:#555;">${badgeId}</span>`;
+                        }
+                    }).join('');
+
+                } else {
+                    // Hiç rozet yoksa standart 'Üye' yaz
+                    tagsBox.innerHTML = `<span class="user-tag" style="background:#2d3436;">Üye</span>`;
+                }
+            }
+
+            // --- 4. YÖNETİCİ BUTONU ---
+            const adminBtnContainer = document.getElementById('adminPanelBtnArea');
+            const myEmail = userToDisplay.email;
+            // Yetkili mailler listesi
+            const authorizedEmails = ['admin@minemsiyle.com', 'test@test.com', 'admin@test.com']; // Kendi mailini buraya ekle!
+
+            // Kendi profilimizse VE yetkiliysek butonu göster
+            if (!targetUsername && adminBtnContainer) {
+                if (userToDisplay.username === "Admin" || authorizedEmails.includes(myEmail) || (userToDisplay.role === 'admin')) {
+                    adminBtnContainer.innerHTML = `
+                <a href="adminPanel.html" class="action-btn" style="background:var(--accent); color:#fff; display:inline-flex; align-items:center; gap:5px; text-decoration:none; margin-top:10px; padding: 10px 20px; border-radius: 8px;">
+                    <i class="ph-bold ph-crown"></i> Yönetici Paneli
+                </a>
+            `;
+                }
+            }
+        }
+        // İstatistik (Gerçek Veri)
+        const savedCount = JSON.parse(localStorage.getItem('savedItems') || "[]").length;
+        document.getElementById('statSaved').innerText = savedCount;
+        // Yorum sayısı şimdilik manuel (Veritabanı yok)
+        document.getElementById('statComments').innerText = "0";
+
+
+        function renderSavedItems() {
+            // Sadece rozetleri çalıştır, gerisini boşver
+            renderBadges();
+
+            // İstersen container'ı da temizle garanti olsun
+            const container = document.getElementById('saved-content');
+            if (container) container.innerHTML = "";
+        }
+        // --- 1. VERİ KONTROL (OTOMATİK EKLEME İPTAL EDİLDİ) ---
+        function initDummyData() {
+            // Burayı bilerek boş bıraktık. 
+            // Kullanıcı ne zaman kaydederse o zaman dolsun.
+            // "Mış gibi" yapmak yok! 😎
+            if (!localStorage.getItem('savedItems')) {
+                localStorage.setItem('savedItems', "[]");
+            }
+        }
+
+        function deleteSavedItem(id) {
+            if (confirm("Listeden kaldırıyor muyuz?")) {
+                let items = JSON.parse(localStorage.getItem('savedItems') || "[]");
+                items = items.filter(item => item.id !== id);
+                localStorage.setItem('savedItems', JSON.stringify(items));
+                renderSavedItems();
+            }
+        }
+
+        // --- 3. ROZETLER (HEPSİ GÖRÜNÜR AMA KİLİTLİ OLABİLİR) ---
+        function renderBadges() {
+            const container = document.getElementById('badgesList');
+
+            // Verileri Çek
+            const savedCount = JSON.parse(localStorage.getItem('savedItems') || "[]").length;
+            const user = JSON.parse(localStorage.getItem('user') || "{}");
+            const visits = parseInt(localStorage.getItem('visitCount') || "0");
+
+            const now = new Date();
+            const hour = now.getHours();
+            const day = now.getDay();
+
+            // KOŞULLAR
+            const hasBio = user.bio && user.bio.length > 0;
+            const isLongBio = user.bio && user.bio.length > 20;
+            const isAvatarChanged = user.avatar && user.avatar !== defaultAvatar;
+            const isNight = hour >= 22 || hour < 6;
+            const isMorning = hour >= 6 && hour < 10;
+            const isWeekend = day === 0 || day === 6;
+            const themeChanged = localStorage.getItem('theme') !== null;
+
+            const badges = [
+                { icon: 'ph-fill ph-scroll', title: 'İlk Adım', desc: 'Aramıza hoş geldin.', condition: true },
+                { icon: 'ph-fill ph-user-circle', title: 'Kimlik', desc: 'Biyografini doldurdun.', condition: hasBio },
+                { icon: 'ph-fill ph-camera', title: 'Fotojenik', desc: 'Profil resmini değiştirdin.', condition: isAvatarChanged },
+                { icon: 'ph-fill ph-pen-nib', title: 'Edebiyatçı', desc: 'Uzun biyografi yazdın.', condition: isLongBio },
+                { icon: 'ph-fill ph-sun-horizon', title: 'Erkenci', desc: 'Sabah (06-10) girdin.', condition: isMorning },
+                { icon: 'ph-fill ph-moon-stars', title: 'Kahveci', desc: 'Gece (22-06) girdin.', condition: isNight },
+                { icon: 'ph-fill ph-calendar-check', title: 'Tatilci', desc: 'Hafta sonu ziyareti.', condition: isWeekend },
+                { icon: 'ph-fill ph-footprints', title: 'Müdavim', desc: '5. kez ziyaret ettin.', condition: visits >= 5 },
+                { icon: 'ph-fill ph-paint-brush-broad', title: 'Bukalemun', desc: 'Temayı değiştirdin.', condition: themeChanged },
+                { icon: 'ph-fill ph-bookmark-simple', title: 'Arşivci', desc: '1 içerik kaydettin.', condition: savedCount >= 1 },
+                { icon: 'ph-fill ph-books', title: 'Kütüphaneci', desc: '3 içerik kaydettin.', condition: savedCount >= 3 },
+                { icon: 'ph-fill ph-star', title: 'Yıldız', desc: '5 içerik kaydettin.', condition: savedCount >= 5 },
+                { icon: 'ph-fill ph-heart', title: 'Aşık', desc: '7 içerik kaydettin.', condition: savedCount >= 7 },
+                { icon: 'ph-fill ph-trophy', title: 'Efsane', desc: '10 içerik kaydettin.', condition: savedCount >= 10 }
+            ];
+
+            container.innerHTML = "";
+            badges.forEach(badge => {
+                const earnedClass = badge.condition ? 'earned' : '';
+                const html = `
+                    <div class="badge-item ${earnedClass}">
+                        <i class="${badge.icon} badge-icon"></i>
+                        <h4>${badge.title}</h4>
+                        <p>${badge.desc}</p>
+                    </div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        // --- AYARLAR & KAYDETME ---
+        function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
+        function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+
+        // --- PROFİL BİLGİLERİNİ KALICI KAYDETME ---
+        // --- PROFİLİ GARANTİLİ KAYDETME ---
+        function saveSettings() {
+            const newName = document.getElementById('editUsername').value;
+            const newBio = document.getElementById('editBio').value;
+            const newPass = document.getElementById('newPass').value;
+            const confirmPass = document.getElementById('confirmPass').value;
+
+            // 1. Mevcut Oturumu Al
+            let user = JSON.parse(localStorage.getItem('user')) || {};
+
+            // 2. Ana Veritabanını Al
+            let allUsers = JSON.parse(localStorage.getItem('users') || "[]");
+
+            // 3. Kullanıcıyı Bulmaya Çalış
+            let userIndex = allUsers.findIndex(u => u.email === user.email);
+
+            // 🔥 KRİTİK HAMLE: Eğer listede yoksan, seni listeye EKLE!
+            if (userIndex === -1) {
+                console.log("Kullanıcı listede yoktu, oluşturuluyor...");
+                allUsers.push(user); // Şu anki halini listeye at
+                userIndex = allUsers.length - 1; // Yeni index'i al
+            }
+
+            // --- GÜNCELLEMELER ---
+
+            // İsim
+            if (newName.trim()) {
+                user.username = newName.trim();
+                allUsers[userIndex].username = newName.trim();
+            }
+
+            // Biyografi
+            if (newBio.trim()) {
+                user.bio = newBio.trim();
+                allUsers[userIndex].bio = newBio.trim();
+            }
+
+            // Şifre
+            if (newPass || confirmPass) {
+                if (newPass !== confirmPass) { alert("❌ Şifreler uyuşmuyor!"); return; }
+                if (newPass.length < 4) { alert("❌ Şifre çok kısa."); return; }
+
+                user.password = newPass;
+                allUsers[userIndex].password = newPass;
+                alert("🔒 Şifre de yenilendi!");
+            }
+
+            // --- HER İKİ YERE DE KAYDET ---
+            localStorage.setItem('user', JSON.stringify(user));      // Oturumu Güncelle
+            localStorage.setItem('users', JSON.stringify(allUsers)); // Veritabanını Güncelle
+
+            alert("✅ Profilin kalıcı olarak güncellendi!");
+            location.reload();
+        }
+        // --- DİĞER (Kırpma, Logout, Tab vb.) ---
+        const avatarInput = document.getElementById('avatarInput');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const cropperModal = document.getElementById('cropperModal');
+
+        avatarInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 50 * 1024 * 1024) { alert("Maksimum 50MB!"); return; }
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    imageToCrop.src = reader.result;
+                    cropperModal.classList.add('open');
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1, preview: '.preview-box' });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- FOTOĞRAFI KALICI YAPMA ---
+        function cropAndSave() {
+            if (!cropper) return;
+
+            const canvas = cropper.getCroppedCanvas({ width: 300, height: 300 });
+            const croppedImageURL = canvas.toDataURL("image/jpeg", 0.85);
+
+            // 1. Oturumu Güncelle
+            let user = JSON.parse(localStorage.getItem('user')) || {};
+            user.avatar = croppedImageURL;
+            localStorage.setItem('user', JSON.stringify(user));
+
+            // 2. Ana Veritabanını Güncelle
+            let allUsers = JSON.parse(localStorage.getItem('users') || "[]");
+            let userIndex = allUsers.findIndex(u => u.email === user.email);
+
+            // 🔥 KRİTİK HAMLE: Listede yoksan ekle
+            if (userIndex === -1) {
+                allUsers.push(user);
+                userIndex = allUsers.length - 1;
+            }
+
+            // Güncelle ve Kaydet
+            allUsers[userIndex].avatar = croppedImageURL;
+            localStorage.setItem('users', JSON.stringify(allUsers));
+
+            closeCropper();
+            document.getElementById('avatarDisplay').src = croppedImageURL;
+            alert("Fotoğrafın artık demirbaş oldu Kral! 😎");
+        }
+        // --- İŞTE EKSİK OLAN KAPATMA FONKSİYONU ---
+        function closeCropper() {
+            // 1. Modalı Bul ve Gizle
+            const modal = document.getElementById('cropperModal');
+            if (modal) modal.classList.remove('open');
+
+            // 2. Kırpıcıyı (Cropper) Yok Et (Hafızayı temizle)
+            // (Eğer 'cropper' değişkenini global tanımlamadıysan 'window.cropper' kullanırız)
+            if (typeof cropper !== 'undefined' && cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+
+            // 3. Dosya Seçiciyi Sıfırla (Ki aynı resmi tekrar seçebil)
+            const input = document.getElementById('avatarInput');
+            if (input) input.value = "";
+
+            console.log("Oh be! Modal kapandı. 🚪");
+        }
+
+        function toggleThemeSwitch() {
+            const checkbox = document.getElementById('themeCheckbox');
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', checkbox.checked ? 'light' : 'dark');
+            renderBadges();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName + '-content').style.display = 'block';
+            const tabs = document.querySelectorAll('.tab');
+            if (tabName === 'saved') tabs[0].classList.add('active');
+            if (tabName === 'badges') tabs[1].classList.add('active');
+        }
+
+        function logout() {
+            if (confirm("Çıkış yapılıyor...")) {
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            }
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Kullanıcıyı bul
+            const user = JSON.parse(localStorage.getItem("user"));
+
+            // 2. Admin mi diye bak
+            if (user && user.username === "Admin") {
+                const adminArea = document.getElementById("adminArea");
+
+                // 3. Oraya havalı bir buton koy
+                if (adminArea) {
+                    adminArea.innerHTML = `
+                <a href="adminPanel.html" class="admin-profile-btn">
+                    <i class="ph-bold ph-gear-six"></i> Yönetim Paneli
+                </a>
+            `;
+                }
+            }
         });
     </script>
 </body>

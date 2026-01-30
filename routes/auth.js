@@ -4,12 +4,14 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+// TEST ROTASI
 router.get("/test", (req, res) => {
     res.json({ message: "Auth route çalışıyor..." });
 });
 
-module.exports = router;
-
+// =====================================================
+// 1. KAYIT OL (REGISTER)
+// =====================================================
 router.post("/register", async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -38,13 +40,16 @@ router.post("/register", async (req, res) => {
         await newUser.save();
 
         res.status(201).json({
-            message: "Kullanıcı oluşturuldu",
+            message: "Kullanıcı başarıyla oluşturuldu.",
         });
     } catch (error) {
         res.status(500).json({ message: "Sunucu Hatası" });
     }
 });
 
+// =====================================================
+// 2. GİRİŞ YAP (LOGIN)
+// =====================================================
 router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -63,7 +68,7 @@ router.post("/login", async (req, res) => {
         // 2️⃣ SONRA banlı mı?
         if (user.isBanned) {
             return res.status(403).json({
-                message: "Bu kullanıcı banlanmıştır",
+                message: "Bu kullanıcı banlanmıştır! 🚫",
                 reason: user.banReason
             });
         }
@@ -77,17 +82,17 @@ router.post("/login", async (req, res) => {
         // 4️⃣ Token
         const token = jwt.sign(
             { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
+            process.env.JWT_SECRET || "gizlisifre", // .env yoksa patlamasın diye
+            { expiresIn: "7d" } // 1 gün az olabilir, 7 gün yapalım rahat etsinler
         );
 
         res.json({
             message: "Giriş başarılı",
             token,
-            user: {               // <--- İŞTE BU EKSİKTİ!
+            user: {
                 username: user.username,
                 email: user.email,
-                role: user.role   // Bu bilgi sayesinde "Sadece Admin" diyebileceğiz.
+                role: user.role
             }
         });
 
@@ -98,3 +103,34 @@ router.post("/login", async (req, res) => {
         });
     }
 });
+
+// =====================================================
+// 3. ŞİFRE SIFIRLAMA (FORGOT PASSWORD) - YENİ EKLENDİ ✨
+// =====================================================
+router.post("/reset-password", async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+
+        if (!email || !newPassword) {
+            return res.status(400).json({ message: "E-posta ve yeni şifre gerekli!" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "Bu e-posta adresiyle kayıtlı kullanıcı yok." });
+        }
+
+        // Yeni şifreyi şifrele (Hash)
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+
+        await user.save();
+
+        res.json({ message: "Şifren başarıyla yenilendi! Yeni şifrenle giriş yapabilirsin. 🔑" });
+    } catch (error) {
+        res.status(500).json({ message: "Şifre sıfırlama hatası." });
+    }
+});
+
+// BU SATIR EN SONDA OLMALI!
+module.exports = router;

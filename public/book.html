@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitap Yükleniyor... | Minemsiyle</title>
+
+    <link rel="stylesheet" href="css/main.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* --- RENK PALETİ VE TEMA AYARLARI --- */
+        :root {
+            /* ☀️ AÇIK TEMA (Varsayılan) */
+            --bg: #f4efe3;
+            /* Arka plan */
+            --bg-card: #f8f9fa;
+            /* Kart/Kutu arka planı */
+            --bg-body: #f1f3f5;
+            /* Input/Textarea içi */
+            --ink: #1a1a1a;
+            /* Ana yazı rengi (Siyah) */
+            --text-main: #2c3e50;
+            /* İkincil yazı */
+            --text-muted: #6c757d;
+            /* Silik yazı */
+            --border: #e9ecef;
+            /* Kenarlıklar */
+            --accent: #d35400;
+            /* Turuncu vurgu rengi */
+            --accent-hover: #e67e22;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 🌙 KOYU TEMA (Dark Mode) */
+        body.dark-theme,
+        .dark {
+            --bg: #171412;
+            /* Koyu gri/siyah */
+            --bg-card: #1e1e1e;
+            /* Kartlar biraz daha açık gri */
+            --bg-body: #2d2d2d;
+            /* Input içi */
+            --ink: #e0e0e0;
+            /* Yazılar beyaz */
+            --text-main: #ced4da;
+            --text-muted: #adb5bd;
+            --border: #333333;
+            /* Kenarlıklar koyu gri */
+            --accent: #e67e22;
+            /* Turuncu biraz daha parlak */
+            --accent-hover: #d35400;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            /* Gölgeler daha sert */
+        }
+
+        /* Geçiş animasyonu (Göz yormasın diye yumuşak geçiş) */
+        body,
+        .interaction-bar,
+        .book-cover-img,
+        .single-comment {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* --- SAYFA YAPISI VE LAYOUT --- */
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-family: var(--sans, 'Segoe UI', sans-serif);
+        }
+
+        .container-detail {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            min-height: 80vh;
+        }
+
+        /* KİTAP ÜST BÖLÜM (Kapak + Bilgi) */
+        .book-hero {
+            display: flex;
+            gap: 50px;
+            align-items: flex-start;
+            margin-bottom: 50px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Sol: Kapak Resmi */
+        .book-cover-wrapper {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .book-cover-img {
+            width: 300px;
+            height: 450px;
+            object-fit: cover;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            /* Derinlik gölgesi */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .book-cover-img:hover {
+            transform: translateY(-5px);
+            /* Üzerine gelince hafif kalksın */
+        }
+
+        /* Sağ: Bilgiler */
+        .book-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .book-tag {
+            display: inline-block;
+            background-color: var(--accent);
+            color: #fff;
+            /* Yazı okunurluğu için beyaz */
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            align-self: flex-start;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-title {
+            font-family: var(--serif, 'Merriweather', serif);
+            font-size: 3rem;
+            line-height: 1.1;
+            margin: 0 0 15px 0;
+            color: var(--ink);
+        }
+
+        .book-meta {
+            font-size: 1.1rem;
+            color: var(--muted);
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .book-desc {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: var(--ink);
+            opacity: 0.9;
+        }
+
+        /* --- ETKİLEŞİM ALANI (BEĞEN & YORUM) --- */
+        #interactionArea {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Beğen Butonu Kutusu */
+        .interaction-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 25px 10px 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+            transition: transform 0.2s;
+        }
+
+        .interaction-bar:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        /* Yuvarlak Kalp Butonu */
+        .like-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-body);
+            color: var(--text-muted);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* Zıplama efekti */
+        }
+
+        .like-btn:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Kalp Dolu (Beğenilmiş) Hali */
+        .like-btn.active {
+            background: #ef4444;
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* --- YORUM ALANI TASARIMI --- */
+        .blog-comment-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--ink);
+        }
+
+        .blog-comment-box {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        textarea#commentText {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg-body);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px;
+            color: var(--ink);
+            font-family: inherit;
+            resize: vertical;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        textarea#commentText:focus {
+            border-color: var(--accent);
+            background: var(--bg-body);
+            box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
+            /* Vurgu halkası */
+        }
+
+        .blog-send-btn {
+            margin-top: 15px;
+            background: var(--accent);
+            color: #fff;
+            /* Kontrast için beyaz veya siyah seçilmeli */
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            float: right;
+            transition: 0.2s;
+        }
+
+        .blog-send-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Yorum Listesi */
+        .single-comment {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .single-comment:hover {
+            transform: translateX(5px);
+            border-color: var(--accent);
+        }
+
+        .single-comment img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            object-fit: cover;
+        }
+
+        /* MOBİL UYUM (Responsive) */
+        @media (max-width: 768px) {
+            .book-hero {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 30px;
+            }
+
+            .book-cover-img {
+                width: 200px;
+                height: 300px;
+            }
+
+            .book-title {
+                font-size: 2rem;
+            }
+
+            .book-tag {
+                align-self: center;
+                /* Mobilde ortala */
+            }
+
+            .book-meta {
+                justify-content: center;
+            }
+        }
+
+        /* Animasyon */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- HEADER / NAVBAR KISMI İÇİN GEREKLİLER --- */
+        .header {
+            border-bottom: 1px solid var(--line);
+            padding: 15px 0;
+            background-color: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header__inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav__link {
+            color: var(--ink);
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .nav__link:hover {
+            color: var(--accent);
+        }
+
+        /* Theme Switch */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 28px;
+            position: relative;
+            width: 54px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: var(--line);
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            background-color: var(--panel);
+            bottom: 3px;
+            content: "☀️";
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+            content: "🌙";
+            background-color: #fff;
+        }
+
+        /* --- DÜZELTİLMİŞ YORUM ALANI --- */
+
+        /* Yorum Kutusu (Kapsayıcı) */
+        .comment-form {
+            display: flex;
+            /* Esnek kutu yapısı */
+            flex-direction: column;
+            /* Alt alta diz */
+            gap: 15px;
+            /* Elemanlar arası boşluk (Textarea ve Buton arası) */
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Metin Alanı */
+        .comment-form textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            background: var(--bg-body);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            transition: 0.3s;
+            /* Margin'i kaldırdık çünkü 'gap' kullanıyoruz */
+            margin: 0;
+        }
+
+        .comment-form textarea:focus {
+            border-color: var(--accent);
+            background: var(--bg-body);
+            /* Odaklanınca renk değişmesin */
+            box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
+        }
+
+        /* Gönder Butonu */
+        .send-comment-btn {
+            align-self: flex-end;
+            /* Kutunun en sağına yasla */
+            background: var(--accent);
+            color: #fff;
+            /* Yazı rengi beyaz */
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            /* Float (Kaydırma) özelliğini sildik, flex hallediyor */
+        }
+
+        .send-comment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
+
+        /* Yorum Listesi (Formdan İyice Uzaklaşsın) */
+        .comments-list {
+            margin-top: 50px;
+            /* Üstteki formla arayı açtık */
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            /* Hafif bir ayırıcı çizgi */
+        }
+
+        /* Tekil Yorum Kartı */
+        .single-comment {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            /* Yorumlar arası boşluk */
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        /* --- YORUM ALANI (İSİM DÜZELTMELİ VERSİYON) --- */
+
+        /* 1. Kapsayıcı Kutu (Daha önce 'comment-form' demiştik, doğrusu bu) */
+        .blog-comment-box {
+            display: flex;
+            /* Esnek kutu */
+            flex-direction: column;
+            /* Alt alta diz */
+            gap: 20px;
+            /* Yazı ile Buton arasına 20px net boşluk koy */
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+        }
+
+        /* 2. Yazı Alanı */
+        .blog-comment-box textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            background: var(--bg-body);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            transition: 0.3s;
+            margin: 0;
+            /* Gap kullandığımız için margin'e gerek yok */
+        }
+
+        .blog-comment-box textarea:focus {
+            border-color: var(--accent);
+            background: var(--bg-body);
+            box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
+        }
+
+        /* 3. Butonun Çerçevesi (Varsa footer div'i temizle) */
+        .blog-comment-footer {
+            display: flex;
+            justify-content: flex-end;
+            /* Butonu en sağa it */
+            width: 100%;
+        }
+
+        /* 4. Gönder Butonu (Doğru sınıf: 'blog-send-btn') */
+        .blog-send-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            /* Daha modern yuvarlak hatlar */
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            /* Float SİLİNDİ, artık Flexbox yönetiyor */
+        }
+
+        .blog-send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
+
+        /* 5. Yorum Listesi */
+        .comments-list {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Tekil Yorum Kartı */
+        .single-comment {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 20px;
+        }
+
+        /* --- YORUM SİLME BUTONU --- */
+        .delete-comment-btn {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            /* Kırmızı renk */
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: 50%;
+            margin-left: auto;
+            /* En sağa yaslar */
+            opacity: 0.6;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-comment-btn:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            /* Hafif kırmızı zemin */
+            opacity: 1;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header__inner">
+            <div class="brand">
+                <a class="brand__logo" href="index.html">
+                    <img src="assets/images/Logo.png" alt="Minemsiyle" style="height: 40px;">
+                </a>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav__link">Ana Sayfa</a>
+
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="checkbox">
+                        <input type="checkbox" id="checkbox" />
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+
+        <div id="articleArea" class="book-content-wrapper">
+            <div style="text-align:center; padding:50px;">
+                <div class="loading-spinner"></div>
+                <p>Kitap yükleniyor...</p>
+            </div>
+        </div>
+
+        <div id="interactionArea" style="display:none;">
+            <div class="interaction-bar" style="margin-top:30px; margin-bottom:30px;">
+                <button class="action-btn-icon like-btn" onclick="toggleLike(this)">
+                    <i class="ph-bold ph-heart"></i>
+                </button>
+                <span style="margin-left:10px;">Kitabı beğen</span>
+            </div>
+
+            <div class="blog-comments-section">
+                <div class="blog-comment-header">
+                    <i class="ph-duotone ph-chats-teardrop"></i> Okur Köşesi (<span id="commentCount">0</span>)
+                </div>
+
+                <div class="blog-comment-box">
+                    <textarea id="commentText" placeholder="Kitap hakkındaki düşüncelerin neler?"></textarea>
+                    <div class="blog-comment-footer">
+                        <button class="blog-send-btn" onclick="postComment()">Yorumu Yayınla 🚀</button>
+                    </div>
+                </div>
+
+                <div class="comments-list" id="commentsList" style="margin-top: 30px;"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="ambiance-widget" id="ambianceWidget">
+        <button class="ambiance-toggle" onclick="toggleAmbiancePanel()" title="Odak Modu">
+            <span class="music-note">🎵</span>
+        </button>
+
+        <div class="ambiance-panel" id="ambiancePanel">
+            <div class="ambiance-header">
+                <span>Odak Modu</span>
+                <button onclick="toggleAmbiancePanel()"
+                    style="background:none; border:none; color:var(--muted); cursor:pointer;">✕</button>
+            </div>
+
+            <div class="sound-options">
+                <div class="sound-item" onclick="playAmbiance('rain', this)">
+                    <span>🌧️</span>
+                    <small>Yağmur</small>
+                </div>
+                <div class="sound-item" onclick="playAmbiance('cafe', this)">
+                    <span>☕</span>
+                    <small>Kafe</small>
+                </div>
+                <div class="sound-item" onclick="playAmbiance('fire', this)">
+                    <span>🔥</span>
+                    <small>Şömine</small>
+                </div>
+                <div class="sound-item" onclick="playAmbiance('forest', this)">
+                    <span>🌲</span>
+                    <small>Orman</small>
+                </div>
+                <div class="sound-item" onclick="playAmbiance('night', this)">
+                    <span>🌙</span>
+                    <small>Gece</small>
+                </div>
+                <div class="sound-item" onclick="playAmbiance('snow', this)">
+                    <span>❄️</span>
+                    <small>Kar</small>
+                </div>
+            </div>
+
+            <div class="volume-container">
+                <span style="font-size:12px; color:var(--muted);">Ses:</span>
+                <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
+            </div>
+        </div>
+
+        <div id="audio-container">
+            <audio id="audio-rain" loop src="assets/sounds/yağmur.mp3"></audio>
+
+            <audio id="audio-cafe" loop src="assets/sounds/cafe.mp3"></audio>
+
+            <audio id="audio-fire" loop src="assets/sounds/Kamp ateşi.mp3"></audio>
+
+            <audio id="audio-forest" loop src="assets/sounds/Doğa.mp3"></audio>
+
+            <audio id="audio-night" loop src="assets/sounds/Gece.mp3"></audio>
+
+            <audio id="audio-snow" loop src="assets/sounds/Kar.mp3"></audio>
+        </div>
+    </div>
+
+
+    <footer
+        style="text-align:center; padding:40px 0; color:var(--muted); font-size:12px; border-top:1px solid var(--line); margin-top:50px;">
+        &copy; 2026 Minemsiyle • Keyifli Okumalar
+    </footer>
+
+    <script>
+        // Backend adresin (Sonunda '/' olmamalı)
+        const API_URL_POST = "http://localhost:5000/api";
+
+        // GLOBAL DEĞİŞKENLER
+        let contentId = null;
+        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
+        document.addEventListener("DOMContentLoaded", async () => {
+
+            // 1. URL'den ID'yi AL ve TEMİZLE
+            const params = new URLSearchParams(window.location.search);
+            let id = params.get("id");
+
+            if (!id) {
+                showError("Linkte ID bulunamadı. Lütfen ana sayfadan tekrar deneyin.");
+                return;
+            }
+
+            id = id.trim(); // Boşlukları temizle
+            console.log("İstek atılan ID:", id);
+
+            // 2. VERİTABANINDAN ÇEK
+            try {
+
+                const res = await fetch(`${API_URL_POST}/books/${id}`);
+
+                if (!res.ok) {
+                    // Eğer 404 veya 500 gelirse
+                    console.error("Backend Hatası:", res.status);
+                    showError(`Kitap bulunamadı! (Hata Kodu: ${res.status}) <br> ID: ${id}`);
+                    return;
+                }
+
+                const post = await res.json();
+                console.log("Gelen Veri:", post);
+
+                // 3. SAYFAYI DOLDUR
+                renderBook(post);
+
+                // Etkileşimleri Başlat
+                contentId = post._id;
+                updateHeaderProfile();
+                checkUserLoginForComments();
+                checkLikeStatus();
+                loadComments();
+
+            } catch (err) {
+                console.error("Fetch Hatası:", err);
+                showError("Sunucuya bağlanılamadı. Backend kapalı olabilir.");
+            }
+        });
+
+        function renderBook(post) {
+            const date = new Date(post.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const contentArea = document.getElementById("articleArea");
+            const interactionArea = document.getElementById("interactionArea");
+
+            document.title = `${post.title} | Minemsiyle`;
+
+            // Resim yoksa placeholder
+            const imageSrc = post.cover || "https://via.placeholder.com/300x450?text=Kapak+Yok";
+
+            // HTML'i Yeni CSS'e göre doldur
+            contentArea.innerHTML = `
+            <div class="book-hero">
+                <div class="book-cover-wrapper">
+                    <img src="${imageSrc}" class="book-cover-img" alt="${post.title}">
+                </div>
+
+                <div class="book-info">
+                    <span class="book-tag">${post.tag || "Kitap"}</span>
+                    <h1 class="book-title">${post.title}</h1>
+                    
+                    <div class="book-meta">
+                        <span>✍️ ${post.author || "Bilinmiyor"}</span>
+                        <span>📅 ${date}</span>
+                        ${post.pageCount ? `<span style="margin:0 8px; opacity:0.5">|</span> <span>📄 ${post.pageCount} Sayfa</span>` : ''}
+                    </div>
+
+                    <div class="book-desc">
+                        ${formatContent(post.desc || post.content)}
+                    </div>
+                    
+                    ${post.publisher ? `<p style="margin-top:20px; font-size:0.9rem; color:var(--muted);"><em>Yayınevi: ${post.publisher}</em></p>` : ''}
+                </div>
+            </div>
+        `;
+
+            // İçerik yüklendi, etkileşim alanını aç
+            if (interactionArea) interactionArea.style.display = "block";
+        }
+
+        function showError(message) {
+            const area = document.getElementById("articleArea");
+            area.innerHTML = `
+            <div style="text-align:center; padding:50px; background:var(--bg-card); border-radius:12px; border:1px solid var(--border);">
+                <h2 style="color:#ef4444;">😔 Ops!</h2>
+                <p>${message}</p>
+                <a href="index.html" style="display:inline-block; margin-top:20px; color:var(--accent); text-decoration:underline;">Ana Sayfaya Dön</a>
+            </div>
+        `;
+        }
+
+        function formatContent(text) {
+            if (!text) return "İçerik yok.";
+            return text.split('\n').map(p => p.trim() ? `<p>${p}</p>` : "").join('');
+        }
+
+        // --- YARDIMCI FONKSİYONLAR (Aynen Korundu) ---
+        function updateHeaderProfile() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const profileLink = document.getElementById('headerProfileLink');
+            if (user && user.avatar && profileLink) {
+                profileLink.innerHTML = `<img src="${user.avatar}" class="header-avatar-img" alt="Profil">`;
+                profileLink.href = "profile.html";
+            }
+        }
+
+        function checkUserLoginForComments() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const commentBox = document.querySelector('.blog-comment-box');
+            if (!commentBox) return;
+            if (!user) {
+                commentBox.innerHTML = `
+                <div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--bg-card); border: 1px dashed var(--border); border-radius: 12px;">
+                    <i class="ph-duotone ph-lock-key" style="font-size: 2rem; margin-bottom: 10px; color: var(--accent);"></i>
+                    <p style="margin:0;">Yorum yapmak için <a href="login.html" style="color: var(--accent); font-weight: bold; text-decoration: underline;">giriş yapmalısın</a>.</p>
+                </div>
+            `;
+            }
+        }
+
+        function toggleLike(btn) {
+            if (!contentId) return;
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) { alert("Beğenmek için giriş yapmalısın!"); return; }
+            let likedItems = JSON.parse(localStorage.getItem('likedItems') || "[]");
+            const index = likedItems.indexOf(contentId);
+            const icon = btn.querySelector('i');
+
+            if (index > -1) {
+                likedItems.splice(index, 1);
+                btn.classList.remove('active');
+                icon.classList.remove('ph-fill'); icon.classList.add('ph-bold');
+            } else {
+                likedItems.push(contentId);
+                btn.classList.add('active');
+                icon.classList.remove('ph-bold'); icon.classList.add('ph-fill');
+            }
+            localStorage.setItem('likedItems', JSON.stringify(likedItems));
+        }
+
+        function checkLikeStatus() {
+            if (!contentId) return;
+            const btn = document.querySelector('.like-btn');
+            if (!btn) return;
+            let likedItems = JSON.parse(localStorage.getItem('likedItems') || "[]");
+            if (likedItems.includes(contentId)) {
+                btn.classList.add('active');
+                const icon = btn.querySelector('i');
+                icon.classList.remove('ph-bold'); icon.classList.add('ph-fill');
+            }
+        }
+
+        function postComment() {
+            if (!contentId) return;
+            const textArea = document.getElementById('commentText');
+            if (!textArea) return;
+            const text = textArea.value;
+            if (!text.trim()) { alert("Boş yorum olmaz."); return; }
+            const user = JSON.parse(localStorage.getItem('user'));
+            const now = new Date();
+            const fullDateTime = `${now.toLocaleDateString('tr-TR')} • ${now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
+            const newComment = { id: Date.now(), pageId: contentId, user: user.username, avatar: user.avatar || defaultAvatar, text: text, date: fullDateTime };
+
+            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
+            allComments.push(newComment);
+            localStorage.setItem('allComments', JSON.stringify(allComments));
+            textArea.value = "";
+            loadComments();
+        }
+
+        // --- YORUMLARI LİSTELEME (TAGLAR VE PROFİL LİNKİ EKLENDİ) ---
+        function loadComments() {
+            if (!contentId) return;
+
+            const list = document.getElementById('commentsList');
+            const countSpan = document.getElementById('commentCount');
+            const currentUser = JSON.parse(localStorage.getItem('user'));
+
+            // Tüm kullanıcı veritabanını çek (Tagları bulmak için lazım)
+            const allUsers = JSON.parse(localStorage.getItem('users') || "[]");
+
+            // Yetki kontrolü
+            const isCurrentUserAdmin = currentUser && (
+                currentUser.username === "Admin" ||
+                (window.owners && window.owners.includes(currentUser.email))
+            );
+
+            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
+            const pageComments = allComments.filter(c => c.pageId == contentId);
+
+            if (list) list.innerHTML = "";
+            if (countSpan) countSpan.innerText = pageComments.length;
+
+            if (pageComments.length === 0 && list) {
+                list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
+                return;
+            }
+
+            const tagStyles = {
+                // --- YETKİ & STATÜ ---
+                'admin': { label: '👑 Yönetici', bg: '#ffd700', text: '#000' }, // Altın
+                'mod': { label: '🛡️ Moderatör', bg: '#2980b9', text: '#fff' }, // Koyu Mavi
+                'dev': { label: '💻 Geliştirici', bg: '#00d2ff', text: '#000' }, // Neon Mavi
+
+                // --- ÜYELİK & DESTEK ---
+                'vip': { label: '💎 VIP Üye', bg: '#9b59b6', text: '#fff' }, // Mor
+                'supporter': { label: '💖 Destekçi', bg: '#ff6b81', text: '#fff' }, // Pembe
+                'verified': { label: '✅ Onaylı', bg: '#2ecc71', text: '#fff' }, // Yeşil
+
+                // --- İÇERİK ÜRETİCİ ---
+                'writer': { label: '🖋️ Yazar', bg: '#34495e', text: '#fff' }, // Lacivert
+                'poet': { label: '🪶 Şair', bg: '#a29bfe', text: '#000' }, // Lila
+
+                // --- EĞLENCE & AKTİVİTE ---
+                'bug_hunter': { label: '🐛 Bug Avcısı', bg: '#e74c3c', text: '#fff' }, // Kırmızı
+                'bookworm': { label: '📚 Kitap Kurdu', bg: '#27ae60', text: '#fff' }, // Orman Yeşili
+                'coffee': { label: '☕ Kahve Sever', bg: '#6f4e37', text: '#fff' }, // Kahve Rengi
+                'cat_lover': { label: '🐱 Kedi Sever', bg: '#ff9ff3', text: '#000' }  // Şeker Pembesi
+            };
+            pageComments.reverse().forEach(c => {
+                const displayDate = c.date ? c.date : "Tarih Yok";
+
+                // 🔥 1. YORUM YAZAN KİŞİNİN GÜNCEL BİLGİLERİNİ BUL
+                // Yorumdaki isimle veritabanındaki ismi eşleştiriyoruz
+                const commentAuthor = allUsers.find(u => u.username === c.user);
+
+                // Eğer kullanıcının güncel avatarı varsa onu kullan (Değiştirmiş olabilir)
+                const currentAvatar = commentAuthor ? commentAuthor.avatar : c.avatar;
+
+                // 🔥 2. TAGLARI OLUŞTUR
+                let badgeHTML = "";
+
+                // A) Admin panelinden eklenen taglar var mı?
+                if (commentAuthor && commentAuthor.tags && commentAuthor.tags.length > 0) {
+                    badgeHTML = commentAuthor.tags.map(tag =>
+                        `<span style="background:var(--accent); color:#fff; font-size:0.65rem; padding:2px 6px; border-radius:4px; margin-left:5px; vertical-align:middle;">${tag}</span>`
+                    ).join('');
+                }
+                // B) Yoksa klasik yönetici kontrolü
+                else if (c.user === "Admin" || c.isAdmin === true) {
+                    badgeHTML = `<span style="background:#e74c3c; color:white; font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:5px; vertical-align:middle; font-weight:bold;">👑 Yönetici</span>`;
+                }
+
+                // 🔥 3. SİL BUTONU
+                let deleteBtnHTML = "";
+                const silinecekParametre = c.id ? c.id : `'${c.date}'`;
+
+                if (currentUser && (currentUser.username === c.user || isCurrentUserAdmin)) {
+                    deleteBtnHTML = `
+            <button onclick="deleteComment(${silinecekParametre})" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                <i class="ph-bold ph-trash"></i> ${isCurrentUserAdmin && currentUser.username !== c.user ? 'Yönetici Sil' : 'Sil'}
+            </button>
+            `;
+                }
+
+                // 🔥 4. PROFİL LİNKİ OLUŞTURMA
+                // İsim ve Avatarı link içine alıyoruz
+                const profileLink = `profile.html?u=${c.user}`;
+
+                const html = `
+        <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:var(--bg-card); padding:15px; border-radius:12px; border:1px solid var(--border);">
+            
+            <a href="${profileLink}" style="text-decoration:none;">
+                <img src="${currentAvatar}" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--accent); object-fit:cover;">
+            </a>
+
+            <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    
+                    <a href="${profileLink}" style="text-decoration:none;">
+                        <h4 style="color:var(--accent); font-size:0.9rem; margin:0; display:flex; align-items:center; flex-wrap:wrap;">
+                            ${c.user} ${badgeHTML}
+                        </h4>
+                    </a>
+
+                    <small style="color:var(--text-muted); font-size:0.7rem;">${displayDate}</small>
+                </div>
+
+                <p style="color:var(--text-main); font-size:0.9rem; margin:5px 0 0 0;">${c.text}</p>
+
+                ${deleteBtnHTML}
+            </div>
+        </div>
+        `;
+                if (list) list.innerHTML += html;
+            });
+        }
+        // --- YORUM SİLME FONKSİYONU ---
+        function deleteComment(identifier) {
+            if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
+
+            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
+
+            // Eğer gelen şey bir sayıysa (ID ise) ID'ye göre filtrele
+            if (typeof identifier === 'number') {
+                allComments = allComments.filter(c => c.id !== identifier);
+            }
+            // Eğer yazıysa (Eski tarihli sistemse) Tarihe göre filtrele
+            else {
+                allComments = allComments.filter(c => c.date !== identifier);
+            }
+
+            // Yeni listeyi kaydet ve ekranı yenile
+            localStorage.setItem('allComments', JSON.stringify(allComments));
+            loadComments();
+        }
+
+        /* --- TEMA MOTORU (ÇİFTE DİKİŞ VERSİYON) --- */
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        const currentTheme = localStorage.getItem('theme');
+
+        // 1. Sayfa Yüklenince
+        if (currentTheme === 'dark') {
+            // Ne varsa ekle, garanti olsun!
+            document.body.classList.add('dark');
+            document.body.classList.add('dark-theme');
+
+            if (toggleSwitch) toggleSwitch.checked = true;
+        }
+
+        // 2. Değiştirme Fonksiyonu
+        function switchTheme(e) {
+            if (e.target.checked) {
+                // Karanlığa Geç
+                document.body.classList.add('dark');
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                // Aydınlığa Geç
+                document.body.classList.remove('dark');
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        if (toggleSwitch) {
+            toggleSwitch.addEventListener('change', switchTheme);
+        }
+
+        // ==========================================
+        // 🎵 AMBİYANS SES SİSTEMİ
+        // ==========================================
+
+        let currentAudio = null; // Şu an çalan ses
+
+        function toggleAmbiancePanel() {
+            const panel = document.getElementById('ambiancePanel');
+            panel.classList.toggle('active');
+        }
+
+        function playAmbiance(type, element) {
+            const audioId = `audio-${type}`;
+            const audioElement = document.getElementById(audioId);
+            const volumeControl = document.getElementById('volumeControl');
+            const toggleBtn = document.querySelector('.ambiance-toggle');
+
+            // 1. Eğer zaten bu ses çalıyorsa DURDUR
+            if (currentAudio === audioElement && !audioElement.paused) {
+                audioElement.pause();
+                element.classList.remove('active');
+                toggleBtn.classList.remove('playing');
+                currentAudio = null;
+                return;
+            }
+
+            // 2. Başka bir ses çalıyorsa önce onu sustur
+            stopAllSounds();
+
+            // 3. Yeni sesi ÇAL
+            if (audioElement) {
+                audioElement.volume = volumeControl.value; // Ses seviyesini ayarla
+                audioElement.play().catch(e => console.log("Oynatma hatası:", e));
+
+                currentAudio = audioElement;
+                element.classList.add('active'); // Kutuyu boya
+                toggleBtn.classList.add('playing'); // Ana butonu hareketlendir
+            }
+        }
+
+        function stopAllSounds() {
+            // Tüm sesleri durdur ve kutuların boyasını sil
+            document.querySelectorAll('audio').forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0; // Başa sar
+            });
+            document.querySelectorAll('.sound-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+
+        // Ses Seviyesi Ayarı (Canlı)
+        document.getElementById('volumeControl').addEventListener('input', (e) => {
+            if (currentAudio) {
+                currentAudio.volume = e.target.value;
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>

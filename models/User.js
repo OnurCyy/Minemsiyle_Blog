@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             require: true,
         },
+        resetCode: {
+            type: String,
+            default: null
+        },
         role: {
             type: String,
             enum: ["admin", "user"],
@@ -38,6 +42,22 @@ const userSchema = new mongoose.Schema(
         badges: {
             type: [String],
             default: []
+        },
+        profileImage: {
+            type: String,
+            default: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+        },
+        bio: {
+            type: String,
+            default: "Merhaba, ben yeni bir kitap kurduyum! 📚"
+        },
+        xp: {
+            type: Number,
+            default: 0
+        },
+        level: {
+            type: Number,
+            default: 1
         }
     },
     { timestamps: true }
