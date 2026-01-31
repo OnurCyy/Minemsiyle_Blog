@@ -558,37 +558,32 @@
     <script src="js/main.js"></script>
 
     <script>
-        // GLOBAL AYARLAR
+        // --- 1. ACİL TEMİZLİK ROBOTU (En Başta Çalışır) ---
+        (function forceClean() {
+            try {
+                let user = JSON.parse(localStorage.getItem('user'));
+                // Eğer isimde : varsa veya bozuksa temizle
+                if (user && user.username && (user.username.includes(':') || user.username.includes('undefined'))) {
+                    console.log("🧹 Zombi veri tespit edildi, temizleniyor...");
+                    user.username = user.username.split(':')[0]; // :1 kısmını kes
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+            } catch (e) { console.log("Temizlik gerekmedi."); }
+        })();
+
+        // --- GLOBAL AYARLAR ---
         const API_BASE = "/api";
         let cropper;
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
         // --- SAYFA YÜKLENİNCE ---
         document.addEventListener("DOMContentLoaded", () => {
-            // 1. Önce bozuk veriyi temizle
-            cleanBadData();
-
-            // 2. Diğer fonksiyonları çalıştır
             initVisitCounter();
             checkTheme();
-
-            // 3. Profili Çek (renderBadges YOK! loadUserProfile her şeyi yapar)
-            loadUserProfile();
+            loadUserProfile(); // Profili Başlat
         });
 
-        // --- GÜVENLİK: BOZUK KULLANICI ADINI SİLME ---
-        function cleanBadData() {
-            try {
-                let user = JSON.parse(localStorage.getItem('user'));
-                if (user && user.username && user.username.includes(':')) {
-                    console.log("🧹 Bozuk veri tespit edildi, temizleniyor...");
-                    user.username = user.username.split(':')[0]; // :1 kısmını siler
-                    localStorage.setItem('user', JSON.stringify(user));
-                }
-            } catch (e) { console.log("Temizlik gerekmedi."); }
-        }
-
-        // --- 1. PROFİLİ VERİTABANINDAN YÜKLE ---
+        // --- 2. PROFİLİ ÇEKME ---
         async function loadUserProfile() {
             console.log("Profil veritabanından çekiliyor...");
 
@@ -598,7 +593,7 @@
             const sessionUser = JSON.parse(localStorage.getItem('user'));
             const token = localStorage.getItem('token');
 
-            // Eğer linkte ?u=yoksa, kendi profilimizdir
+            // Linkte isim yoksa kendi profilimize bak
             if (!targetUsername) {
                 if (sessionUser) {
                     targetUsername = sessionUser.username;
@@ -608,11 +603,10 @@
                 }
             }
 
-            // Garanti Temizlik (URL'den gelen bozuklukları sil)
+            // URL temizliği
             if (targetUsername) targetUsername = targetUsername.replace(/:\d+$/, '');
 
             try {
-                // Backend'e sor
                 const res = await fetch(`${API_BASE}/users/${targetUsername}`);
 
                 if (!res.ok) {
@@ -622,7 +616,7 @@
 
                 const userToDisplay = await res.json();
 
-                // Verileri Ekrana Bas
+                // Verileri Yerleştir
                 if (document.getElementById('avatarDisplay'))
                     document.getElementById('avatarDisplay').src = userToDisplay.avatar || defaultAvatar;
 
@@ -632,13 +626,10 @@
                 if (document.getElementById('displayBio'))
                     document.getElementById('displayBio').innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
 
-                if (document.getElementById('displayEmail'))
-                    document.getElementById('displayEmail').innerText = userToDisplay.email || "";
-
-                // 🔥 ROZETLERİ BAS (HATA BURADAYDI, DÜZELTİLDİ)
+                // 🔥 KRİTİK NOKTA: Hangi isimle çağırırsa çağırsın çalışacak
                 renderUserTags(userToDisplay);
 
-                // Buton Kontrolleri
+                // Buton Kontrolü
                 const actions = document.querySelector('.actions');
                 const adminBtn = document.getElementById('adminPanelBtnArea');
 
@@ -648,6 +639,7 @@
                     const authorizedEmails = ['admin@minemsiyle.com', 'onur@minemsiyle.com'];
                     if (userToDisplay.role === 'admin' || authorizedEmails.includes(userToDisplay.email)) {
                         if (adminBtn) adminBtn.innerHTML = `<a href="admin.html" class="action-btn" style="background:#d63031; color:white;">👑 Yönetici Paneli</a>`;
+                        adminBtn.style.display = 'block';
                     }
                 } else {
                     if (actions) actions.style.display = 'none';
@@ -659,7 +651,7 @@
             }
         }
 
-        // --- 2. ROZETLERİ GÖSTER (YENİ İSİM) ---
+        // --- 3. ROZETLER (ÇİFT İSİM KORUMASI) ---
         function renderUserTags(user) {
             const tagsBox = document.getElementById('userTagsContainer');
             if (!tagsBox) return;
@@ -687,8 +679,10 @@
                 tagsBox.innerHTML = `<span class="user-tag" style="background:#2d3436; color:#aaa; padding:5px 10px; border-radius:12px;">Üye</span>`;
             }
         }
+        // Eski kodlar yanlışlıkla bunu ararsa hata vermesin diye yönlendiriyoruz:
+        const renderBadges = renderUserTags;
 
-        // --- 3. GÜNCELLEME İŞLEMİ ---
+        // --- DİĞER FONKSİYONLAR ---
         async function saveSettings() {
             const newName = document.getElementById('editUsername').value;
             const newBio = document.getElementById('editBio').value;
@@ -710,18 +704,15 @@
                 });
 
                 if (res.ok) {
-                    alert("✅ Profil güncellendi!");
+                    alert("✅ Güncellendi!");
                     let user = JSON.parse(localStorage.getItem('user'));
                     if (newName) user.username = newName;
                     localStorage.setItem('user', JSON.stringify(user));
                     location.reload();
-                } else {
-                    alert("Hata oluştu.");
-                }
+                } else { alert("Hata oluştu."); }
             } catch (err) { alert("Sunucu hatası!"); }
         }
 
-        // --- DİĞER FONKSİYONLAR ---
         function checkTheme() {
             if (localStorage.getItem('theme') === 'light') {
                 document.body.classList.add('light-mode');
@@ -750,12 +741,12 @@
         }
         function logout() {
             if (confirm("Çıkış yapılıyor?")) {
-                localStorage.clear(); // Hepsini sil garanti olsun
+                localStorage.clear();
                 window.location.href = 'login.html';
             }
         }
 
-        // --- FOTOĞRAF KIRPMA ---
+        // --- KIRPMA ---
         const avatarInput = document.getElementById('avatarInput');
         const imageToCrop = document.getElementById('imageToCrop');
         const cropperModal = document.getElementById('cropperModal');
@@ -785,7 +776,6 @@
             const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
             const base64Image = canvas.toDataURL("image/jpeg", 0.8);
             const token = localStorage.getItem('token');
-
             try {
                 const res = await fetch(`${API_BASE}/users/update`, {
                     method: 'PUT',
@@ -803,6 +793,7 @@
             } catch (e) { alert("Hata oluştu."); }
         }
     </script>
+
 </body>
 
 </html>
