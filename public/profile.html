@@ -556,48 +556,61 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="js/main.js"></script>
+
     <script>
-        // GLOBAL DEĞİŞKENLER
+        // --- 1. OTOMATİK TEMİZLİK (O :1 BELASINDAN KURTULMA) ---
+        (function autoClean() {
+            try {
+                let user = JSON.parse(localStorage.getItem('user'));
+                if (user && user.username && user.username.includes(':')) {
+                    console.log("🧹 Bozuk kullanıcı adı temizleniyor...");
+                    user.username = user.username.split(':')[0]; // :1 kısmını kes at
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+            } catch (e) { console.log("Temizlik gerekmedi."); }
+        })();
+
+        // --- GLOBAL AYARLAR ---
+        const API_BASE = "/api";
         let cropper;
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-        // API URL main.js'ten gelmeli ama garanti olsun diye tanımlayalım
-        const API_BASE = "/api";
 
         // --- SAYFA YÜKLENİNCE ---
         document.addEventListener("DOMContentLoaded", () => {
             initVisitCounter();
             checkTheme();
-            loadUserProfile(); // Profili Sunucudan Çek
-            renderBadges();
+
+            // 🔥 HATANIN ÇÖZÜMÜ BURADA:
+            // Eskiden burada renderBadges() vardı, onu sildik.
+            // Çünkü loadUserProfile() zaten her şeyi çağıracak.
+            loadUserProfile();
         });
 
-        // --- 1. PROFİLİ VERİTABANINDAN YÜKLE ---
+        // --- 2. PROFİLİ GETİR ---
         async function loadUserProfile() {
             console.log("Profil veritabanından çekiliyor...");
 
             const params = new URLSearchParams(window.location.search);
             let targetUsername = params.get('u');
 
-            // Oturumdaki kullanıcı (Login'den gelen)
             const sessionUser = JSON.parse(localStorage.getItem('user'));
-            const token = localStorage.getItem('token'); // ARTIK 'token' OLARAK ALIYORUZ
+            const token = localStorage.getItem('token');
 
             // Eğer linkte ?u=yoksa, kendi profilimizdir
             if (!targetUsername) {
                 if (sessionUser) {
                     targetUsername = sessionUser.username;
                 } else {
-                    // Giriş yapmamışsa login'e at
                     window.location.href = "login.html";
                     return;
                 }
             }
 
-            // Hata Önleyici: İsimde garip karakterler varsa temizle (örn: :1 hatası)
+            // Garanti Temizlik (URL'den gelen bozuklukları sil)
             targetUsername = targetUsername.replace(/:\d+$/, '');
 
             try {
-                // Backend'e sor: "Bu kullanıcı kim?"
+                // Backend'e sor
                 const res = await fetch(`${API_BASE}/users/${targetUsername}`);
 
                 if (!res.ok) {
@@ -607,57 +620,58 @@
 
                 const userToDisplay = await res.json();
 
-                // --- Ekrana Bas ---
-                document.getElementById('avatarDisplay').src = userToDisplay.avatar || defaultAvatar;
-                document.getElementById('displayName').innerText = userToDisplay.username;
-                document.getElementById('displayBio').innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
+                // Verileri Ekrana Bas
+                if (document.getElementById('avatarDisplay'))
+                    document.getElementById('avatarDisplay').src = userToDisplay.avatar || defaultAvatar;
 
-                // İstatistikler (Varsa)
-                if (document.getElementById('displayEmail')) document.getElementById('displayEmail').innerText = userToDisplay.email || "";
+                if (document.getElementById('displayName'))
+                    document.getElementById('displayName').innerText = userToDisplay.username;
 
-                // --- Rozetleri Bas ---
+                if (document.getElementById('displayBio'))
+                    document.getElementById('displayBio').innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
+
+                if (document.getElementById('displayEmail'))
+                    document.getElementById('displayEmail').innerText = userToDisplay.email || "";
+
+                // 🔥 ROZETLERİ BAS (Yeni Fonksiyon Adı)
                 renderUserTags(userToDisplay);
 
-                // --- Düzenleme Butonlarını Yönet ---
-                // Sadece kendi profilimizse butonları göster
+                // Buton Kontrolleri (Kendi profilimiz mi?)
                 const actions = document.querySelector('.actions');
                 const adminBtn = document.getElementById('adminPanelBtnArea');
 
                 if (sessionUser && sessionUser.username === userToDisplay.username) {
-                    if (actions) actions.style.display = 'flex'; // Kendi profilimiz
+                    if (actions) actions.style.display = 'flex';
 
-                    // Admin butonu kontrolü
-                    const authorizedEmails = ['admin@minemsiyle.com', 'onur@minemsiyle.com']; // Yetkili mailler
+                    // Admin veya Yetkili mi?
+                    const authorizedEmails = ['admin@minemsiyle.com', 'onur@minemsiyle.com'];
                     if (userToDisplay.role === 'admin' || authorizedEmails.includes(userToDisplay.email)) {
                         if (adminBtn) adminBtn.innerHTML = `<a href="admin.html" class="action-btn" style="background:#d63031; color:white;">👑 Yönetici Paneli</a>`;
                     }
                 } else {
-                    if (actions) actions.style.display = 'none'; // Başkasının profili
+                    if (actions) actions.style.display = 'none';
                     if (adminBtn) adminBtn.style.display = 'none';
                 }
 
             } catch (error) {
-                console.error("Profil yüklenirken hata:", error);
-                document.getElementById('displayName').innerText = "Bağlantı Hatası";
+                console.error("Hata:", error);
             }
         }
 
-        // --- 2. ROZETLERİ GÖSTER ---
+        // --- 3. ROZETLERİ GÖSTER (renderBadges YERİNE ARTIK BU VAR) ---
         function renderUserTags(user) {
             const tagsBox = document.getElementById('userTagsContainer');
             if (!tagsBox) return;
 
-            // Hem 'tags' hem 'badges' alanına bak (Eski/Yeni uyumu)
             let tags = user.tags || user.badges || [];
-            if (typeof tags === 'string') tags = tags.split(','); // String geldiyse dizi yap
+            if (typeof tags === 'string') tags = tags.split(',');
 
             if (tags.length > 0) {
-                // Rozet Sözlüğü (Renkler ve İkonlar)
+                // Basit stil sözlüğü
                 const badgeStyle = {
                     'admin': { bg: '#d63031', icon: 'ph-crown' },
                     'mod': { bg: '#e67e22', icon: 'ph-shield-star' },
                     'vip': { bg: '#f1c40f', icon: 'ph-sparkle', color: '#000' },
-                    'developer': { bg: '#3498db', icon: 'ph-code' },
                     'yazar': { bg: '#9b59b6', icon: 'ph-pen-nib' }
                 };
 
@@ -674,7 +688,7 @@
             }
         }
 
-        // --- 3. PROFİLİ KAYDETME (Update) ---
+        // --- 4. PROFİLİ GÜNCELLE ---
         async function saveSettings() {
             const newName = document.getElementById('editUsername').value;
             const newBio = document.getElementById('editBio').value;
@@ -685,45 +699,33 @@
             if (newBio) updateData.bio = newBio;
             if (newPass && newPass.length >= 4) updateData.password = newPass;
 
-            const token = localStorage.getItem('token'); // Doğru token ismi
-
-            if (!token) {
-                alert("Oturum süren dolmuş, lütfen tekrar giriş yap.");
-                window.location.href = 'login.html';
-                return;
-            }
+            const token = localStorage.getItem('token');
+            if (!token) return alert("Giriş yapmalısın!");
 
             try {
                 const res = await fetch(`${API_BASE}/users/update`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Token'ı gönderiyoruz
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(updateData)
                 });
 
-                const data = await res.json();
-
                 if (res.ok) {
                     alert("✅ Profil güncellendi!");
-                    // LocalStorage'ı da güncelle ki sayfa yenilenince hızlı açılsın
+                    // İsmi değiştirdiyse localStorage'ı da güncelle
                     let user = JSON.parse(localStorage.getItem('user'));
                     if (newName) user.username = newName;
-                    if (newBio) user.bio = newBio;
                     localStorage.setItem('user', JSON.stringify(user));
-
                     location.reload();
                 } else {
-                    alert("Hata: " + (data.message || "Güncellenemedi"));
+                    alert("Hata oluştu.");
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Sunucu hatası!");
-            }
+            } catch (err) { alert("Sunucu hatası!"); }
         }
 
-        // --- DİĞER FONKSİYONLAR (Tema, Sayaç, Tablar) ---
+        // --- DİĞER FONKSİYONLAR ---
         function checkTheme() {
             if (localStorage.getItem('theme') === 'light') {
                 document.body.classList.add('light-mode');
@@ -736,7 +738,6 @@
             localStorage.setItem('theme', cb.checked ? 'light' : 'dark');
         }
         function initVisitCounter() {
-            // Basit sayaç (Sadece görsel)
             if (!sessionStorage.getItem('counted')) {
                 let v = parseInt(localStorage.getItem('visits') || '0') + 1;
                 localStorage.setItem('visits', v);
@@ -759,7 +760,7 @@
             }
         }
 
-        // --- FOTOĞRAF KIRPMA (Cropper) ---
+        // --- FOTOĞRAF KIRPMA ---
         const avatarInput = document.getElementById('avatarInput');
         const imageToCrop = document.getElementById('imageToCrop');
         const cropperModal = document.getElementById('cropperModal');
@@ -779,48 +780,32 @@
                 }
             });
         }
-
         function closeCropper() {
             if (cropperModal) cropperModal.classList.remove('open');
             if (cropper) { cropper.destroy(); cropper = null; }
             if (avatarInput) avatarInput.value = "";
         }
-
         async function cropAndSave() {
             if (!cropper) return;
-            // Resmi al (Base64)
             const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
             const base64Image = canvas.toDataURL("image/jpeg", 0.8);
-
-            // Direkt Sunucuya Yolla
             const token = localStorage.getItem('token');
+
             try {
                 const res = await fetch(`${API_BASE}/users/update`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ avatar: base64Image })
                 });
-
                 if (res.ok) {
-                    // Ekranda güncelle
                     document.getElementById('avatarDisplay').src = base64Image;
-                    // LocalStorage güncelle
                     let user = JSON.parse(localStorage.getItem('user'));
                     user.avatar = base64Image;
                     localStorage.setItem('user', JSON.stringify(user));
-
                     closeCropper();
                     alert("Fotoğraf güncellendi! 📸");
-                } else {
-                    alert("Fotoğraf yüklenemedi.");
                 }
-            } catch (e) {
-                console.error(e);
-                alert("Yükleme hatası.");
-            }
+            } catch (e) { alert("Hata oluştu."); }
         }
     </script>
 </body>
