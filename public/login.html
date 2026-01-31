@@ -216,134 +216,21 @@
     </div>
 
     <script>
+        // API Adresimiz (Otomatik algılar)
         const API_URL = "/api";
 
-        /* --- ZATEN GİRİŞ YAPILMIŞ MI KONTROLÜ --- */
+        // --- SAYFA YÜKLENİNCE ---
         document.addEventListener("DOMContentLoaded", () => {
-            const user = JSON.parse(localStorage.getItem("user"));
-
-            // Eğer kullanıcı zaten varsa, Login sayfasında ne işi var?
-            if (user) {
-                // Admin ise panele, değilse ana sayfaya postala
-                if (user.username === "Admin") {
-                    window.location.href = "admin.html";
-                } else {
-                    window.location.href = "index.html";
-                }
+            // Eğer zaten giriş yapmışsak, içeri al
+            const token = localStorage.getItem("token");
+            if (token) {
+                // Token varsa geçerli mi diye sormuyoruz, direkt profile atıyoruz
+                // (Gerekirse profile sayfası geçersizse dışarı atar)
+                window.location.href = "profile.html";
             }
         });
-        // --- ŞİFRE GÖSTER / GİZLE FONKSİYONU ---
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('resetNewPass');
-            const icon = document.getElementById('togglePassIcon');
 
-            // Eğer şifre gizliyse -> Göster
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                icon.classList.remove('ph-eye-slash'); // Çizgili gözü kaldır
-                icon.classList.add('ph-eye');         // Açık gözü ekle
-                icon.style.color = "#d4a373";         // Rengini gold yap (Aktif olduğunu belli et)
-            }
-            // Eğer şifre açıksa -> Gizle
-            else {
-                passwordInput.type = "password";
-                icon.classList.remove('ph-eye');
-                icon.classList.add('ph-eye-slash');
-                icon.style.color = "#666";            // Rengini gri yap
-            }
-        }
-        // 1. KOD GÖNDERME FONKSİYONU
-        async function sendCode() {
-            const email = document.getElementById('resetEmail').value;
-            if (!email) return alert("E-posta yazmadın Kral!");
-
-            try {
-                const res = await fetch(`${API_URL}/auth/send-reset-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const data = await res.json();
-                alert(data.message);
-            } catch (e) { alert("Sunucu hatası!"); }
-        }
-
-        // ==========================================
-        // 🔐 ŞİFRE SIFIRLAMA MODAL İŞLEMLERİ
-        // ==========================================
-
-        // 1. Modalı Açan Fonksiyon (Sendeki eksik parça bu!)
-        function openResetModal() {
-            const modal = document.getElementById('reset-modal');
-            if (modal) {
-                modal.style.display = 'flex';
-            } else {
-                console.error("Hata: 'reset-modal' id'li kutu bulunamadı! HTML'i yanlış yere yapıştırmış olabilirsin.");
-            }
-        }
-
-        // 2. Modalı Kapatan Fonksiyon
-        function closeResetModal() {
-            document.getElementById('reset-modal').style.display = 'none';
-        }
-
-        // 3. Kod Gönderme İsteği (Backend'e Mail At Der)
-        async function sendCode() {
-            const email = document.getElementById('resetEmail').value;
-            const btn = document.querySelector('#reset-modal button'); // Butonu bul
-
-            if (!email) return alert("E-posta yazmadın Kral! ✍️");
-
-            btn.innerText = "Gönderiliyor...";
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/auth/send-reset-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                const data = await res.json();
-
-                alert(data.message); // "Kod gönderildi" mesajı
-
-            } catch (e) {
-                console.error(e);
-                alert("Sunucu hatası! (Backend çalışıyor mu?)");
-            } finally {
-                btn.innerText = "Kod Gönder";
-                btn.disabled = false;
-            }
-        }
-
-        // 4. Doğrulama ve Şifre Değiştirme
-        async function verifyAndReset() {
-            const email = document.getElementById('resetEmail').value;
-            const code = document.getElementById('resetCode').value;
-            const newPassword = document.getElementById('resetNewPass').value;
-
-            if (!email || !code || !newPassword) return alert("Lütfen tüm alanları doldur! 📝");
-
-            try {
-                const res = await fetch(`${API_URL}/auth/verify-reset-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, code, newPassword })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    alert("🎉 " + data.message);
-                    closeResetModal(); // Başarılıysa kapat
-                } else {
-                    alert("❌ HATA: " + data.message);
-                }
-            } catch (e) {
-                alert("İşlem sırasında hata oluştu.");
-            }
-        }
-
-        // Sekme Değiştirme
+        // --- SEKME DEĞİŞTİRME ---
         function switchTab(tab) {
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
@@ -362,11 +249,15 @@
             }
         }
 
-        // GİRİŞ YAPMA İŞLEMİ (GÜNCELLENMİŞ VERSİYON)
+        // --- 🔥 GİRİŞ YAPMA (LOGIN) ---
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            const btn = e.target.querySelector('button');
+
+            btn.innerText = "Giriliyor...";
+            btn.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
@@ -377,53 +268,39 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    // 1. Token ve Rolü kaydet
-                    localStorage.setItem('userToken', data.token);
-                    localStorage.setItem('userRole', data.role);
+                    // 1. Token'ı kaydet (Adı 'token' olmalı, 'userToken' değil!)
+                    localStorage.setItem('token', data.token);
 
-                    // 2. Sunucudan gelen kullanıcıyı al (veya oluştur)
-                    let userToSave = data.user || {
-                        username: email.split('@')[0],
-                        email: email,
-                        avatar: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-                    };
+                    // 2. Kullanıcı bilgisini kaydet
+                    localStorage.setItem('user', JSON.stringify(data.user));
 
-                    // 🔥 3. KRİTİK HAMLE: Yerel Hafızayı Kontrol Et (FOTOĞRAF İÇİN)
-                    // Profile.html'de kaydettiğimiz 'users' listesine bakıyoruz
-                    const localUsers = JSON.parse(localStorage.getItem('users') || "[]");
-                    const matchingLocalUser = localUsers.find(u => u.email === email);
+                    // 3. (Opsiyonel) Eski 'users' çöpünü temizle ki kafa karışmasın
+                    localStorage.removeItem('users');
 
-                    // Eğer yerelde bu adamın kaydı ve fotosu varsa, sunucudan gelenin üstüne yaz!
-                    if (matchingLocalUser && matchingLocalUser.avatar) {
-                        console.log("📸 Yerel fotoğraf bulundu ve yüklendi!");
-                        userToSave.avatar = matchingLocalUser.avatar;
-
-                        // Eğer ismini değiştirdiyse onu da alalım
-                        if (matchingLocalUser.username) userToSave.username = matchingLocalUser.username;
-                        if (matchingLocalUser.bio) userToSave.bio = matchingLocalUser.bio;
-                    }
-
-                    // 4. Son halini kaydet
-                    localStorage.setItem('user', JSON.stringify(userToSave));
-
-                    // 5. Yönlendir
-                    alert("Giriş Başarılı! Yönlendiriliyorsun... 🚀");
+                    alert("✅ Giriş Başarılı! Hoş geldin " + data.user.username);
                     window.location.href = 'profile.html';
                 } else {
-                    alert("Hata: " + data.message);
+                    alert("❌ Hata: " + (data.message || "Giriş başarısız."));
                 }
             } catch (err) {
                 console.error(err);
-                alert("Sunucu hatası veya bağlantı yok!");
+                alert("Sunucuya bağlanılamadı! İnternetini kontrol et.");
+            } finally {
+                btn.innerText = "Giriş Yap";
+                btn.disabled = false;
             }
         });
 
-        // KAYIT OLMA İŞLEMİ
+        // --- 🔥 KAYIT OLMA (REGISTER) ---
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('regUsername').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
+            const btn = e.target.querySelector('button');
+
+            btn.innerText = "Kaydediliyor...";
+            btn.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}/auth/register`, {
@@ -434,13 +311,82 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
-                    switchTab('login'); // Giriş sekmesine at
+                    alert("🎉 Kayıt Başarılı! Şimdi giriş yapabilirsin.");
+                    switchTab('login'); // Giriş sekmesine geçir
+                    document.getElementById('loginEmail').value = email; // Maili otomatik doldur
                 } else {
-                    alert("Hata: " + data.message);
+                    alert("❌ Hata: " + (data.message || "Kayıt yapılamadı."));
                 }
-            } catch (err) { alert("Sunucu hatası!"); }
+            } catch (err) {
+                console.error(err);
+                alert("Sunucu hatası!");
+            } finally {
+                btn.innerText = "Kayıt Ol";
+                btn.disabled = false;
+            }
         });
+
+        // --- ŞİFRE SIFIRLAMA MODAL İŞLEMLERİ ---
+        function openResetModal() {
+            const modal = document.getElementById('reset-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+        function closeResetModal() {
+            document.getElementById('reset-modal').style.display = 'none';
+        }
+
+        // Kod Gönder
+        async function sendCode() {
+            const email = document.getElementById('resetEmail').value;
+            if (!email) return alert("E-posta yazmadın!");
+            try {
+                const res = await fetch(`${API_URL}/auth/send-reset-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                alert(data.message);
+            } catch (e) { alert("Hata oluştu."); }
+        }
+
+        // Doğrula ve Değiştir
+        async function verifyAndReset() {
+            const email = document.getElementById('resetEmail').value;
+            const code = document.getElementById('resetCode').value;
+            const newPassword = document.getElementById('resetNewPass').value;
+            if (!code || !newPassword) return alert("Eksik bilgi!");
+
+            try {
+                const res = await fetch(`${API_URL}/auth/verify-reset-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code, newPassword })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Şifre değişti! Giriş yapabilirsin.");
+                    closeResetModal();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) { alert("Hata oluştu."); }
+        }
+
+        // Şifre Göster/Gizle
+        function togglePasswordVisibility() {
+            const input = document.getElementById('resetNewPass');
+            const icon = document.getElementById('togglePassIcon');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('ph-eye-slash', 'ph-eye');
+                icon.style.color = "#d4a373";
+            } else {
+                input.type = "password";
+                icon.classList.replace('ph-eye', 'ph-eye-slash');
+                icon.style.color = "#666";
+            }
+        }
     </script>
 </body>
 
