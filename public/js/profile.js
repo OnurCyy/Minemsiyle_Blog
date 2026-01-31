@@ -1,4 +1,4 @@
-const API_URL = "https://minemsiyle.com/api";
+const API_URL = "/api";
 
 // ---------------------------------------------------------
 // 1. SAYFA AÇILINCA VERİLERİ ÇEK (Undefined Sorununun Çözümü 💊)

@@ -2,7 +2,7 @@
 
 console.log("🚀 Main.js Devrede!");
 
-const API_URL = "https://minemsiyle.com/api";
+const API_URL = "/api";
 
 // 1. SİDEBAR VERİLERİ 
 let SIDEBAR_DATA = null;
@@ -299,7 +299,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!grid) return;
 
         try {
-            const res = await fetch('https://minemsiyle.com/api/posts');
+            const res = await fetch('/api/posts');
             const posts = await res.json();
 
             if (posts.length === 0) {
@@ -455,7 +455,7 @@ async function aboneOl() {
     }
 
     try {
-        const API_URL = "https://minemsiyle.com/api";
+        const API_URL = "/api";
 
         const res = await fetch(`${API_URL}/subs`, {
             method: "POST",
@@ -495,7 +495,7 @@ async function aboneOl() {
 
     try {
         // Backend adresin (Seninki farklıysa burayı düzelt!)
-        const API_URL = "https://minemsiyle.com/api";
+        const API_URL = "/api";
 
         const res = await fetch(`${API_URL}/settings`);
         const settings = await res.json();
