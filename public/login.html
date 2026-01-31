@@ -216,7 +216,7 @@
     </div>
 
     <script>
-        const API_URL = "http://localhost:5000/api";
+        const API_URL = "https://minemsiyle.com/api";
 
         /* --- ZATEN GİRİŞ YAPILMIŞ MI KONTROLÜ --- */
         document.addEventListener("DOMContentLoaded", () => {
@@ -298,7 +298,6 @@
             btn.disabled = true;
 
             try {
-                // API_URL yukarıda tanımlı değilse buraya tekrar yaz: "http://localhost:5000/api"
                 const res = await fetch(`${API_URL}/auth/send-reset-code`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

@@ -1486,7 +1486,7 @@
     </div>
 
     <script>
-        const API_URL = "http://localhost:5000/api";
+        const API_URL = "https://minemsiyle.com/api";
 
         // --- RESMİ KODA ÇEVİREN FONKSİYON (Bunu en üste ekle) ---
         const toBase64 = file => new Promise((resolve, reject) => {
@@ -1600,7 +1600,7 @@
 
             // 4. GÖNDER
             try {
-                const response = await fetch('http://localhost:5000/api/posts', {
+                const response = await fetch('https://minemsiyle.com/api/posts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(postData)
@@ -1672,7 +1672,7 @@
 
                 // 4. GÖNDER
                 try {
-                    const response = await fetch('http://localhost:5000/api/books', {
+                    const response = await fetch('https://minemsiyle.com/api/books', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(bookData)
@@ -2140,7 +2140,7 @@
                 console.log(`Siliniyor... ID: ${id}`);
 
                 // Backend adresi (Seninki farklıysa burayı düzelt)
-                const API_URL = "http://localhost:5000/api";
+                const API_URL = "https://minemsiyle.com/api";
 
                 // 2. İsteği gönder (DELETE)
                 const response = await fetch(`${API_URL}/${tur}/${id}`, {
@@ -2482,8 +2482,8 @@
             try {
                 // 1. Paralel İstek At (Hem Blogları Hem Kullanıcıları Çek)
                 const [postsRes, usersRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/posts'),
-                    fetch('http://localhost:5000/api/users')
+                    fetch('https://minemsiyle.com/api/posts'),
+                    fetch('https://minemsiyle.com/api/users')
                 ]);
 
                 const posts = await postsRes.json();
