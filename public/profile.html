@@ -558,35 +558,37 @@
     <script src="js/main.js"></script>
 
     <script>
-        // --- 1. OTOMATİK TEMİZLİK (O :1 BELASINDAN KURTULMA) ---
-        (function autoClean() {
-            try {
-                let user = JSON.parse(localStorage.getItem('user'));
-                if (user && user.username && user.username.includes(':')) {
-                    console.log("🧹 Bozuk kullanıcı adı temizleniyor...");
-                    user.username = user.username.split(':')[0]; // :1 kısmını kes at
-                    localStorage.setItem('user', JSON.stringify(user));
-                }
-            } catch (e) { console.log("Temizlik gerekmedi."); }
-        })();
-
-        // --- GLOBAL AYARLAR ---
+        // GLOBAL AYARLAR
         const API_BASE = "/api";
         let cropper;
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
         // --- SAYFA YÜKLENİNCE ---
         document.addEventListener("DOMContentLoaded", () => {
+            // 1. Önce bozuk veriyi temizle
+            cleanBadData();
+
+            // 2. Diğer fonksiyonları çalıştır
             initVisitCounter();
             checkTheme();
 
-            // 🔥 HATANIN ÇÖZÜMÜ BURADA:
-            // Eskiden burada renderBadges() vardı, onu sildik.
-            // Çünkü loadUserProfile() zaten her şeyi çağıracak.
+            // 3. Profili Çek (renderBadges YOK! loadUserProfile her şeyi yapar)
             loadUserProfile();
         });
 
-        // --- 2. PROFİLİ GETİR ---
+        // --- GÜVENLİK: BOZUK KULLANICI ADINI SİLME ---
+        function cleanBadData() {
+            try {
+                let user = JSON.parse(localStorage.getItem('user'));
+                if (user && user.username && user.username.includes(':')) {
+                    console.log("🧹 Bozuk veri tespit edildi, temizleniyor...");
+                    user.username = user.username.split(':')[0]; // :1 kısmını siler
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+            } catch (e) { console.log("Temizlik gerekmedi."); }
+        }
+
+        // --- 1. PROFİLİ VERİTABANINDAN YÜKLE ---
         async function loadUserProfile() {
             console.log("Profil veritabanından çekiliyor...");
 
@@ -607,7 +609,7 @@
             }
 
             // Garanti Temizlik (URL'den gelen bozuklukları sil)
-            targetUsername = targetUsername.replace(/:\d+$/, '');
+            if (targetUsername) targetUsername = targetUsername.replace(/:\d+$/, '');
 
             try {
                 // Backend'e sor
@@ -633,17 +635,16 @@
                 if (document.getElementById('displayEmail'))
                     document.getElementById('displayEmail').innerText = userToDisplay.email || "";
 
-                // 🔥 ROZETLERİ BAS (Yeni Fonksiyon Adı)
+                // 🔥 ROZETLERİ BAS (HATA BURADAYDI, DÜZELTİLDİ)
                 renderUserTags(userToDisplay);
 
-                // Buton Kontrolleri (Kendi profilimiz mi?)
+                // Buton Kontrolleri
                 const actions = document.querySelector('.actions');
                 const adminBtn = document.getElementById('adminPanelBtnArea');
 
                 if (sessionUser && sessionUser.username === userToDisplay.username) {
                     if (actions) actions.style.display = 'flex';
 
-                    // Admin veya Yetkili mi?
                     const authorizedEmails = ['admin@minemsiyle.com', 'onur@minemsiyle.com'];
                     if (userToDisplay.role === 'admin' || authorizedEmails.includes(userToDisplay.email)) {
                         if (adminBtn) adminBtn.innerHTML = `<a href="admin.html" class="action-btn" style="background:#d63031; color:white;">👑 Yönetici Paneli</a>`;
@@ -658,7 +659,7 @@
             }
         }
 
-        // --- 3. ROZETLERİ GÖSTER (renderBadges YERİNE ARTIK BU VAR) ---
+        // --- 2. ROZETLERİ GÖSTER (YENİ İSİM) ---
         function renderUserTags(user) {
             const tagsBox = document.getElementById('userTagsContainer');
             if (!tagsBox) return;
@@ -667,7 +668,6 @@
             if (typeof tags === 'string') tags = tags.split(',');
 
             if (tags.length > 0) {
-                // Basit stil sözlüğü
                 const badgeStyle = {
                     'admin': { bg: '#d63031', icon: 'ph-crown' },
                     'mod': { bg: '#e67e22', icon: 'ph-shield-star' },
@@ -688,7 +688,7 @@
             }
         }
 
-        // --- 4. PROFİLİ GÜNCELLE ---
+        // --- 3. GÜNCELLEME İŞLEMİ ---
         async function saveSettings() {
             const newName = document.getElementById('editUsername').value;
             const newBio = document.getElementById('editBio').value;
@@ -705,16 +705,12 @@
             try {
                 const res = await fetch(`${API_BASE}/users/update`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(updateData)
                 });
 
                 if (res.ok) {
                     alert("✅ Profil güncellendi!");
-                    // İsmi değiştirdiyse localStorage'ı da güncelle
                     let user = JSON.parse(localStorage.getItem('user'));
                     if (newName) user.username = newName;
                     localStorage.setItem('user', JSON.stringify(user));
@@ -754,8 +750,7 @@
         }
         function logout() {
             if (confirm("Çıkış yapılıyor?")) {
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
+                localStorage.clear(); // Hepsini sil garanti olsun
                 window.location.href = 'login.html';
             }
         }
