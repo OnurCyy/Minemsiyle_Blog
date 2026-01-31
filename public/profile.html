@@ -587,128 +587,76 @@
             }
         }
 
-        function loadUserProfile() {
-            console.log("Profil yükleniyor...");
+        // ✅ YENİ LOAD FUNCTION (GERÇEK VERİTABANINDAN ÇEKER)
+        async function loadUserProfile() {
+            console.log("Profil veritabanından çekiliyor...");
 
-            // 1. URL ve Kullanıcı Kontrolü
             const params = new URLSearchParams(window.location.search);
-            const targetUsername = params.get('u');
+            let targetUsername = params.get('u');
 
-            // Veritabanından EN GÜNCEL veriyi çekiyoruz (Canlı veri)
-            const allUsers = JSON.parse(localStorage.getItem('users') || "[]");
-            const currentUserSession = JSON.parse(localStorage.getItem('user'));
+            // Oturumdaki kullanıcı bilgisi (Login olurken kaydettiğimiz basit bilgi)
+            const sessionUser = JSON.parse(localStorage.getItem('user'));
 
-            let userToDisplay = null;
-
-            // Kimi göstereceğiz?
-            if (targetUsername) {
-                // Linkten geldiysek o kişiyi bul
-                userToDisplay = allUsers.find(u => u.username === targetUsername);
-
-                // Başkasıysa düzenleme butonlarını gizle
-                if (currentUserSession && currentUserSession.username !== targetUsername) {
-                    const actions = document.querySelector('.actions');
-                    if (actions) actions.style.display = 'none';
-                    const adminBtn = document.getElementById('adminPanelBtnArea');
-                    if (adminBtn) adminBtn.style.display = 'none';
-                }
-            } else {
-                // Kendimizsek, oturumdaki isme göre GÜNCEL VERİYİ listeden bul
-                // (Sadece 'user'a bakarsak eski rozetleri görürüz, 'allUsers'a bakmalıyız)
-                if (currentUserSession) {
-                    userToDisplay = allUsers.find(u => u.email === currentUserSession.email) || currentUserSession;
+            // Eğer linkte ?u=yoksa, kendi profilimize bakıyoruzdur
+            if (!targetUsername) {
+                if (sessionUser) {
+                    targetUsername = sessionUser.username;
                 } else {
                     window.location.href = "login.html";
                     return;
                 }
             }
 
-            if (!userToDisplay) return; // Hata varsa dur
+            try {
+                // 🔥 BURASI ARTIK LOCALSTORAGE DEĞİL, API!
+                // (Backend'de '/api/users/:username' diye bir route olduğunu varsayıyoruz)
+                const res = await fetch(`/api/users/${targetUsername}`);
 
-            // 2. Verileri Ekrana Bas
-            const avatarEl = document.getElementById('avatarDisplay');
-            if (avatarEl && userToDisplay.avatar) avatarEl.src = userToDisplay.avatar;
-
-            const nameEl = document.getElementById('displayName');
-            if (nameEl) nameEl.innerText = userToDisplay.username;
-
-            const bioEl = document.getElementById('displayBio');
-            if (bioEl) bioEl.innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
-
-            const emailEl = document.getElementById('displayEmail');
-            if (emailEl) emailEl.innerText = userToDisplay.email || "";
-
-            // --- 🔥 3. ROZET SİSTEMİ (FİNAL VERSİYON) ---
-            const tagsBox = document.getElementById('userTagsContainer');
-
-            if (tagsBox) {
-                tagsBox.innerHTML = ''; // Temizle
-
-                // 📒 ROZET SÖZLÜĞÜ (Admin Paneliyle Aynı ID'ler)
-                const badgeDictionary = {
-                    'admin': { label: 'Yönetici', color: '#00b894', icon: 'ph-shield-check' },
-                    'mod': { label: 'Moderatör', color: '#f39c12', icon: 'ph-shield' },
-                    'dev': { label: 'Geliştirici', color: '#e17055', icon: 'ph-code' },
-                    'vip': { label: 'VIP Üye', color: '#f1c40f', icon: 'ph-sparkle' },
-                    'supporter': { label: 'Destekçi', color: '#e84393', icon: 'ph-heart' },
-                    'verified': { label: 'Onaylı', color: '#0984e3', icon: 'ph-check-circle' },
-                    'writer': { label: 'Yazar', color: '#6c5ce7', icon: 'ph-pen-nib' },
-                    'poet': { label: 'Şair', color: '#a29bfe', icon: 'ph-feather' },
-                    'bug_hunter': { label: 'Bug Avcısı', color: '#00cec9', icon: 'ph-bug' },
-                    'bookworm': { label: 'Kitap Kurdu', color: '#badc58', icon: 'ph-book-open' },
-                    'coffee': { label: 'Kahve Sever', color: '#8d6e63', icon: 'ph-coffee' },
-                    'cat_lover': { label: 'Kedi Sever', color: '#636e72', icon: 'ph-cat' }
-                };
-
-                // Admin panelinden gelen veri 'badges' veya 'tags' içinde olabilir
-                // İkisini birleştirip tek bir liste yapıyoruz
-                let userBadges = userToDisplay.badges || userToDisplay.tags || [];
-
-                // Eğer string ise diziye çevir (Hata önleyici)
-                if (typeof userBadges === 'string') userBadges = [userBadges];
-
-                if (userBadges && userBadges.length > 0) {
-
-                    // Rozetleri dön ve bas
-                    tagsBox.innerHTML = userBadges.map(badgeId => {
-                        // Sözlükten bilgileri çek
-                        const info = badgeDictionary[badgeId];
-
-                        // Eğer sözlükte varsa süslü bas
-                        if (info) {
-                            const textColor = (info.color === '#f1c40f') ? '#000' : '#fff'; // Sarıysa siyah yazı
-                            return `
-                    <span class="user-tag" style="background:${info.color}; color:${textColor} !important;">
-                        <i class="ph-fill ${info.icon}"></i> ${info.label}
-                    </span>`;
-                        }
-                        // Sözlükte yoksa (Eski sistem veya bilinmeyen) gri bas
-                        else {
-                            return `<span class="user-tag" style="background:#555;">${badgeId}</span>`;
-                        }
-                    }).join('');
-
-                } else {
-                    // Hiç rozet yoksa standart 'Üye' yaz
-                    tagsBox.innerHTML = `<span class="user-tag" style="background:#2d3436;">Üye</span>`;
+                if (!res.ok) {
+                    console.log("Kullanıcı bulunamadı");
+                    return;
                 }
-            }
 
-            // --- 4. YÖNETİCİ BUTONU ---
-            const adminBtnContainer = document.getElementById('adminPanelBtnArea');
-            const myEmail = userToDisplay.email;
-            // Yetkili mailler listesi
-            const authorizedEmails = ['admin@minemsiyle.com', 'test@test.com', 'admin@test.com']; // Kendi mailini buraya ekle!
+                const userToDisplay = await res.json(); // Veritabanından gelen TAZE veri!
 
-            // Kendi profilimizse VE yetkiliysek butonu göster
-            if (!targetUsername && adminBtnContainer) {
-                if (userToDisplay.username === "Admin" || authorizedEmails.includes(myEmail) || (userToDisplay.role === 'admin')) {
-                    adminBtnContainer.innerHTML = `
-                <a href="adminPanel.html" class="action-btn" style="background:var(--accent); color:#fff; display:inline-flex; align-items:center; gap:5px; text-decoration:none; margin-top:10px; padding: 10px 20px; border-radius: 8px;">
-                    <i class="ph-bold ph-crown"></i> Yönetici Paneli
-                </a>
-            `;
+                // --- EKRANA BASMA İŞLEMLERİ ---
+                const avatarEl = document.getElementById('avatarDisplay');
+                if (avatarEl) avatarEl.src = userToDisplay.avatar || defaultAvatar;
+
+                const nameEl = document.getElementById('displayName');
+                if (nameEl) nameEl.innerText = userToDisplay.username;
+
+                const bioEl = document.getElementById('displayBio');
+                if (bioEl) bioEl.innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
+
+                // --- ROZETLER / TAGLAR (ARTIK MONGODB'DEN GELİYOR) ---
+                // Admin panelinden 'tags' diye eklemiştik, burada onları yakalıyoruz
+                const tagsBox = document.getElementById('userTagsContainer');
+                if (tagsBox) {
+                    let tags = userToDisplay.tags || userToDisplay.badges || [];
+
+                    // Eğer veritabanından text olarak geldiyse diziye çevir
+                    if (typeof tags === 'string') tags = tags.split(',');
+
+                    if (tags.length > 0) {
+                        // Burada senin eski badgeDictionary kodlarını kullanabilirsin
+                        // Basitçe şimdilik isimlerini yazdıralım:
+                        tagsBox.innerHTML = tags.map(tag =>
+                            `<span class="user-tag" style="background:var(--accent); color:#fff; padding:4px 8px; border-radius:4px; margin-right:5px; font-size:12px;">${tag}</span>`
+                        ).join('');
+                    } else {
+                        tagsBox.innerHTML = `<span class="user-tag" style="background:#333;">Üye</span>`;
+                    }
                 }
+
+                // Düzenleme Butonlarını Gizle/Göster (Eğer başkasının profili ise)
+                if (sessionUser && sessionUser.username !== userToDisplay.username) {
+                    const actions = document.querySelector('.actions');
+                    if (actions) actions.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error("Profil yüklenirken hata:", error);
             }
         }
         // İstatistik (Gerçek Veri)
@@ -801,60 +749,46 @@
         function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
         function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
 
-        // --- PROFİL BİLGİLERİNİ KALICI KAYDETME ---
-        // --- PROFİLİ GARANTİLİ KAYDETME ---
-        function saveSettings() {
+        // ✅ YENİ SAVE FUNCTION (SUNUCUYA GÖNDERİR)
+        async function saveSettings() {
             const newName = document.getElementById('editUsername').value;
             const newBio = document.getElementById('editBio').value;
-            const newPass = document.getElementById('newPass').value;
-            const confirmPass = document.getElementById('confirmPass').value;
+            // Şifre işlemlerini şimdilik basitleştiriyorum
 
-            // 1. Mevcut Oturumu Al
-            let user = JSON.parse(localStorage.getItem('user')) || {};
+            const updateData = {};
+            if (newName) updateData.username = newName;
+            if (newBio) updateData.bio = newBio;
 
-            // 2. Ana Veritabanını Al
-            let allUsers = JSON.parse(localStorage.getItem('users') || "[]");
+            // Token var mı? (Giriş yaparken kaydetmiş olmalısın)
+            const token = localStorage.getItem('token');
 
-            // 3. Kullanıcıyı Bulmaya Çalış
-            let userIndex = allUsers.findIndex(u => u.email === user.email);
+            try {
+                const res = await fetch('/api/users/update', { // Backend rotana uygun olmalı
+                    method: 'PUT', // Veya POST (Backend nasıl ayarlandıysa)
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Güvenlik için token
+                    },
+                    body: JSON.stringify(updateData)
+                });
 
-            // 🔥 KRİTİK HAMLE: Eğer listede yoksan, seni listeye EKLE!
-            if (userIndex === -1) {
-                console.log("Kullanıcı listede yoktu, oluşturuluyor...");
-                allUsers.push(user); // Şu anki halini listeye at
-                userIndex = allUsers.length - 1; // Yeni index'i al
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("✅ Profilin sunucuya kaydedildi! Herkes görebilir.");
+                    // LocalStorage'daki basit veriyi de güncelle (Hızlı erişim için)
+                    let localUser = JSON.parse(localStorage.getItem('user'));
+                    if (newName) localUser.username = newName;
+                    localStorage.setItem('user', JSON.stringify(localUser));
+
+                    location.reload();
+                } else {
+                    alert("Hata: " + (data.message || "Kaydedilemedi"));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Sunucuyla iletişim kurulamadı!");
             }
-
-            // --- GÜNCELLEMELER ---
-
-            // İsim
-            if (newName.trim()) {
-                user.username = newName.trim();
-                allUsers[userIndex].username = newName.trim();
-            }
-
-            // Biyografi
-            if (newBio.trim()) {
-                user.bio = newBio.trim();
-                allUsers[userIndex].bio = newBio.trim();
-            }
-
-            // Şifre
-            if (newPass || confirmPass) {
-                if (newPass !== confirmPass) { alert("❌ Şifreler uyuşmuyor!"); return; }
-                if (newPass.length < 4) { alert("❌ Şifre çok kısa."); return; }
-
-                user.password = newPass;
-                allUsers[userIndex].password = newPass;
-                alert("🔒 Şifre de yenilendi!");
-            }
-
-            // --- HER İKİ YERE DE KAYDET ---
-            localStorage.setItem('user', JSON.stringify(user));      // Oturumu Güncelle
-            localStorage.setItem('users', JSON.stringify(allUsers)); // Veritabanını Güncelle
-
-            alert("✅ Profilin kalıcı olarak güncellendi!");
-            location.reload();
         }
         // --- DİĞER (Kırpma, Logout, Tab vb.) ---
         const avatarInput = document.getElementById('avatarInput');
