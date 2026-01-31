@@ -557,217 +557,148 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // GLOBAL
+        // GLOBAL DEĞİŞKENLER
         let cropper;
-        const owners = ['admin@minemsiyle.com', 'sevgilim@minemsiyle.com', 'test@test.com', 'admin@test.com'];
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+        // API URL main.js'ten gelmeli ama garanti olsun diye tanımlayalım
+        const API_BASE = "/api";
 
         // --- SAYFA YÜKLENİNCE ---
-        window.onload = function () {
+        document.addEventListener("DOMContentLoaded", () => {
             initVisitCounter();
-
-            // Tema
-            if (localStorage.getItem('theme') === 'light') {
-                document.body.classList.add('light-mode');
-                document.getElementById('themeCheckbox').checked = true;
-            }
-
-            loadUserProfile();
-            renderSavedItems();
+            checkTheme();
+            loadUserProfile(); // Profili Sunucudan Çek
             renderBadges();
-        }
+        });
 
-        // --- ZİYARET SAYACI ---
-        function initVisitCounter() {
-            if (!sessionStorage.getItem('sessionCounted')) {
-                let visits = parseInt(localStorage.getItem('visitCount') || "0");
-                visits++;
-                localStorage.setItem('visitCount', visits);
-                sessionStorage.setItem('sessionCounted', "true");
-            }
-        }
-
-        // ✅ YENİ LOAD FUNCTION (GERÇEK VERİTABANINDAN ÇEKER)
+        // --- 1. PROFİLİ VERİTABANINDAN YÜKLE ---
         async function loadUserProfile() {
             console.log("Profil veritabanından çekiliyor...");
 
             const params = new URLSearchParams(window.location.search);
             let targetUsername = params.get('u');
 
-            // Oturumdaki kullanıcı bilgisi (Login olurken kaydettiğimiz basit bilgi)
+            // Oturumdaki kullanıcı (Login'den gelen)
             const sessionUser = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token'); // ARTIK 'token' OLARAK ALIYORUZ
 
-            // Eğer linkte ?u=yoksa, kendi profilimize bakıyoruzdur
+            // Eğer linkte ?u=yoksa, kendi profilimizdir
             if (!targetUsername) {
                 if (sessionUser) {
                     targetUsername = sessionUser.username;
                 } else {
+                    // Giriş yapmamışsa login'e at
                     window.location.href = "login.html";
                     return;
                 }
             }
 
+            // Hata Önleyici: İsimde garip karakterler varsa temizle (örn: :1 hatası)
+            targetUsername = targetUsername.replace(/:\d+$/, '');
+
             try {
-                // 🔥 BURASI ARTIK LOCALSTORAGE DEĞİL, API!
-                // (Backend'de '/api/users/:username' diye bir route olduğunu varsayıyoruz)
-                const res = await fetch(`/api/users/${targetUsername}`);
+                // Backend'e sor: "Bu kullanıcı kim?"
+                const res = await fetch(`${API_BASE}/users/${targetUsername}`);
 
                 if (!res.ok) {
-                    console.log("Kullanıcı bulunamadı");
+                    document.getElementById('displayName').innerText = "Kullanıcı Bulunamadı";
                     return;
                 }
 
-                const userToDisplay = await res.json(); // Veritabanından gelen TAZE veri!
+                const userToDisplay = await res.json();
 
-                // --- EKRANA BASMA İŞLEMLERİ ---
-                const avatarEl = document.getElementById('avatarDisplay');
-                if (avatarEl) avatarEl.src = userToDisplay.avatar || defaultAvatar;
+                // --- Ekrana Bas ---
+                document.getElementById('avatarDisplay').src = userToDisplay.avatar || defaultAvatar;
+                document.getElementById('displayName').innerText = userToDisplay.username;
+                document.getElementById('displayBio').innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
 
-                const nameEl = document.getElementById('displayName');
-                if (nameEl) nameEl.innerText = userToDisplay.username;
+                // İstatistikler (Varsa)
+                if (document.getElementById('displayEmail')) document.getElementById('displayEmail').innerText = userToDisplay.email || "";
 
-                const bioEl = document.getElementById('displayBio');
-                if (bioEl) bioEl.innerText = userToDisplay.bio || "Henüz bir biyografi yok.";
+                // --- Rozetleri Bas ---
+                renderUserTags(userToDisplay);
 
-                // --- ROZETLER / TAGLAR (ARTIK MONGODB'DEN GELİYOR) ---
-                // Admin panelinden 'tags' diye eklemiştik, burada onları yakalıyoruz
-                const tagsBox = document.getElementById('userTagsContainer');
-                if (tagsBox) {
-                    let tags = userToDisplay.tags || userToDisplay.badges || [];
+                // --- Düzenleme Butonlarını Yönet ---
+                // Sadece kendi profilimizse butonları göster
+                const actions = document.querySelector('.actions');
+                const adminBtn = document.getElementById('adminPanelBtnArea');
 
-                    // Eğer veritabanından text olarak geldiyse diziye çevir
-                    if (typeof tags === 'string') tags = tags.split(',');
+                if (sessionUser && sessionUser.username === userToDisplay.username) {
+                    if (actions) actions.style.display = 'flex'; // Kendi profilimiz
 
-                    if (tags.length > 0) {
-                        // Burada senin eski badgeDictionary kodlarını kullanabilirsin
-                        // Basitçe şimdilik isimlerini yazdıralım:
-                        tagsBox.innerHTML = tags.map(tag =>
-                            `<span class="user-tag" style="background:var(--accent); color:#fff; padding:4px 8px; border-radius:4px; margin-right:5px; font-size:12px;">${tag}</span>`
-                        ).join('');
-                    } else {
-                        tagsBox.innerHTML = `<span class="user-tag" style="background:#333;">Üye</span>`;
+                    // Admin butonu kontrolü
+                    const authorizedEmails = ['admin@minemsiyle.com', 'onur@minemsiyle.com']; // Yetkili mailler
+                    if (userToDisplay.role === 'admin' || authorizedEmails.includes(userToDisplay.email)) {
+                        if (adminBtn) adminBtn.innerHTML = `<a href="admin.html" class="action-btn" style="background:#d63031; color:white;">👑 Yönetici Paneli</a>`;
                     }
-                }
-
-                // Düzenleme Butonlarını Gizle/Göster (Eğer başkasının profili ise)
-                if (sessionUser && sessionUser.username !== userToDisplay.username) {
-                    const actions = document.querySelector('.actions');
-                    if (actions) actions.style.display = 'none';
+                } else {
+                    if (actions) actions.style.display = 'none'; // Başkasının profili
+                    if (adminBtn) adminBtn.style.display = 'none';
                 }
 
             } catch (error) {
                 console.error("Profil yüklenirken hata:", error);
-            }
-        }
-        // İstatistik (Gerçek Veri)
-        const savedCount = JSON.parse(localStorage.getItem('savedItems') || "[]").length;
-        document.getElementById('statSaved').innerText = savedCount;
-        // Yorum sayısı şimdilik manuel (Veritabanı yok)
-        document.getElementById('statComments').innerText = "0";
-
-
-        function renderSavedItems() {
-            // Sadece rozetleri çalıştır, gerisini boşver
-            renderBadges();
-
-            // İstersen container'ı da temizle garanti olsun
-            const container = document.getElementById('saved-content');
-            if (container) container.innerHTML = "";
-        }
-        // --- 1. VERİ KONTROL (OTOMATİK EKLEME İPTAL EDİLDİ) ---
-        function initDummyData() {
-            // Burayı bilerek boş bıraktık. 
-            // Kullanıcı ne zaman kaydederse o zaman dolsun.
-            // "Mış gibi" yapmak yok! 😎
-            if (!localStorage.getItem('savedItems')) {
-                localStorage.setItem('savedItems', "[]");
+                document.getElementById('displayName').innerText = "Bağlantı Hatası";
             }
         }
 
-        function deleteSavedItem(id) {
-            if (confirm("Listeden kaldırıyor muyuz?")) {
-                let items = JSON.parse(localStorage.getItem('savedItems') || "[]");
-                items = items.filter(item => item.id !== id);
-                localStorage.setItem('savedItems', JSON.stringify(items));
-                renderSavedItems();
+        // --- 2. ROZETLERİ GÖSTER ---
+        function renderUserTags(user) {
+            const tagsBox = document.getElementById('userTagsContainer');
+            if (!tagsBox) return;
+
+            // Hem 'tags' hem 'badges' alanına bak (Eski/Yeni uyumu)
+            let tags = user.tags || user.badges || [];
+            if (typeof tags === 'string') tags = tags.split(','); // String geldiyse dizi yap
+
+            if (tags.length > 0) {
+                // Rozet Sözlüğü (Renkler ve İkonlar)
+                const badgeStyle = {
+                    'admin': { bg: '#d63031', icon: 'ph-crown' },
+                    'mod': { bg: '#e67e22', icon: 'ph-shield-star' },
+                    'vip': { bg: '#f1c40f', icon: 'ph-sparkle', color: '#000' },
+                    'developer': { bg: '#3498db', icon: 'ph-code' },
+                    'yazar': { bg: '#9b59b6', icon: 'ph-pen-nib' }
+                };
+
+                tagsBox.innerHTML = tags.map(tag => {
+                    const style = badgeStyle[tag] || { bg: '#2d3436', icon: 'ph-tag' };
+                    const textColor = style.color || '#fff';
+                    return `
+                        <span class="user-tag" style="background:${style.bg}; color:${textColor}; padding:5px 10px; border-radius:12px; font-size:12px; display:inline-flex; align-items:center; gap:5px; margin:2px;">
+                            <i class="ph-fill ${style.icon}"></i> ${tag.toUpperCase()}
+                        </span>`;
+                }).join('');
+            } else {
+                tagsBox.innerHTML = `<span class="user-tag" style="background:#2d3436; color:#aaa; padding:5px 10px; border-radius:12px;">Üye</span>`;
             }
         }
 
-        // --- 3. ROZETLER (HEPSİ GÖRÜNÜR AMA KİLİTLİ OLABİLİR) ---
-        function renderBadges() {
-            const container = document.getElementById('badgesList');
-
-            // Verileri Çek
-            const savedCount = JSON.parse(localStorage.getItem('savedItems') || "[]").length;
-            const user = JSON.parse(localStorage.getItem('user') || "{}");
-            const visits = parseInt(localStorage.getItem('visitCount') || "0");
-
-            const now = new Date();
-            const hour = now.getHours();
-            const day = now.getDay();
-
-            // KOŞULLAR
-            const hasBio = user.bio && user.bio.length > 0;
-            const isLongBio = user.bio && user.bio.length > 20;
-            const isAvatarChanged = user.avatar && user.avatar !== defaultAvatar;
-            const isNight = hour >= 22 || hour < 6;
-            const isMorning = hour >= 6 && hour < 10;
-            const isWeekend = day === 0 || day === 6;
-            const themeChanged = localStorage.getItem('theme') !== null;
-
-            const badges = [
-                { icon: 'ph-fill ph-scroll', title: 'İlk Adım', desc: 'Aramıza hoş geldin.', condition: true },
-                { icon: 'ph-fill ph-user-circle', title: 'Kimlik', desc: 'Biyografini doldurdun.', condition: hasBio },
-                { icon: 'ph-fill ph-camera', title: 'Fotojenik', desc: 'Profil resmini değiştirdin.', condition: isAvatarChanged },
-                { icon: 'ph-fill ph-pen-nib', title: 'Edebiyatçı', desc: 'Uzun biyografi yazdın.', condition: isLongBio },
-                { icon: 'ph-fill ph-sun-horizon', title: 'Erkenci', desc: 'Sabah (06-10) girdin.', condition: isMorning },
-                { icon: 'ph-fill ph-moon-stars', title: 'Kahveci', desc: 'Gece (22-06) girdin.', condition: isNight },
-                { icon: 'ph-fill ph-calendar-check', title: 'Tatilci', desc: 'Hafta sonu ziyareti.', condition: isWeekend },
-                { icon: 'ph-fill ph-footprints', title: 'Müdavim', desc: '5. kez ziyaret ettin.', condition: visits >= 5 },
-                { icon: 'ph-fill ph-paint-brush-broad', title: 'Bukalemun', desc: 'Temayı değiştirdin.', condition: themeChanged },
-                { icon: 'ph-fill ph-bookmark-simple', title: 'Arşivci', desc: '1 içerik kaydettin.', condition: savedCount >= 1 },
-                { icon: 'ph-fill ph-books', title: 'Kütüphaneci', desc: '3 içerik kaydettin.', condition: savedCount >= 3 },
-                { icon: 'ph-fill ph-star', title: 'Yıldız', desc: '5 içerik kaydettin.', condition: savedCount >= 5 },
-                { icon: 'ph-fill ph-heart', title: 'Aşık', desc: '7 içerik kaydettin.', condition: savedCount >= 7 },
-                { icon: 'ph-fill ph-trophy', title: 'Efsane', desc: '10 içerik kaydettin.', condition: savedCount >= 10 }
-            ];
-
-            container.innerHTML = "";
-            badges.forEach(badge => {
-                const earnedClass = badge.condition ? 'earned' : '';
-                const html = `
-                    <div class="badge-item ${earnedClass}">
-                        <i class="${badge.icon} badge-icon"></i>
-                        <h4>${badge.title}</h4>
-                        <p>${badge.desc}</p>
-                    </div>`;
-                container.innerHTML += html;
-            });
-        }
-
-        // --- AYARLAR & KAYDETME ---
-        function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
-        function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
-
-        // ✅ YENİ SAVE FUNCTION (SUNUCUYA GÖNDERİR)
+        // --- 3. PROFİLİ KAYDETME (Update) ---
         async function saveSettings() {
             const newName = document.getElementById('editUsername').value;
             const newBio = document.getElementById('editBio').value;
-            // Şifre işlemlerini şimdilik basitleştiriyorum
+            const newPass = document.getElementById('newPass').value;
 
             const updateData = {};
             if (newName) updateData.username = newName;
             if (newBio) updateData.bio = newBio;
+            if (newPass && newPass.length >= 4) updateData.password = newPass;
 
-            // Token var mı? (Giriş yaparken kaydetmiş olmalısın)
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token'); // Doğru token ismi
+
+            if (!token) {
+                alert("Oturum süren dolmuş, lütfen tekrar giriş yap.");
+                window.location.href = 'login.html';
+                return;
+            }
 
             try {
-                const res = await fetch('/api/users/update', { // Backend rotana uygun olmalı
-                    method: 'PUT', // Veya POST (Backend nasıl ayarlandıysa)
+                const res = await fetch(`${API_BASE}/users/update`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Güvenlik için token
+                        'Authorization': `Bearer ${token}` // Token'ı gönderiyoruz
                     },
                     body: JSON.stringify(updateData)
                 });
@@ -775,131 +706,122 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    alert("✅ Profilin sunucuya kaydedildi! Herkes görebilir.");
-                    // LocalStorage'daki basit veriyi de güncelle (Hızlı erişim için)
-                    let localUser = JSON.parse(localStorage.getItem('user'));
-                    if (newName) localUser.username = newName;
-                    localStorage.setItem('user', JSON.stringify(localUser));
+                    alert("✅ Profil güncellendi!");
+                    // LocalStorage'ı da güncelle ki sayfa yenilenince hızlı açılsın
+                    let user = JSON.parse(localStorage.getItem('user'));
+                    if (newName) user.username = newName;
+                    if (newBio) user.bio = newBio;
+                    localStorage.setItem('user', JSON.stringify(user));
 
                     location.reload();
                 } else {
-                    alert("Hata: " + (data.message || "Kaydedilemedi"));
+                    alert("Hata: " + (data.message || "Güncellenemedi"));
                 }
             } catch (err) {
                 console.error(err);
-                alert("Sunucuyla iletişim kurulamadı!");
+                alert("Sunucu hatası!");
             }
         }
-        // --- DİĞER (Kırpma, Logout, Tab vb.) ---
+
+        // --- DİĞER FONKSİYONLAR (Tema, Sayaç, Tablar) ---
+        function checkTheme() {
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-mode');
+                if (document.getElementById('themeCheckbox')) document.getElementById('themeCheckbox').checked = true;
+            }
+        }
+        function toggleThemeSwitch() {
+            const cb = document.getElementById('themeCheckbox');
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', cb.checked ? 'light' : 'dark');
+        }
+        function initVisitCounter() {
+            // Basit sayaç (Sadece görsel)
+            if (!sessionStorage.getItem('counted')) {
+                let v = parseInt(localStorage.getItem('visits') || '0') + 1;
+                localStorage.setItem('visits', v);
+                sessionStorage.setItem('counted', 'true');
+            }
+        }
+        function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
+        function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.getElementById(tab + '-content').style.display = 'block';
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        function logout() {
+            if (confirm("Çıkış yapılıyor?")) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // --- FOTOĞRAF KIRPMA (Cropper) ---
         const avatarInput = document.getElementById('avatarInput');
         const imageToCrop = document.getElementById('imageToCrop');
         const cropperModal = document.getElementById('cropperModal');
 
-        avatarInput.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 50 * 1024 * 1024) { alert("Maksimum 50MB!"); return; }
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    imageToCrop.src = reader.result;
-                    cropperModal.classList.add('open');
-                    if (cropper) cropper.destroy();
-                    cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1, preview: '.preview-box' });
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // --- FOTOĞRAFI KALICI YAPMA ---
-        function cropAndSave() {
-            if (!cropper) return;
-
-            const canvas = cropper.getCroppedCanvas({ width: 300, height: 300 });
-            const croppedImageURL = canvas.toDataURL("image/jpeg", 0.85);
-
-            // 1. Oturumu Güncelle
-            let user = JSON.parse(localStorage.getItem('user')) || {};
-            user.avatar = croppedImageURL;
-            localStorage.setItem('user', JSON.stringify(user));
-
-            // 2. Ana Veritabanını Güncelle
-            let allUsers = JSON.parse(localStorage.getItem('users') || "[]");
-            let userIndex = allUsers.findIndex(u => u.email === user.email);
-
-            // 🔥 KRİTİK HAMLE: Listede yoksan ekle
-            if (userIndex === -1) {
-                allUsers.push(user);
-                userIndex = allUsers.length - 1;
-            }
-
-            // Güncelle ve Kaydet
-            allUsers[userIndex].avatar = croppedImageURL;
-            localStorage.setItem('users', JSON.stringify(allUsers));
-
-            closeCropper();
-            document.getElementById('avatarDisplay').src = croppedImageURL;
-            alert("Fotoğrafın artık demirbaş oldu Kral! 😎");
-        }
-        // --- İŞTE EKSİK OLAN KAPATMA FONKSİYONU ---
-        function closeCropper() {
-            // 1. Modalı Bul ve Gizle
-            const modal = document.getElementById('cropperModal');
-            if (modal) modal.classList.remove('open');
-
-            // 2. Kırpıcıyı (Cropper) Yok Et (Hafızayı temizle)
-            // (Eğer 'cropper' değişkenini global tanımlamadıysan 'window.cropper' kullanırız)
-            if (typeof cropper !== 'undefined' && cropper) {
-                cropper.destroy();
-                cropper = null;
-            }
-
-            // 3. Dosya Seçiciyi Sıfırla (Ki aynı resmi tekrar seçebil)
-            const input = document.getElementById('avatarInput');
-            if (input) input.value = "";
-
-            console.log("Oh be! Modal kapandı. 🚪");
-        }
-
-        function toggleThemeSwitch() {
-            const checkbox = document.getElementById('themeCheckbox');
-            document.body.classList.toggle('light-mode');
-            localStorage.setItem('theme', checkbox.checked ? 'light' : 'dark');
-            renderBadges();
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName + '-content').style.display = 'block';
-            const tabs = document.querySelectorAll('.tab');
-            if (tabName === 'saved') tabs[0].classList.add('active');
-            if (tabName === 'badges') tabs[1].classList.add('active');
-        }
-
-        function logout() {
-            if (confirm("Çıkış yapılıyor...")) {
-                localStorage.removeItem('user');
-                window.location.href = 'index.html';
-            }
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-            // 1. Kullanıcıyı bul
-            const user = JSON.parse(localStorage.getItem("user"));
-
-            // 2. Admin mi diye bak
-            if (user && user.username === "Admin") {
-                const adminArea = document.getElementById("adminArea");
-
-                // 3. Oraya havalı bir buton koy
-                if (adminArea) {
-                    adminArea.innerHTML = `
-                <a href="adminPanel.html" class="admin-profile-btn">
-                    <i class="ph-bold ph-gear-six"></i> Yönetim Paneli
-                </a>
-            `;
+        if (avatarInput) {
+            avatarInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        imageToCrop.src = reader.result;
+                        cropperModal.classList.add('open');
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1 });
+                    };
+                    reader.readAsDataURL(file);
                 }
+            });
+        }
+
+        function closeCropper() {
+            if (cropperModal) cropperModal.classList.remove('open');
+            if (cropper) { cropper.destroy(); cropper = null; }
+            if (avatarInput) avatarInput.value = "";
+        }
+
+        async function cropAndSave() {
+            if (!cropper) return;
+            // Resmi al (Base64)
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            const base64Image = canvas.toDataURL("image/jpeg", 0.8);
+
+            // Direkt Sunucuya Yolla
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API_BASE}/users/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ avatar: base64Image })
+                });
+
+                if (res.ok) {
+                    // Ekranda güncelle
+                    document.getElementById('avatarDisplay').src = base64Image;
+                    // LocalStorage güncelle
+                    let user = JSON.parse(localStorage.getItem('user'));
+                    user.avatar = base64Image;
+                    localStorage.setItem('user', JSON.stringify(user));
+
+                    closeCropper();
+                    alert("Fotoğraf güncellendi! 📸");
+                } else {
+                    alert("Fotoğraf yüklenemedi.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Yükleme hatası.");
             }
-        });
+        }
     </script>
 </body>
 
