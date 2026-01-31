@@ -1,14 +1,34 @@
 const router = require("express").Router();
 const User = require("../models/User");
-const bcrypt = require("bcryptjs"); // Şifreleme için lazım
+const bcrypt = require("bcryptjs");
 const authMiddleware = require("../middleware/authMiddleware");
 
 // ======================================================
-// 1. MEVCUT KODLARIN (Profil İşlemleri)
+// 1. HERKESE AÇIK KULLANICI İŞLEMLERİ (PROFİL GÖRÜNTÜLEME)
 // ======================================================
 
-// A. PROFİL BİLGİLERİMİ GETİR
-router.get("/me", authMiddleware, async (req, res) => {
+// 🔥 YENİ EKLENEN: İSME GÖRE PROFİL GETİR (Bu eksikti!)
+// Örn: /api/users/OnurCy dediğinde burası çalışacak
+router.get("/:username", async (req, res) => {
+    try {
+        // İsme göre bul ama şifresini gizle
+        const user = await User.findOne({ username: req.params.username }).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+        }
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ message: "Sunucu hatası" });
+    }
+});
+
+// ======================================================
+// 2. OTURUM AÇMIŞ KULLANICI İŞLEMLERİ
+// ======================================================
+
+// A. KENDİ PROFİLİMİ GETİR
+router.get("/profile/me", authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select("-password");
         if (!user) return res.status(404).json({ message: "Kullanıcı yok" });
@@ -18,18 +38,23 @@ router.get("/me", authMiddleware, async (req, res) => {
     }
 });
 
-// B. PROFİL GÜNCELLE
+// B. PROFİL GÜNCELLE (Avatar Düzeltmesi Yapıldı)
 router.put("/update", authMiddleware, async (req, res) => {
     try {
-        const { username, bio, profileImage, oldPassword, newPassword } = req.body;
+        // Frontend 'avatar' gönderiyor, burada 'profileImage' kalmış. DÜZELTTİM:
+        const { username, bio, avatar, profileImage, oldPassword, newPassword } = req.body;
         const user = await User.findById(req.user.id);
 
         if (!user) return res.status(404).json({ message: "Kullanıcı yok" });
 
         if (username) user.username = username;
         if (bio) user.bio = bio;
-        if (profileImage) user.profileImage = profileImage;
 
+        // Hem yeni 'avatar' ismini hem eski 'profileImage' ismini destekle (Garanti olsun)
+        if (avatar) user.avatar = avatar;
+        if (profileImage) user.avatar = profileImage;
+
+        // Şifre Değiştirme
         if (newPassword && oldPassword) {
             const isMatch = await bcrypt.compare(oldPassword, user.password);
             if (!isMatch) {
@@ -40,7 +65,7 @@ router.put("/update", authMiddleware, async (req, res) => {
         }
 
         await user.save();
-        res.json({ message: "Profil başarıyla güncellendi! ✅", user });
+        res.json({ message: "Profil güncellendi! ✅", user });
     } catch (err) {
         if (err.code === 11000) {
             return res.status(400).json({ message: "Bu kullanıcı adı zaten dolu!" });
@@ -50,7 +75,7 @@ router.put("/update", authMiddleware, async (req, res) => {
 });
 
 // ======================================================
-// 2. YENİ EKLENENLER (Admin Paneli İçin Lazım Olanlar)
+// 3. ADMİN İŞLEMLERİ
 // ======================================================
 
 // C. TÜM KULLANICILARI LİSTELE
@@ -63,40 +88,38 @@ router.get("/", async (req, res) => {
     }
 });
 
-// D. KULLANICIYI BANLA / BANINI AÇ (TOGGLE) 🚫
+// D. BANLAMA SİSTEMİ
 router.put("/:id/ban", async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
-
         if (!user) return res.status(404).json("Kullanıcı bulunamadı");
 
-        // Eğer zaten banlıysa -> Banı kaldır (Affet)
         if (user.isBanned) {
             user.isBanned = false;
-            user.banReason = ""; // Sicili temizle
+            user.banReason = "";
             await user.save();
-            return res.status(200).json({ message: "Kullanıcı banı kaldırıldı.", user });
-        }
-
-        // Eğer banlı değilse -> Banla
-        else {
-            const { reason } = req.body; // Frontend'den gelen sebep
+            return res.status(200).json({ message: "Ban kaldırıldı.", user });
+        } else {
+            const { reason } = req.body;
             user.isBanned = true;
             user.banReason = reason || "Sebep belirtilmedi.";
             await user.save();
             return res.status(200).json({ message: "Kullanıcı banlandı.", user });
         }
-
     } catch (err) {
         res.status(500).json(err);
     }
 });
 
-// E. ROZET VER 🎖️
+// E. ROZET SİSTEMİ
 router.put("/:id/badges", async (req, res) => {
     try {
-        const { badges } = req.body; // Örn: ["vip", "writer"]
-        const user = await User.findByIdAndUpdate(req.params.id, { badges }, { new: true });
+        // Admin panelinden gelen 'tags' veya 'badges' verisini al
+        const { badges, tags } = req.body;
+        // Hangisi doluysa onu kullan
+        const newBadges = badges || tags;
+
+        const user = await User.findByIdAndUpdate(req.params.id, { badges: newBadges, tags: newBadges }, { new: true });
         res.status(200).json({ message: "Rozetler güncellendi", user });
     } catch (err) {
         res.status(500).json(err);
