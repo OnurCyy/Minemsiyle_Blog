@@ -765,6 +765,22 @@
         // Backend adresin (Sonunda '/' olmamalı)
         const API_URL_POST = "/api";
 
+        // --- YARDIMCI: Başlığı ID'ye Çevirir (Slugify) ---
+        function createSlug(text) {
+            return text.toString().toLowerCase()
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ş/g, 's')
+                .replace(/ı/g, 'i')
+                .replace(/ö/g, 'o')
+                .replace(/ç/g, 'c')
+                .replace(/\s+/g, '-')     // Boşlukları tire yap
+                .replace(/[^\w\-]+/g, '') // Harf ve tire dışındakileri sil
+                .replace(/\-\-+/g, '-')   // Çift tireleri tek yap
+                .replace(/^-+/, '')       // Baştaki tireyi sil
+                .replace(/-+$/, '');      // Sondaki tireyi sil
+        }
+
         // GLOBAL DEĞİŞKENLER
         let contentId = null;
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
@@ -926,141 +942,168 @@
             }
         }
 
-        function postComment() {
-            if (!contentId) return;
+        // ==========================================
+        // 1. YORUM GÖNDER (Backend'e Yollar)
+        // ==========================================
+        async function postComment() {
             const textArea = document.getElementById('commentText');
             if (!textArea) return;
-            const text = textArea.value;
-            if (!text.trim()) { alert("Boş yorum olmaz."); return; }
-            const user = JSON.parse(localStorage.getItem('user'));
-            const now = new Date();
-            const fullDateTime = `${now.toLocaleDateString('tr-TR')} • ${now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
-            const newComment = { id: Date.now(), pageId: contentId, user: user.username, avatar: user.avatar || defaultAvatar, text: text, date: fullDateTime };
+            const text = textArea.value.trim();
+            if (!text) { alert("Boş yorum olmaz."); return; }
 
-            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
-            allComments.push(newComment);
-            localStorage.setItem('allComments', JSON.stringify(allComments));
-            textArea.value = "";
-            loadComments();
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) return alert("Yorum yapmak için giriş yapmalısın!");
+
+            // Sayfa Bilgilerini Al
+            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
+            const autoId = createSlug(pageTitle);
+            const type = window.location.href.includes('blog') ? 'blog' : 'book';
+
+            const newComment = {
+                userId: user._id || "eski_user",
+                username: user.username,
+                avatar: user.avatar,
+                content: text,
+                contentType: type,
+                relatedId: autoId
+            };
+
+            const btn = document.querySelector('button[onclick="postComment()"]');
+            if (btn) btn.innerText = "Yükleniyor...";
+
+            try {
+                const res = await fetch(`${API_BASE}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newComment)
+                });
+
+                if (res.ok) {
+                    textArea.value = "";
+                    loadComments(); // Listeyi yenile
+                } else {
+                    alert("Yorum gönderilemedi.");
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                if (btn) btn.innerText = "Yorum Yap";
+            }
         }
 
-        // --- YORUMLARI LİSTELEME (TAGLAR VE PROFİL LİNKİ EKLENDİ) ---
-        function loadComments() {
-            if (!contentId) return;
-
+        // ==========================================
+        // 2. YORUMLARI YÜKLE (Veritabanından Çeker)
+        // ==========================================
+        async function loadComments() {
             const list = document.getElementById('commentsList');
             const countSpan = document.getElementById('commentCount');
             const currentUser = JSON.parse(localStorage.getItem('user'));
 
-            // Tüm kullanıcı veritabanını çek (Tagları bulmak için lazım)
-            const allUsers = JSON.parse(localStorage.getItem('users') || "[]");
+            // Sayfa ID'sini Bul
+            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
+            const autoId = createSlug(pageTitle);
+            const type = window.location.href.includes('blog') ? 'blog' : 'book';
 
-            // Yetki kontrolü
-            const isCurrentUserAdmin = currentUser && (
-                currentUser.username === "Admin" ||
-                (window.owners && window.owners.includes(currentUser.email))
-            );
+            try {
+                // Backend'den Yorumları İste
+                const res = await fetch(`${API_BASE}/comments?type=${type}&id=${autoId}`);
+                const comments = await res.json();
 
-            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
-            const pageComments = allComments.filter(c => c.pageId == contentId);
+                if (list) list.innerHTML = "";
+                if (countSpan) countSpan.innerText = comments.length;
 
-            if (list) list.innerHTML = "";
-            if (countSpan) countSpan.innerText = pageComments.length;
-
-            if (pageComments.length === 0 && list) {
-                list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
-                return;
-            }
-
-            const tagStyles = {
-                // --- YETKİ & STATÜ ---
-                'admin': { label: '👑 Yönetici', bg: '#ffd700', text: '#000' }, // Altın
-                'mod': { label: '🛡️ Moderatör', bg: '#2980b9', text: '#fff' }, // Koyu Mavi
-                'dev': { label: '💻 Geliştirici', bg: '#00d2ff', text: '#000' }, // Neon Mavi
-
-                // --- ÜYELİK & DESTEK ---
-                'vip': { label: '💎 VIP Üye', bg: '#9b59b6', text: '#fff' }, // Mor
-                'supporter': { label: '💖 Destekçi', bg: '#ff6b81', text: '#fff' }, // Pembe
-                'verified': { label: '✅ Onaylı', bg: '#2ecc71', text: '#fff' }, // Yeşil
-
-                // --- İÇERİK ÜRETİCİ ---
-                'writer': { label: '🖋️ Yazar', bg: '#34495e', text: '#fff' }, // Lacivert
-                'poet': { label: '🪶 Şair', bg: '#a29bfe', text: '#000' }, // Lila
-
-                // --- EĞLENCE & AKTİVİTE ---
-                'bug_hunter': { label: '🐛 Bug Avcısı', bg: '#e74c3c', text: '#fff' }, // Kırmızı
-                'bookworm': { label: '📚 Kitap Kurdu', bg: '#27ae60', text: '#fff' }, // Orman Yeşili
-                'coffee': { label: '☕ Kahve Sever', bg: '#6f4e37', text: '#fff' }, // Kahve Rengi
-                'cat_lover': { label: '🐱 Kedi Sever', bg: '#ff9ff3', text: '#000' }  // Şeker Pembesi
-            };
-            pageComments.reverse().forEach(c => {
-                const displayDate = c.date ? c.date : "Tarih Yok";
-
-                // 🔥 1. YORUM YAZAN KİŞİNİN GÜNCEL BİLGİLERİNİ BUL
-                // Yorumdaki isimle veritabanındaki ismi eşleştiriyoruz
-                const commentAuthor = allUsers.find(u => u.username === c.user);
-
-                // Eğer kullanıcının güncel avatarı varsa onu kullan (Değiştirmiş olabilir)
-                const currentAvatar = commentAuthor ? commentAuthor.avatar : c.avatar;
-
-                // 🔥 2. TAGLARI OLUŞTUR
-                let badgeHTML = "";
-
-                // A) Admin panelinden eklenen taglar var mı?
-                if (commentAuthor && commentAuthor.tags && commentAuthor.tags.length > 0) {
-                    badgeHTML = commentAuthor.tags.map(tag =>
-                        `<span style="background:var(--accent); color:#fff; font-size:0.65rem; padding:2px 6px; border-radius:4px; margin-left:5px; vertical-align:middle;">${tag}</span>`
-                    ).join('');
-                }
-                // B) Yoksa klasik yönetici kontrolü
-                else if (c.user === "Admin" || c.isAdmin === true) {
-                    badgeHTML = `<span style="background:#e74c3c; color:white; font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:5px; vertical-align:middle; font-weight:bold;">👑 Yönetici</span>`;
+                if (comments.length === 0 && list) {
+                    list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
+                    return;
                 }
 
-                // 🔥 3. SİL BUTONU
-                let deleteBtnHTML = "";
-                const silinecekParametre = c.id ? c.id : `'${c.date}'`;
+                // 🔥 ROZET SÖZLÜĞÜ (Senin Tasarımın)
+                const tagStyles = {
+                    'admin': { label: '👑 Yönetici', bg: '#ffd700', text: '#000' },
+                    'mod': { label: '🛡️ Moderatör', bg: '#2980b9', text: '#fff' },
+                    'dev': { label: '💻 Geliştirici', bg: '#00d2ff', text: '#000' },
+                    'vip': { label: '💎 VIP Üye', bg: '#9b59b6', text: '#fff' },
+                    'supporter': { label: '💖 Destekçi', bg: '#ff6b81', text: '#fff' },
+                    'verified': { label: '✅ Onaylı', bg: '#2ecc71', text: '#fff' },
+                    'writer': { label: '🖋️ Yazar', bg: '#34495e', text: '#fff' },
+                    'poet': { label: '🪶 Şair', bg: '#a29bfe', text: '#000' },
+                    'bug_hunter': { label: '🐛 Bug Avcısı', bg: '#e74c3c', text: '#fff' },
+                    'bookworm': { label: '📚 Kitap Kurdu', bg: '#27ae60', text: '#fff' },
+                    'coffee': { label: '☕ Kahve Sever', bg: '#6f4e37', text: '#fff' },
+                    'cat_lover': { label: '🐱 Kedi Sever', bg: '#ff9ff3', text: '#000' }
+                };
 
-                if (currentUser && (currentUser.username === c.user || isCurrentUserAdmin)) {
-                    deleteBtnHTML = `
-            <button onclick="deleteComment(${silinecekParametre})" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-                <i class="ph-bold ph-trash"></i> ${isCurrentUserAdmin && currentUser.username !== c.user ? 'Yönetici Sil' : 'Sil'}
-            </button>
-            `;
+                // Yorumları Bas
+                for (const c of comments) {
+                    const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                    // Kullanıcı bilgilerini ve rozetleri çekmek için istersen /users/:username yapabilirsin
+                    // Ama şimdilik basit tutmak adına yorumdaki username'i kullanıyoruz.
+                    // Eğer kullanıcının GÜNCEL rozetlerini görmek istersen buraya fetch ekleriz, 
+                    // ama performans için şimdilik admin kontrolü yapalım:
+
+                    let badgeHTML = "";
+
+                    // Basit Admin Kontrolü (Backend'den veri gelene kadar)
+                    if (c.username === "Admin" || c.username === "OnurCy") {
+                        badgeHTML = `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>`;
+                    }
+
+                    // SİLME BUTONU (Sadece sahibi veya Admin görebilir)
+                    let deleteBtnHTML = "";
+                    const isOwner = currentUser && (currentUser.username === c.username);
+                    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
+
+                    if (isOwner || isAdmin) {
+                        deleteBtnHTML = `
+                        <button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                            <i class="ph-bold ph-trash"></i> Sil
+                        </button>`;
+                    }
+
+                    const profileLink = `profile.html?u=${c.username}`;
+
+                    const html = `
+                    <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid #333;">
+                        <a href="${profileLink}" style="text-decoration:none;">
+                            <img src="${c.avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" style="width:40px; height:40px; border-radius:50%; border:2px solid #d4a373; object-fit:cover;">
+                        </a>
+                        <div style="flex:1;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <a href="${profileLink}" style="text-decoration:none;">
+                                    <h4 style="color:#d4a373; font-size:0.95rem; margin:0; display:flex; align-items:center; flex-wrap:wrap; gap:5px;">
+                                        ${c.username} ${badgeHTML}
+                                    </h4>
+                                </a>
+                                <small style="color:#888; font-size:0.7rem;">${displayDate}</small>
+                            </div>
+                            <p style="color:#ddd; font-size:0.9rem; margin:5px 0 0 0; line-height:1.5;">${c.content}</p>
+                            ${deleteBtnHTML}
+                        </div>
+                    </div>`;
+
+                    if (list) list.innerHTML += html;
                 }
 
-                // 🔥 4. PROFİL LİNKİ OLUŞTURMA
-                // İsim ve Avatarı link içine alıyoruz
-                const profileLink = `profile.html?u=${c.user}`;
-
-                const html = `
-        <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:var(--bg-card); padding:15px; border-radius:12px; border:1px solid var(--border);">
-            
-            <a href="${profileLink}" style="text-decoration:none;">
-                <img src="${currentAvatar}" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--accent); object-fit:cover;">
-            </a>
-
-            <div style="flex:1;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    
-                    <a href="${profileLink}" style="text-decoration:none;">
-                        <h4 style="color:var(--accent); font-size:0.9rem; margin:0; display:flex; align-items:center; flex-wrap:wrap;">
-                            ${c.user} ${badgeHTML}
-                        </h4>
-                    </a>
-
-                    <small style="color:var(--text-muted); font-size:0.7rem;">${displayDate}</small>
-                </div>
-
-                <p style="color:var(--text-main); font-size:0.9rem; margin:5px 0 0 0;">${c.text}</p>
-
-                ${deleteBtnHTML}
-            </div>
-        </div>
-        `;
-                if (list) list.innerHTML += html;
-            });
+            } catch (err) { console.error(err); }
         }
+
+        // ==========================================
+        // 3. YORUM SİL
+        // ==========================================
+        async function deleteComment(commentId) {
+            if (!confirm("Yorumu silmek istiyor musun?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/comments/${commentId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadComments(); // Listeyi yenile
+                } else {
+                    alert("Silinemedi.");
+                }
+            } catch (e) { alert("Hata oluştu."); }
+        }
+
         // --- YORUM SİLME FONKSİYONU ---
         function deleteComment(identifier) {
             if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
