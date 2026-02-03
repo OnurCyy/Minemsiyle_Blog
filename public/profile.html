@@ -96,56 +96,7 @@
             }
         }
 
-        /* 4. Rozetler (KİLİTLİ GÖRÜNÜM AYARLARI) */
-        .badges-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 12px;
-            padding: 10px 0;
-        }
 
-        .badge-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 15px 10px;
-            text-align: center;
-            /* KİLİTLİ HALİ: Siyah Beyaz ve Şeffaf */
-            opacity: 0.5;
-            filter: grayscale(100%);
-            transition: 0.4s;
-        }
-
-        /* KAZANILMIŞ HALİ: Renkli ve Parlak */
-        .badge-item.earned {
-            opacity: 1;
-            filter: grayscale(0);
-            border-color: var(--accent);
-            box-shadow: 0 4px 15px rgba(196, 139, 94, 0.15);
-            transform: translateY(-3px);
-            background: rgba(196, 139, 94, 0.05);
-            /* Hafif turuncu zemin */
-        }
-
-        .badge-icon {
-            font-size: 2rem;
-            margin-bottom: 8px;
-            display: block;
-            color: var(--accent);
-        }
-
-        .badge-item h4 {
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-            color: var(--text-main);
-            font-weight: 700;
-        }
-
-        .badge-item p {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            line-height: 1.3;
-        }
 
         /* 5. BOŞ DURUM (EMPTY STATE) TASARIMI */
         .empty-state {
@@ -442,7 +393,93 @@
                 /* Rozetler arası boşluk */
             }
         }
+
+
+
+        /* --- YENİ ROZET TASARIMI (OYUN BAŞARIMI STİLİ) --- */
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            /* Responsive Grid */
+            gap: 15px;
+            padding: 10px 0;
+        }
+
+        .badge-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px 10px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+        }
+
+        /* --- KAZANILMIŞ ROZET (EARNED) --- */
+        .badge-card.earned {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border-color: var(--badge-color);
+            /* JS'den gelen renk */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2),
+                0 0 15px var(--badge-glow);
+            /* Parlama Efekti */
+            transform: translateY(0);
+        }
+
+        .badge-card.earned:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3),
+                0 0 25px var(--badge-glow);
+        }
+
+        .badge-icon-area {
+            font-size: 42px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 5px var(--badge-glow));
+        }
+
+        /* --- KİLİTLİ ROZET (LOCKED) --- */
+        .badge-card.locked {
+            opacity: 0.6;
+            filter: grayscale(100%);
+            /* Siyah Beyaz yap */
+            cursor: not-allowed;
+        }
+
+        /* KİLİT İKONU - TAM ORTADA */
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            /* Hafif karartma */
+            backdrop-filter: blur(2px);
+            /* Arkasını buzlu cam yap */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 16px;
+        }
+
+        .lock-icon {
+            font-size: 32px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
     </style>
+
 </head>
 
 <body>
@@ -555,6 +592,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
     <script src="js/main.js"></script>
 
     <script>
@@ -670,106 +708,68 @@
             }
         }
 
-        // --- 4. SAĞ TARAFTAKİ BAŞARIM LİSTESİ (Kilitli/Açık Sistemi) ---
+        // --- 4. GELİŞMİŞ ROZET LİSTESİ (OYUN BAŞARIMLARI TARZI) ---
         function renderAchievements(user) {
             const container = document.getElementById('badgesList');
             if (!container) return;
 
+            // Kullanıcının sahip olduğu rozetleri al
             let userBadges = user.tags || user.badges || [];
             if (typeof userBadges === 'string') userBadges = userBadges.split(',');
 
-            container.innerHTML = "";
+            // Grid yapısını başlat
+            container.innerHTML = '<div class="badges-grid"></div>';
+            const grid = container.querySelector('.badges-grid');
 
-            // Sözlükteki HER BİR rozeti dönüyoruz (Kazanmasa bile görecek)
+            // Sözlükteki HER BİR rozeti dönüyoruz
             Object.keys(badgeDictionary).forEach(key => {
                 const info = badgeDictionary[key];
-                const isEarned = userBadges.includes(key); // Kullanıcıda bu rozet var mı?
+                const isEarned = userBadges.includes(key); // Kullanıcıda var mı?
 
-                // Stil Ayarları: Kazanılmışsa Parlak, Değilse Sönük ve Gri
-                const opacity = isEarned ? '1' : '0.5';
-                const filter = isEarned ? 'none' : 'grayscale(100%)';
-                const border = isEarned ? `1px solid ${info.color}66` : '1px solid #333';
-                const bg = isEarned ? `rgba(255,255,255,0.05)` : 'transparent';
+                // Renk ayarları (Glow efekti için)
+                const badgeColor = info.color;
+                const glowColor = info.color + "66"; // %40 saydamlık
 
-                // Kilit İkonu
-                const lockIcon = isEarned ? '' : '<i class="ph-fill ph-lock-key" style="position:absolute; right:15px; font-size:24px; color:#555;"></i>';
+                let cardContent = '';
+                let cardClass = '';
+                let styleVars = `style="--badge-color: ${badgeColor}; --badge-glow: ${glowColor};"`;
 
-                const html = `
-                    <div class="badge-item" style="display:flex; align-items:center; gap:15px; background:${bg}; padding:15px; margin-bottom:10px; border-radius:12px; border:${border}; position:relative; opacity:${opacity}; filter:${filter}; transition:0.3s;">
-                        <div style="background:${info.color}22; width:50px; height:50px; min-width:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:${info.color}; font-size:24px;">
+                if (isEarned) {
+                    // --- KAZANILMIŞ (AÇIK) ---
+                    cardClass = 'earned';
+                    cardContent = `
+                        <div class="badge-icon-area" style="color:${badgeColor}">
                             <i class="ph-fill ${info.icon}"></i>
                         </div>
-                        <div>
-                            <h4 style="color:${info.color}; margin:0; font-size:16px; font-weight:bold;">${info.label}</h4>
-                            <p style="color:#bbb; margin:4px 0 0 0; font-size:13px;">${info.desc}</p>
+                        <h4 style="color:#fff; margin:0; font-size:15px; font-weight:700;">${info.label}</h4>
+                        <p style="color:#aaa; margin:5px 0 0 0; font-size:12px; line-height:1.4;">${info.desc}</p>
+                        <div style="margin-top:10px; font-size:10px; color:${badgeColor}; text-transform:uppercase; letter-spacing:1px; font-weight:bold;">
+                            <i class="ph-bold ph-check"></i> KAZANILDI
                         </div>
-                        ${lockIcon}
-                    </div>`;
-                container.innerHTML += html;
-            });
-        }
-
-        // --- 5. PROFİL GÜNCELLEME (FİNAL DÜZELTME) ---
-        async function saveSettings() {
-            const newName = document.getElementById('editUsername').value;
-            const newBio = document.getElementById('editBio').value;
-            const newPass = document.getElementById('newPass').value;
-
-            const updateData = {};
-            if (newName) updateData.username = newName;
-            if (newBio) updateData.bio = newBio;
-            if (newPass && newPass.length >= 4) updateData.newPassword = newPass;
-
-            // 🔥 KRİTİK HAMLE: İki anahtar ismini de kontrol et
-            let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
-
-            // Eğer token yoksa hemen durdur
-            if (!rawToken) {
-                alert("⚠️ HATA: Tarayıcıda kayıtlı anahtar bulunamadı!\nLütfen tekrar giriş yap.");
-                window.location.href = "login.html";
-                return;
-            }
-
-            // Tırnak işaretlerini temizle (Bazen "eyJ..." şeklinde tırnaklı kaydolur)
-            const cleanToken = rawToken.replace(/"/g, '');
-
-            console.log("🕵️‍♂️ Kullanılan Token:", cleanToken.substring(0, 15) + "..."); // Konsolda kontrol için
-
-            try {
-                const res = await fetch(`${API_BASE}/users/update`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${cleanToken}` // Temizlenmiş token'ı gönder
-                    },
-                    body: JSON.stringify(updateData)
-                });
-
-                if (res.ok) {
-                    alert("✅ BAŞARDIK! Profil güncellendi.");
-
-                    // İsmi değiştirdiyse localStorage'ı da güncelle
-                    let user = JSON.parse(localStorage.getItem('user'));
-                    if (newName && user) {
-                        user.username = newName;
-                        localStorage.setItem('user', JSON.stringify(user));
-                    }
-                    location.reload();
+                    `;
                 } else {
-                    const data = await res.json();
-
-                    // 401 Hatası gelirse (Yine de gelirse)
-                    if (res.status === 401 || res.status === 403) {
-                        console.error("Yetki Hatası:", data);
-                        alert("Oturum süren dolmuş olabilir. Lütfen Çıkış Yap -> Giriş Yap dene.");
-                    } else {
-                        alert("Hata: " + (data.message || "Güncellenemedi"));
-                    }
+                    // --- KAZANILMAMIŞ (KİLİTLİ) ---
+                    cardClass = 'locked';
+                    cardContent = `
+                        <div class="lock-overlay">
+                            <i class="ph-fill ph-lock-key lock-icon"></i>
+                        </div>
+                        <div class="badge-icon-area" style="color:#555">
+                            <i class="ph-fill ${info.icon}"></i>
+                        </div>
+                        <h4 style="color:#777; margin:0; font-size:15px;">${info.label}</h4>
+                        <p style="color:#555; margin:5px 0 0 0; font-size:12px;">${info.desc}</p>
+                    `;
                 }
-            } catch (err) {
-                console.error("Bağlantı Hatası:", err);
-                alert("Sunucuya ulaşılamadı!");
-            }
+
+                // Kartı oluştur ve ekle
+                const html = `
+                    <div class="badge-card ${cardClass}" ${styleVars}>
+                        ${cardContent}
+                    </div>
+                `;
+                grid.innerHTML += html;
+            });
         }
         // --- DİĞER FONKSİYONLAR ---
         function switchTab(tabName) {
@@ -838,24 +838,70 @@
             if (cropper) { cropper.destroy(); cropper = null; }
             if (avatarInput) avatarInput.value = "";
         }
+        // --- 7. FOTOĞRAF KIRPMA VE KAYDETME (FİNAL DÜZELTME 📸) ---
         async function cropAndSave() {
             if (!cropper) return;
+
+            // 1. Resmi Kırp ve Base64'e Çevir
             const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
-            const base64Image = canvas.toDataURL("image/jpeg", 0.8);
-            const token = localStorage.getItem('token');
+            const base64Image = canvas.toDataURL("image/jpeg", 0.8); // Kalite 0.8 (Hız için)
+
+            // 2. Token Bul (Aynı Dedektif Mantığı)
+            let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
+            if (!rawToken) {
+                alert("Oturum süren dolmuş. Lütfen tekrar giriş yap.");
+                return;
+            }
+            const cleanToken = rawToken.replace(/"/g, '');
+
+            // Butonu kilitle ki 2 kere basmasınlar
+            const saveBtn = document.querySelector('#cropperModal button[onclick="cropAndSave()"]');
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = "Yükleniyor...";
+            saveBtn.disabled = true;
+
             try {
+                // 3. Backend'e Gönder
+                // Backend 'avatar' bekliyor, 'profileImage' değil!
                 const res = await fetch(`${API_BASE}/users/update`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${cleanToken}`
+                    },
                     body: JSON.stringify({ avatar: base64Image })
                 });
+
                 if (res.ok) {
+                    // 4. BAŞARILI! Resmi ekranda değiştir
                     document.getElementById('avatarDisplay').src = base64Image;
+
+                    // Header'daki küçük resmi de değiştir (Varsa)
+                    const headerImg = document.querySelector('.header-avatar-img');
+                    if (headerImg) headerImg.src = base64Image;
+
+                    // LocalStorage güncelle
+                    let user = JSON.parse(localStorage.getItem('user'));
+                    if (user) {
+                        user.avatar = base64Image;
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
+
                     closeCropper();
-                    alert("Fotoğraf güncellendi! 📸");
-                    location.reload();
+                    alert("Fotoğrafın on numara oldu Kral! 📸");
+
+                } else {
+                    const data = await res.json();
+                    alert("Hata: " + (data.message || "Resim yüklenemedi."));
                 }
-            } catch (e) { alert("Hata oluştu."); }
+            } catch (e) {
+                console.error(e);
+                alert("Sunucu hatası! Resim çok büyük olabilir.");
+            } finally {
+                // Butonu eski haline getir
+                saveBtn.innerText = originalText;
+                saveBtn.disabled = false;
+            }
         }
     </script>
 
