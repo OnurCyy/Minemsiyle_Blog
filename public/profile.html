@@ -18,7 +18,9 @@
     </script>
 
     <style>
-        /* --- 🛠️ ÖZEL DÜZELTMELER --- */
+        /* =========================================
+    🛠️ GENEL AYARLAR VE DÜZELTMELER
+    ========================================= */
 
         /* 1. YAZI TAŞMASINI ENGELLEME */
         .user-handle,
@@ -30,7 +32,21 @@
             max-width: 100%;
         }
 
-        /* 2. Avatar Düzenleme İkonu */
+        /* 2. LOGO AYARI */
+        .brand img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .brand img {
+                height: 45px;
+            }
+        }
+
+        /* 3. AVATAR VE DÜZENLEME BUTONU */
         .avatar-container {
             position: relative;
             display: inline-block;
@@ -58,7 +74,9 @@
             transform: scale(1.1);
         }
 
-        /* 3. Taglar */
+        /* =========================================
+    🏷️ ETİKETLER VE ROZETLER (PROFİL ÜSTÜ)
+    ========================================= */
         .user-tags {
             display: flex;
             gap: 6px;
@@ -67,215 +85,6 @@
             margin-bottom: 15px;
         }
 
-        .user-tag {
-            font-size: 0.7rem;
-            padding: 3px 8px;
-            border-radius: 12px;
-            background: #333;
-            color: #ccc;
-            border: 1px solid var(--border);
-        }
-
-        .owner-tag {
-            background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
-            background-size: 400%;
-            color: #fff;
-            font-weight: bold;
-            border: none;
-            animation: glowing 20s linear infinite;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes glowing {
-            0% {
-                background-position: 0 0;
-            }
-
-            100% {
-                background-position: 400% 0;
-            }
-        }
-
-
-
-        /* 5. BOŞ DURUM (EMPTY STATE) TASARIMI */
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: var(--text-muted);
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            margin-top: 20px;
-        }
-
-        .empty-state i {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            opacity: 0.3;
-            color: var(--accent);
-        }
-
-        .empty-state h3 {
-            color: var(--text-main);
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-
-        .empty-state p {
-            font-size: 0.9rem;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-
-        /* 5. Modallar ve Form Elemanları (DÜZELTİLDİ) */
-        .modal-box input,
-        .modal-box textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            background: var(--bg-body);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            outline: none;
-            font-family: sans-serif;
-            transition: 0.3s;
-        }
-
-        .modal-box input:focus,
-        .modal-box textarea:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(196, 139, 94, 0.2);
-        }
-
-        .modal-box textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .password-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .password-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .cropper-container-box {
-            max-height: 400px;
-            background: #000;
-            margin-bottom: 15px;
-        }
-
-        .preview-box {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid var(--accent);
-            margin: 0 auto 15px auto;
-        }
-
-        /* --- LOGO BOYUT AYARI --- */
-        .brand img {
-            height: 60px;
-            /* Yüksekliği sınırla (İsteğine göre 50px-80px yapabilirsin) */
-            width: auto;
-            /* Enini orantılı daralt */
-            object-fit: contain;
-            /* Resmi bozmadan sığdır */
-            display: block;
-            /* Kaymaları önle */
-        }
-
-        /* Mobilde biraz daha küçük olsun istersen: */
-        @media (max-width: 768px) {
-            .brand img {
-                height: 45px;
-            }
-        }
-
-        /* Profil Sayfasındaki Admin Butonu */
-        .admin-profile-btn {
-            display: block;
-            /* Tam genişlik kaplasın */
-            width: 100%;
-            background: var(--bg-card);
-            /* Kendi rengi yerine kart rengi */
-            color: var(--accent);
-            /* Turuncu yazı */
-            border: 2px solid var(--accent);
-            /* Turuncu çerçeve */
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            text-decoration: none;
-            font-weight: bold;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .admin-profile-btn:hover {
-            background: var(--accent);
-            /* Üstüne gelince turuncu olsun */
-            color: white;
-            /* Yazı beyaz olsun */
-            transform: translateY(-3px);
-            /* Hafif yukarı zıplasın */
-            box-shadow: 0 5px 15px rgba(211, 84, 0, 0.3);
-        }
-
-        /* --- ROZET GÖRÜNÜMÜ VE PARILDAMA EFEKTİ --- */
-        .user-tag {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            margin: 3px;
-            color: #fff;
-            /* Yazılar hep beyaz */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-
-            /* Parıldama için gerekli ayarlar */
-            position: relative;
-            overflow: hidden;
-            cursor: default;
-            transition: transform 0.2s;
-        }
-
-        /* Hover olunca hafif büyüsün */
-        .user-tag:hover {
-            transform: translateY(-2px);
-        }
-
-        /* ✨ PARILDAMA ANİMASYONU (SHINE EFFECT) ✨ */
-        .user-tag::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transition: 0.5s;
-        }
-
-        .user-tag:hover::after {
-            left: 100%;
-        }
-
-        /* --- ROZET GÖRÜNÜMÜ (Profile Özel) --- */
         .user-tag {
             display: inline-flex;
             align-items: center;
@@ -295,17 +104,11 @@
             text-transform: uppercase;
         }
 
-        .user-tag i {
-            font-size: 1rem;
-        }
-
-        /* İkon boyutu */
-
         .user-tag:hover {
             transform: translateY(-2px);
         }
 
-        /* ✨ PARILDAMA EFEKTİ */
+        /* PARILDAMA EFEKTİ (SHINE) */
         .user-tag::after {
             content: '';
             position: absolute;
@@ -321,52 +124,36 @@
             left: 100%;
         }
 
-        /* --- PROFİL RESPONSIVE AYARLARI --- */
-        @media (max-width: 768px) {
+        /* ÖZEL GÖKKUŞAĞI ETİKETİ (OWNER) */
+        .owner-tag {
+            background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            color: #fff;
+            border: none;
+            animation: glowing 20s linear infinite;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
 
-            /* Profil ana kutusu alt alta dizilsin */
-            .profile-container,
-            .profile-header {
-                flex-direction: column !important;
-                align-items: center !important;
-                text-align: center;
+        @keyframes glowing {
+            0% {
+                background-position: 0 0;
             }
 
-            /* Sol taraftaki resim ve isim kısmı */
-            .profile-info {
-                width: 100% !important;
-                margin-bottom: 20px;
-                border-right: none !important;
-                /* Aradaki çizgiyi kaldır */
-                border-bottom: 1px solid var(--line);
-                /* Alta çizgi ekle */
-                padding-bottom: 20px;
-            }
-
-            /* Sağ taraftaki istatistikler */
-            .profile-stats {
-                width: 100% !important;
-                justify-content: center;
-                gap: 30px;
-            }
-
-            /* Sekme butonları tam otursun */
-            .profile-tabs {
-                justify-content: center;
-                gap: 15px;
+            100% {
+                background-position: 400% 0;
             }
         }
 
         /* =========================================
-       🚀 FİNAL ROZET DÜZENİ (GRID SİSTEMİ)
-       ========================================= */
+    🏆 FİNAL ROZET SİSTEMİ (GRID YAPISI)
+    ========================================= */
 
         /* 1. KAPSAYICI KUTU (GRID) */
-        /* ID ile hedefliyoruz ki daha güçlü olsun */
+        /* !important kullanarak diğer tüm ayarları eziyoruz */
         #badgesList .badges-grid,
         .badges-grid {
             display: grid !important;
-            /* Sihirli Kod: Sığdığı kadar yan yana (En az 130px) */
+            /* En az 130px genişliğinde, sığdığı kadar yan yana */
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
             gap: 15px !important;
             width: 100% !important;
@@ -377,21 +164,17 @@
 
         /* 2. TEKİL KART TASARIMI */
         .badge-card {
-            /* İçerik Hizalama */
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
             text-align: center !important;
 
-            /* Boyutlandırma */
             width: 100% !important;
-            /* Hücreyi doldur */
             min-height: 160px !important;
             aspect-ratio: 1 / 1;
-            /* Kareye zorla */
+            /* Kare olması için */
 
-            /* Görünüm */
             position: relative;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -401,22 +184,20 @@
             transition: all 0.3s ease;
         }
 
-        /* 3. PARILDAYAN (KAZANILMIŞ) KART */
+        /* 3. KAZANILMIŞ (PARLAYAN) KART */
         .badge-card.earned {
             background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
             border-color: var(--badge-color);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3),
-                0 0 20px var(--badge-glow);
-            /* Dışa Işık */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px var(--badge-glow);
         }
 
         .badge-card.earned:hover {
             transform: translateY(-5px);
         }
 
-        /* 4. İKON VE METİN AYARLARI */
+        /* 4. İÇERİK AYARLARI */
         .badge-icon-area {
-            font-size: 40px;
+            font-size: 38px;
             margin-bottom: 10px;
             filter: drop-shadow(0 0 8px var(--badge-glow));
         }
@@ -435,13 +216,12 @@
             line-height: 1.2;
         }
 
-        /* 5. KİLİTLİ (SÖNÜK) DURUM */
+        /* 5. KİLİTLİ DURUM */
         .badge-card.locked {
             opacity: 0.5;
             filter: grayscale(100%);
         }
 
-        /* 6. KİLİT SİMGESİ (ORTALA) */
         .lock-overlay {
             position: absolute;
             top: 0;
@@ -464,8 +244,99 @@
             padding: 12px;
             border-radius: 50%;
         }
-    </style>
 
+        /* =========================================
+    📱 MOBİL VE RESPONSIVE AYARLAR
+    ========================================= */
+        @media (max-width: 768px) {
+
+            /* Profil Düzeni */
+            .profile-card {
+                width: 100% !important;
+                margin-bottom: 20px;
+            }
+
+            .profile-container,
+            .profile-header {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center;
+            }
+
+            .profile-info {
+                border-right: none !important;
+                border-bottom: 1px solid var(--line);
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                width: 100%;
+            }
+
+            .profile-stats {
+                justify-content: center;
+                gap: 30px;
+                width: 100%;
+            }
+
+            /* Rozet Grid Mobilde de Düzgün Görünsün */
+            #badgesList .badges-grid {
+                /* Mobilde 2 sütuna zorlayabiliriz veya otomatikte bırakabiliriz.
+    Otomatik (yukarıdaki kod) zaten sığdıracaktır. */
+                justify-content: center;
+            }
+        }
+
+        /* =========================================
+    🖼️ MODALLAR VE DİĞERLERİ
+    ========================================= */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .empty-state i {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+            color: var(--accent);
+        }
+
+        .modal-box input,
+        .modal-box textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .password-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .cropper-container-box {
+            max-height: 400px;
+            background: #000;
+            margin-bottom: 15px;
+        }
+
+        .preview-box {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--accent);
+            margin: 0 auto 15px auto;
+        }
+    </style>
 </head>
 
 <body>
