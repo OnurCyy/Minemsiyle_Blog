@@ -357,128 +357,103 @@
             }
         }
 
-        /* 📱 MOBİL PROFİL: Başarımları Tam Genişlik Yap */
-        @media (max-width: 768px) {
+        /* =========================================
+       🚀 FİNAL ROZET DÜZENİ (GRID SİSTEMİ)
+       ========================================= */
 
-            /* Başarımlar Kutusunu Bul */
-            /* Not: Class ismini tahmin ediyorum, seninki .achievements-container falan olabilir */
-            .achievements-section,
-            .badges-container {
-                /* Kenar boşluklarını iptal et (Negatif Margin Tekniği) */
-                margin-left: -20px !important;
-                /* Sayfa kenar boşluğu ne kadarsa o kadar eksi ver */
-                margin-right: -20px !important;
-
-                /* Genişliği arttır ki kenarlara yapışsın */
-                width: calc(100% + 40px) !important;
-
-                /* Köşeleri sivri yap, tam otursun */
-                border-radius: 0 !important;
-                border-left: none !important;
-                border-right: none !important;
-
-                /* İçini biraz ferahlat */
-                padding: 20px 10px !important;
-                background-color: var(--bg-card);
-                /* Kart rengi olsun */
-            }
-
-            /* Rozetleri ortala ve sıkıştır */
-            .badges-grid {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                /* Ortala */
-                gap: 15px;
-                /* Rozetler arası boşluk */
-            }
-        }
-
-        /* --- 🛡️ FİNAL VE TEMİZ ROZET CSS (Bunu Yapıştır) --- */
-
-        /* 1. Grid Kutusu (Rozetleri Tutan Kapsayıcı) */
+        /* 1. KAPSAYICI KUTU (GRID) */
+        /* ID ile hedefliyoruz ki daha güçlü olsun */
         #badgesList .badges-grid,
         .badges-grid {
             display: grid !important;
-            /* Kesinlikle Grid olacak */
-            /* Sığdığı kadar yan yana koy (En az 130px) */
+            /* Sihirli Kod: Sığdığı kadar yan yana (En az 130px) */
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
             gap: 15px !important;
-            width: 100%;
+            width: 100% !important;
             padding: 10px 0;
             margin-top: 15px;
+            box-sizing: border-box;
         }
 
-        /* 2. Rozet Kartı (Tekil Kutu) */
+        /* 2. TEKİL KART TASARIMI */
         .badge-card {
-            position: relative;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 15px 10px;
-            text-align: center;
-
-            /* İçeriği Ortala */
+            /* İçerik Hizalama */
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
+            text-align: center !important;
 
-            /* Kareye yakın olsun */
+            /* Boyutlandırma */
+            width: 100% !important;
+            /* Hücreyi doldur */
+            min-height: 160px !important;
             aspect-ratio: 1 / 1;
-            min-height: 150px;
+            /* Kareye zorla */
 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Görünüm */
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 15px 5px;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
 
-        /* --- KAZANILMIŞ (PARLAYAN) --- */
+        /* 3. PARILDAYAN (KAZANILMIŞ) KART */
         .badge-card.earned {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
             border-color: var(--badge-color);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2),
-                0 0 15px var(--badge-glow);
-            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3),
+                0 0 20px var(--badge-glow);
+            /* Dışa Işık */
         }
 
         .badge-card.earned:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3),
-                0 0 25px var(--badge-glow);
         }
 
+        /* 4. İKON VE METİN AYARLARI */
         .badge-icon-area {
-            font-size: 38px;
-            /* İkon boyutu */
+            font-size: 40px;
             margin-bottom: 10px;
-            filter: drop-shadow(0 0 5px var(--badge-glow));
+            filter: drop-shadow(0 0 8px var(--badge-glow));
         }
 
-        /* --- KİLİTLİ (SÖNÜK) --- */
+        .badge-card h4 {
+            color: #fff !important;
+            font-size: 0.9rem !important;
+            margin: 5px 0 0 0 !important;
+            font-weight: bold;
+        }
+
+        .badge-card p {
+            font-size: 0.75rem !important;
+            color: #aaa !important;
+            margin: 3px 0 0 0 !important;
+            line-height: 1.2;
+        }
+
+        /* 5. KİLİTLİ (SÖNÜK) DURUM */
         .badge-card.locked {
-            opacity: 0.6;
+            opacity: 0.5;
             filter: grayscale(100%);
-            cursor: not-allowed;
         }
 
-        /* --- KİLİT İKONU (TAM ORTADA) --- */
+        /* 6. KİLİT SİMGESİ (ORTALA) */
         .lock-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-
             background: rgba(0, 0, 0, 0.6);
-            /* Karartma */
-            backdrop-filter: blur(3px);
-            /* Buzlu Cam */
-
+            backdrop-filter: blur(2px);
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-
-            z-index: 10;
+            z-index: 5;
             border-radius: 16px;
         }
 
@@ -488,7 +463,6 @@
             background: rgba(0, 0, 0, 0.5);
             padding: 12px;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
     </style>
 
