@@ -16,7 +16,7 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
-
+    jk
     <style>
         /* =========================================
     🛠️ GENEL AYARLAR VE DÜZELTMELER
@@ -565,7 +565,7 @@
             }
         }
 
-        // --- 4. GELİŞMİŞ ROZET LİSTESİ (OYUN BAŞARIMLARI TARZI) ---
+        // --- 4. GELİŞMİŞ ROZET LİSTESİ (DÜZELTİLMİŞ) ---
         function renderAchievements(user) {
             const container = document.getElementById('badgesList');
             if (!container) return;
@@ -574,25 +574,29 @@
             let userBadges = user.tags || user.badges || [];
             if (typeof userBadges === 'string') userBadges = userBadges.split(',');
 
-            // Grid yapısını başlat
-            container.innerHTML = '<div class="badges-grid"></div>';
-            const grid = container.querySelector('.badges-grid');
+            // 🔥 DÜZELTME BURADA: 
+            // İçine yeni bir div açmıyoruz! Direkt container'ı temizleyip içine basıyoruz.
+            container.innerHTML = '';
+
+            // Eğer HTML'de class="badges-grid" silinmişse diye garantiye alalım
+            container.classList.add('badges-grid');
 
             // Sözlükteki HER BİR rozeti dönüyoruz
             Object.keys(badgeDictionary).forEach(key => {
                 const info = badgeDictionary[key];
-                const isEarned = userBadges.includes(key); // Kullanıcıda var mı?
+                const isEarned = userBadges.includes(key);
 
-                // Renk ayarları (Glow efekti için)
+                // Renk ayarları
                 const badgeColor = info.color;
-                const glowColor = info.color + "66"; // %40 saydamlık
+                const glowColor = info.color + "66";
 
                 let cardContent = '';
                 let cardClass = '';
+                // CSS değişkenlerini satır içine gömüyoruz
                 let styleVars = `style="--badge-color: ${badgeColor}; --badge-glow: ${glowColor};"`;
 
                 if (isEarned) {
-                    // --- KAZANILMIŞ (AÇIK) ---
+                    // --- KAZANILMIŞ ---
                     cardClass = 'earned';
                     cardContent = `
                         <div class="badge-icon-area" style="color:${badgeColor}">
@@ -605,7 +609,7 @@
                         </div>
                     `;
                 } else {
-                    // --- KAZANILMAMIŞ (KİLİTLİ) ---
+                    // --- KİLİTLİ ---
                     cardClass = 'locked';
                     cardContent = `
                         <div class="lock-overlay">
@@ -619,15 +623,17 @@
                     `;
                 }
 
-                // Kartı oluştur ve ekle
                 const html = `
                     <div class="badge-card ${cardClass}" ${styleVars}>
                         ${cardContent}
                     </div>
                 `;
-                grid.innerHTML += html;
+
+                // Direkt ana kutuya ekle
+                container.innerHTML += html;
             });
-        } ""
+        }
+
         // --- DİĞER FONKSİYONLAR ---
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
