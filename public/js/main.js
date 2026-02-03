@@ -641,9 +641,12 @@ function stopAllSounds() {
     });
 }
 
-// Ses Seviyesi Ayarı (Canlı)
-document.getElementById('volumeControl').addEventListener('input', (e) => {
-    if (currentAudio) {
-        currentAudio.volume = e.target.value;
-    }
-});
+// Ses Seviyesi Ayarı (Güvenli Mod)
+const volSlider = document.getElementById('volumeControl');
+if (volSlider) {
+    volSlider.addEventListener('input', (e) => {
+        if (currentAudio) {
+            currentAudio.volume = e.target.value;
+        }
+    });
+}
