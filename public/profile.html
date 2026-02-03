@@ -394,15 +394,29 @@
             }
         }
 
-
-
-        /* --- YENİ ROZET TASARIMI (OYUN BAŞARIMI STİLİ) --- */
+        /* --- GRID SİSTEMİNİ ZORLA (Bunu <style> içine yapıştır) --- */
         .badges-grid {
-            display: grid;
+            display: grid !important;
+            /* !important ile baskın çıkıyoruz */
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            /* Responsive Grid */
+            /* Kutular sığdıkça yan yana gelir */
             gap: 15px;
-            padding: 10px 0;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .badge-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px 10px;
+            text-align: center;
+            min-height: 150px;
+            position: relative;
         }
 
         .badge-card {
@@ -770,7 +784,7 @@
                 `;
                 grid.innerHTML += html;
             });
-        }
+        } ""
         // --- DİĞER FONKSİYONLAR ---
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
