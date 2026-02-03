@@ -394,55 +394,50 @@
             }
         }
 
-        /* --- GRID SİSTEMİNİ ZORLA (Bunu <style> içine yapıştır) --- */
+        /* --- 🛡️ FİNAL VE TEMİZ ROZET CSS (Bunu Yapıştır) --- */
+
+        /* 1. Grid Kutusu (Rozetleri Tutan Kapsayıcı) */
+        #badgesList .badges-grid,
         .badges-grid {
             display: grid !important;
-            /* !important ile baskın çıkıyoruz */
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            /* Kutular sığdıkça yan yana gelir */
-            gap: 15px;
+            /* Kesinlikle Grid olacak */
+            /* Sığdığı kadar yan yana koy (En az 130px) */
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+            gap: 15px !important;
             width: 100%;
+            padding: 10px 0;
             margin-top: 15px;
         }
 
+        /* 2. Rozet Kartı (Tekil Kutu) */
         .badge-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: relative;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px 10px;
-            text-align: center;
-            min-height: 150px;
-            position: relative;
-        }
-
-        .badge-card {
-            position: relative;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 20px 10px;
+            padding: 15px 10px;
             text-align: center;
+
+            /* İçeriği Ortala */
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+
+            /* Kareye yakın olsun */
+            aspect-ratio: 1 / 1;
+            min-height: 150px;
+
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 160px;
         }
 
-        /* --- KAZANILMIŞ ROZET (EARNED) --- */
+        /* --- KAZANILMIŞ (PARLAYAN) --- */
         .badge-card.earned {
             background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
             border-color: var(--badge-color);
-            /* JS'den gelen renk */
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2),
                 0 0 15px var(--badge-glow);
-            /* Parlama Efekti */
             transform: translateY(0);
         }
 
@@ -453,42 +448,45 @@
         }
 
         .badge-icon-area {
-            font-size: 42px;
-            margin-bottom: 12px;
+            font-size: 38px;
+            /* İkon boyutu */
+            margin-bottom: 10px;
             filter: drop-shadow(0 0 5px var(--badge-glow));
         }
 
-        /* --- KİLİTLİ ROZET (LOCKED) --- */
+        /* --- KİLİTLİ (SÖNÜK) --- */
         .badge-card.locked {
             opacity: 0.6;
             filter: grayscale(100%);
-            /* Siyah Beyaz yap */
             cursor: not-allowed;
         }
 
-        /* KİLİT İKONU - TAM ORTADA */
+        /* --- KİLİT İKONU (TAM ORTADA) --- */
         .lock-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+
             background: rgba(0, 0, 0, 0.6);
-            /* Hafif karartma */
-            backdrop-filter: blur(2px);
-            /* Arkasını buzlu cam yap */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            /* Karartma */
+            backdrop-filter: blur(3px);
+            /* Buzlu Cam */
+
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+
             z-index: 10;
             border-radius: 16px;
         }
 
         .lock-icon {
-            font-size: 32px;
+            font-size: 28px;
             color: #fff;
             background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
+            padding: 12px;
             border-radius: 50%;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
