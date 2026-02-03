@@ -709,7 +709,7 @@
             });
         }
 
-        // --- 5. PROFİL GÜNCELLEME (Token Fix) ---
+        // --- 5. PROFİL GÜNCELLEME (Gelişmiş Dedektif Modu 🕵️‍♂️) ---
         async function saveSettings() {
             const newName = document.getElementById('editUsername').value;
             const newBio = document.getElementById('editBio').value;
@@ -720,10 +720,18 @@
             if (newBio) updateData.bio = newBio;
             if (newPass && newPass.length >= 4) updateData.newPassword = newPass;
 
-            const token = localStorage.getItem('token');
-            // Token kontrolü
+            // 🔥 KRİTİK DÜZELTME BURADA:
+            // Anahtar 'token' mi yoksa 'userToken' mi? İkisine de bak, hangisi doluysa onu al.
+            const token = localStorage.getItem('token') || localStorage.getItem('userToken');
+
+            // 🕵️‍♂️ KONSOLA YAZDIR (F12'ye basıp Console'a bakabilirsin)
+            console.log("--------------------------------");
+            console.log("🔍 GÜNCELLEME İŞLEMİ BAŞLADI");
+            console.log("🔑 Bulunan Token:", token ? "Token Var (Başlangıcı: " + token.substring(0, 10) + "...)" : "YOK! ❌");
+            console.log("📤 Gönderilecek Veri:", updateData);
+
             if (!token) {
-                alert("Oturum süren dolmuş. Lütfen tekrar giriş yap.");
+                alert("HATA: Giriş anahtarı (Token) bulunamadı! Lütfen tekrar giriş yap.");
                 window.location.href = "login.html";
                 return;
             }
@@ -733,32 +741,38 @@
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // 🔥 KRİTİK NOKTA: Token'ı başlığa ekledik
+                        'Authorization': `Bearer ${token}` // Anahtarı gönderiyoruz
                     },
                     body: JSON.stringify(updateData)
                 });
 
                 if (res.ok) {
-                    alert("✅ Profil başarıyla güncellendi!");
-                    // İsmi değiştirdiyse localStorage'ı da güncelle ki anında görünsün
+                    alert("✅ İŞTE BU! Profil güncellendi.");
+
+                    // İsmi değiştirdiyse localStorage'ı da güncelle
                     let user = JSON.parse(localStorage.getItem('user'));
-                    if (newName) user.username = newName;
-                    localStorage.setItem('user', JSON.stringify(user));
+                    if (newName && user) {
+                        user.username = newName;
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
                     location.reload();
                 } else {
                     const data = await res.json();
-                    if (res.status === 401) {
-                        alert("Oturum süreniz dolmuş. Lütfen çıkış yapıp tekrar girin.");
+                    console.error("Sunucu Hatası:", data);
+
+                    if (res.status === 401 || res.status === 403) {
+                        alert("GÜVENLİK UYARISI: Oturum süren dolmuş veya yetkin yok. Çıkış yapılıyor...");
+                        localStorage.clear();
+                        window.location.href = "login.html";
                     } else {
                         alert("Hata: " + (data.message || "Güncellenemedi"));
                     }
                 }
             } catch (err) {
-                console.error(err);
-                alert("Sunucu hatası!");
+                console.error("Fetch Hatası:", err);
+                alert("Sunucuya ulaşılamadı! Backend kapalı olabilir.");
             }
         }
-
         // --- DİĞER FONKSİYONLAR ---
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
