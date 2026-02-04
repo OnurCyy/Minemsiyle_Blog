@@ -1058,6 +1058,107 @@
                 currentAudio.volume = e.target.value;
             }
         });
+
+        // --- 💬 GLOBAL YORUM SİSTEMİ (CANLI) ---
+
+        const API_COMMENTS = "/api/comments"; // Senin route adresin
+
+        // URL'den hangi kitapta olduğumuzu alalım (örn: book.html?id=123)
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentRelatedId = urlParams.get('id');
+        const currentType = window.location.pathname.includes('blog') ? 'blog' : 'book'; // Sayfaya göre tip belirle
+
+        // 1. YORUM GÖNDERME FONKSİYONU
+        async function postComment() {
+            const input = document.getElementById('commentInput'); // Yorum kutusunun ID'si
+            const text = input.value.trim();
+
+            // Kullanıcı giriş yapmış mı?
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            if (!user) {
+                alert("Yorum yapabilmek için giriş yapmalısın! 🛑");
+                window.location.href = "login.html";
+                return;
+            }
+
+            if (!text) return alert("Boş yorum atılmaz! ✍️");
+            if (!currentRelatedId) return alert("Hata: Hangi sayfada olduğun bulunamadı.");
+
+            // Butonu kilitle
+            const btn = document.querySelector('button[onclick="postComment()"]');
+            if (btn) { btn.innerText = "Yollanıyor..."; btn.disabled = true; }
+
+            try {
+                // 🔥 SENİN BACKEND MODELİNE UYGUN VERİ PAKETİ
+                const payload = {
+                    userID: user._id,          // Backend: userID
+                    username: user.username,   // Backend: username
+                    avatar: user.avatar,       // Backend: avatar
+                    content: text,             // Backend: content
+                    contentType: currentType,  // Backend: contentType ('book' veya 'blog')
+                    relatedId: currentRelatedId // Backend: relatedId
+                };
+
+                const res = await fetch(API_COMMENTS, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    input.value = ""; // Kutuyu temizle
+                    loadComments();   // Yorumları yenile (Canlı hissi için)
+                    alert("Yorumun eklendi!");
+                } else {
+                    alert("Hata oluştu. Sunucu cevap vermedi.");
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Sunucu hatası!");
+            } finally {
+                if (btn) { btn.innerText = "Yorum Yap"; btn.disabled = false; }
+            }
+        }
+
+        // 2. YORUMLARI LİSTELEME FONKSİYONU
+        async function loadComments() {
+            const listContainer = document.getElementById('commentsList'); // Yorumların dizileceği div
+            if (!listContainer || !currentRelatedId) return;
+
+            try {
+                // Senin Backend'deki filtreleme koduna istek atıyoruz
+                // router.get("/", ... req.query ...)
+                const res = await fetch(`${API_COMMENTS}?type=${currentType}&id=${currentRelatedId}`);
+                const comments = await res.json();
+
+                if (comments.length === 0) {
+                    listContainer.innerHTML = "<p style='color:#777; text-align:center;'>Henüz yorum yok. İlk sen ol! 🥇</p>";
+                    return;
+                }
+
+                // HTML oluştur
+                listContainer.innerHTML = comments.map(c => `
+            <div class="comment-card" style="background:var(--bg-card); padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid var(--border); display:flex; gap:10px;">
+                <img src="${c.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                <div>
+                    <div style="font-weight:bold; color:var(--accent); font-size:0.9rem;">
+                        ${c.username} 
+                        <span style="color:#666; font-size:0.7rem; font-weight:normal; margin-left:5px;">• ${new Date(c.date).toLocaleDateString()}</span>
+                    </div>
+                    <p style="margin:5px 0 0 0; color:var(--text-main); font-size:0.95rem;">${c.content}</p>
+                </div>
+            </div>
+        `).join('');
+
+            } catch (err) {
+                console.error("Yorumlar çekilemedi:", err);
+            }
+        }
+
+        // Sayfa açılınca yorumları getir
+        document.addEventListener("DOMContentLoaded", loadComments);
     </script>
 </body>
 
