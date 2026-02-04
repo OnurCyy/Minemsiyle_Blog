@@ -1,14 +1,19 @@
 const router = require("express").Router();
 const Comment = require("../models/Comment");
 
-// 1. YORUM EKLE
+// 1. YORUM EKLE (DEBUG VERSİYONU 🕵️‍♂️)
 router.post("/", async (req, res) => {
     try {
+        console.log("📥 GELEN YORUM PAKETİ:", req.body); // Frontend ne gönderiyor görelim
+
         const newComment = new Comment(req.body);
         const savedComment = await newComment.save();
+
+        console.log("✅ Yorum Başarıyla Kaydedildi!");
         res.status(200).json(savedComment);
     } catch (err) {
-        res.status(500).json(err);
+        console.log("🔥 PATLADIK! İŞTE HATA SEBEBİ:", err.message); // Hatayı terminale bas
+        res.status(500).json({ error: err.message });
     }
 });
 
