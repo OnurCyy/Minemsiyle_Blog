@@ -633,6 +633,70 @@
                 container.innerHTML += html;
             });
         }
+        // --- 5. PROFİL GÜNCELLEME (KURTARILAN FONKSİYON 🚑) ---
+        async function saveSettings() {
+            // 1. Verileri Al
+            const newName = document.getElementById('editUsername').value.trim();
+            const newBio = document.getElementById('editBio').value.trim();
+            const newPass = document.getElementById('newPass').value.trim();
+
+            // 2. Token Avı
+            let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
+
+            if (!rawToken) {
+                alert("⚠️ Oturumun bitmiş. Lütfen çıkış yapıp tekrar gir.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // 3. Temiz Token
+            const cleanToken = rawToken.replace(/"/g, '').trim();
+            const updateData = {};
+
+            // Sadece dolu olan kutuları gönder
+            if (newName) updateData.username = newName;
+            if (newBio) updateData.bio = newBio;
+            if (newPass && newPass.length >= 4) updateData.newPassword = newPass;
+
+            // Butonu kilitle (Çift tıklamayı önle)
+            const btn = document.querySelector('button[onclick="saveSettings()"]');
+            const oldText = btn ? btn.innerText : "Kaydet";
+            if (btn) { btn.innerText = "⏳..."; btn.disabled = true; }
+
+            try {
+                const res = await fetch(`${API_BASE}/users/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${cleanToken}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("✅ Profilin güncellendi Kral!");
+
+                    // LocalStorage güncelle
+                    let user = JSON.parse(localStorage.getItem('user'));
+                    if (user) {
+                        if (newName) user.username = newName;
+                        if (newBio) user.bio = newBio;
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
+                    location.reload();
+                } else {
+                    console.error("Hata:", data);
+                    alert("Hata: " + (data.message || "Güncellenemedi."));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Sunucuya ulaşılamadı!");
+            } finally {
+                if (btn) { btn.innerText = oldText; btn.disabled = false; }
+            }
+        }
 
         // --- DİĞER FONKSİYONLAR ---
         function switchTab(tabName) {
