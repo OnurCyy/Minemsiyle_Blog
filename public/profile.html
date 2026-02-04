@@ -175,6 +175,9 @@
             aspect-ratio: 1 / 1;
             /* Kare olması için */
 
+            background: #2d3436 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+
             position: relative;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -186,9 +189,12 @@
 
         /* 3. KAZANILMIŞ (PARLAYAN) KART */
         .badge-card.earned {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border-color: var(--badge-color);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px var(--badge-glow);
+            background: linear-gradient(145deg, #2d3436 0%, #000000 100%) !important;
+            border-color: var(--badge-color) !important;
+            border-width: 2px !important;
+            /* Çerçeveyi belirginleştir */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5),
+                0 0 20px var(--badge-glow) !important;
         }
 
         .badge-card.earned:hover {
@@ -676,7 +682,7 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    alert("✅ Profilin güncellendi Kral!");
+                    alert("✅ Profilin güncellendi !");
 
                     // LocalStorage güncelle
                     let user = JSON.parse(localStorage.getItem('user'));
@@ -815,7 +821,7 @@
                     }
 
                     closeCropper();
-                    alert("Fotoğrafın on numara oldu Kral! 📸");
+                    alert("Fotoğrafın on numara oldu! 📸");
 
                 } else {
                     const data = await res.json();
