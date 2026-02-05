@@ -823,7 +823,7 @@
                 updateHeaderProfile();
                 checkUserLoginForComments();
                 checkLikeStatus();
-                loadComments();
+
 
             } catch (err) {
                 console.error("Fetch Hatası:", err);
@@ -1002,28 +1002,30 @@
             }
 
             // ==========================================
-            // 2. YORUMLARI YÜKLE (Veritabanından Çeker)
+            // 2. YORUMLARI YÜKLE (FİNAL VERSİYON 💎)
             // ==========================================
             async function loadComments() {
                 const list = document.getElementById('commentsList');
                 const countSpan = document.getElementById('commentCount');
                 const currentUser = JSON.parse(localStorage.getItem('user'));
 
-                // Sayfa ID'sini Bul
-                const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
-                const autoId = createSlug(pageTitle);
-                const type = window.location.href.includes('blog') ? 'blog' : 'book';
+                // 🔥 DÜZELTME: ID'yi URL'den alıyoruz (Eski slug yöntemini kaldırdık)
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentId = urlParams.get('id');
+                const type = window.location.pathname.includes('blog') ? 'blog' : 'book';
+
+                if (!currentId) return; // ID yoksa çalışma
 
                 try {
                     // Backend'den Yorumları İste
-                    const res = await fetch(`${API_BASE}/comments?type=${type}&id=${autoId}`);
+                    const res = await fetch(`${API_BASE}/comments?type=${type}&id=${currentId}`);
                     const comments = await res.json();
 
                     if (list) list.innerHTML = "";
                     if (countSpan) countSpan.innerText = comments.length;
 
                     if (comments.length === 0 && list) {
-                        list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
+                        list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center; padding: 20px;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
                         return;
                     }
 
@@ -1047,17 +1049,13 @@
                     for (const c of comments) {
                         const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
-                        // Kullanıcı bilgilerini ve rozetleri çekmek için istersen /users/:username yapabilirsin
-                        // Ama şimdilik basit tutmak adına yorumdaki username'i kullanıyoruz.
-                        // Eğer kullanıcının GÜNCEL rozetlerini görmek istersen buraya fetch ekleriz, 
-                        // ama performans için şimdilik admin kontrolü yapalım:
-
                         let badgeHTML = "";
 
-                        // Basit Admin Kontrolü (Backend'den veri gelene kadar)
+                        // Rozet Kontrolü (Admin veya OnurCy ise)
                         if (c.username === "Admin" || c.username === "OnurCy") {
                             badgeHTML = `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>`;
                         }
+                        // İleride buraya diğer rozetler için de if eklenebilir
 
                         // SİLME BUTONU (Sadece sahibi veya Admin görebilir)
                         let deleteBtnHTML = "";
@@ -1065,32 +1063,33 @@
                         const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
 
                         if (isOwner || isAdmin) {
+                            // Not: deleteComment fonksiyonunun da main.js'de olması lazım
                             deleteBtnHTML = `
-                        <button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-                            <i class="ph-bold ph-trash"></i> Sil
-                        </button>`;
+                <button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                    <i class="ph-bold ph-trash"></i> Sil
+                </button>`;
                         }
 
                         const profileLink = `profile.html?u=${c.username}`;
 
                         const html = `
-                    <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid #333;">
+            <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                <a href="${profileLink}" style="text-decoration:none;">
+                    <img src="${c.avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" style="width:40px; height:40px; border-radius:50%; border:2px solid #d4a373; object-fit:cover;">
+                </a>
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <a href="${profileLink}" style="text-decoration:none;">
-                            <img src="${c.avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" style="width:40px; height:40px; border-radius:50%; border:2px solid #d4a373; object-fit:cover;">
+                            <h4 style="color:#d4a373; font-size:0.95rem; margin:0; display:flex; align-items:center; flex-wrap:wrap; gap:5px;">
+                                ${c.username} ${badgeHTML}
+                            </h4>
                         </a>
-                        <div style="flex:1;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <a href="${profileLink}" style="text-decoration:none;">
-                                    <h4 style="color:#d4a373; font-size:0.95rem; margin:0; display:flex; align-items:center; flex-wrap:wrap; gap:5px;">
-                                        ${c.username} ${badgeHTML}
-                                    </h4>
-                                </a>
-                                <small style="color:#888; font-size:0.7rem;">${displayDate}</small>
-                            </div>
-                            <p style="color:#ddd; font-size:0.9rem; margin:5px 0 0 0; line-height:1.5;">${c.content}</p>
-                            ${deleteBtnHTML}
-                        </div>
-                    </div>`;
+                        <small style="color:#888; font-size:0.7rem;">${displayDate}</small>
+                    </div>
+                    <p style="color:#ddd; font-size:0.95rem; margin:5px 0 0 0; line-height:1.5; word-break: break-word;">${c.content}</p>
+                    ${deleteBtnHTML}
+                </div>
+            </div>`;
 
                         if (list) list.innerHTML += html;
                     }
