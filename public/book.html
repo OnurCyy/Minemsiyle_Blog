@@ -955,116 +955,125 @@
             const user = JSON.parse(localStorage.getItem('user'));
             if (!user) return alert("Yorum yapmak için giriş yapmalısın!");
 
-            // Sayfa Bilgilerini Al
-            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
-            const autoId = createSlug(pageTitle);
-            const type = window.location.href.includes('blog') ? 'blog' : 'book';
+            console.log("👤 KULLANICI DETAYI:", user);
+            console.log("🆔 ID VAR MI?:", user?._id || user?.id);
 
-            const newComment = {
-                userId: user._id || "eski_user",
-                username: user.username,
-                avatar: user.avatar,
-                content: text,
-                contentType: type,
-                relatedId: autoId
-            };
+            if (!user || (!user._id && !user.id)) {
+                alert("Kimlik bilgisi eksik! Lütfen Çıkış yapıp tekrar gir.");
+                localStorage.clear(); // Bozuk veriyi temizle
+                window.location.href = "login.html";
+                return;
 
-            const btn = document.querySelector('button[onclick="postComment()"]');
-            if (btn) btn.innerText = "Yükleniyor...";
+                // Sayfa Bilgilerini Al
+                const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
+                const autoId = createSlug(pageTitle);
+                const type = window.location.href.includes('blog') ? 'blog' : 'book';
 
-            try {
-                const res = await fetch(`${API_BASE}/comments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newComment)
-                });
-
-                if (res.ok) {
-                    textArea.value = "";
-                    loadComments(); // Listeyi yenile
-                } else {
-                    alert("Yorum gönderilemedi.");
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                if (btn) btn.innerText = "Yorum Yap";
-            }
-        }
-
-        // ==========================================
-        // 2. YORUMLARI YÜKLE (Veritabanından Çeker)
-        // ==========================================
-        async function loadComments() {
-            const list = document.getElementById('commentsList');
-            const countSpan = document.getElementById('commentCount');
-            const currentUser = JSON.parse(localStorage.getItem('user'));
-
-            // Sayfa ID'sini Bul
-            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
-            const autoId = createSlug(pageTitle);
-            const type = window.location.href.includes('blog') ? 'blog' : 'book';
-
-            try {
-                // Backend'den Yorumları İste
-                const res = await fetch(`${API_BASE}/comments?type=${type}&id=${autoId}`);
-                const comments = await res.json();
-
-                if (list) list.innerHTML = "";
-                if (countSpan) countSpan.innerText = comments.length;
-
-                if (comments.length === 0 && list) {
-                    list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
-                    return;
-                }
-
-                // 🔥 ROZET SÖZLÜĞÜ (Senin Tasarımın)
-                const tagStyles = {
-                    'admin': { label: '👑 Yönetici', bg: '#ffd700', text: '#000' },
-                    'mod': { label: '🛡️ Moderatör', bg: '#2980b9', text: '#fff' },
-                    'dev': { label: '💻 Geliştirici', bg: '#00d2ff', text: '#000' },
-                    'vip': { label: '💎 VIP Üye', bg: '#9b59b6', text: '#fff' },
-                    'supporter': { label: '💖 Destekçi', bg: '#ff6b81', text: '#fff' },
-                    'verified': { label: '✅ Onaylı', bg: '#2ecc71', text: '#fff' },
-                    'writer': { label: '🖋️ Yazar', bg: '#34495e', text: '#fff' },
-                    'poet': { label: '🪶 Şair', bg: '#a29bfe', text: '#000' },
-                    'bug_hunter': { label: '🐛 Bug Avcısı', bg: '#e74c3c', text: '#fff' },
-                    'bookworm': { label: '📚 Kitap Kurdu', bg: '#27ae60', text: '#fff' },
-                    'coffee': { label: '☕ Kahve Sever', bg: '#6f4e37', text: '#fff' },
-                    'cat_lover': { label: '🐱 Kedi Sever', bg: '#ff9ff3', text: '#000' }
+                const newComment = {
+                    userId: user._id || "eski_user",
+                    username: user.username,
+                    avatar: user.avatar,
+                    content: text,
+                    contentType: type,
+                    relatedId: autoId
                 };
 
-                // Yorumları Bas
-                for (const c of comments) {
-                    const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                const btn = document.querySelector('button[onclick="postComment()"]');
+                if (btn) btn.innerText = "Yükleniyor...";
 
-                    // Kullanıcı bilgilerini ve rozetleri çekmek için istersen /users/:username yapabilirsin
-                    // Ama şimdilik basit tutmak adına yorumdaki username'i kullanıyoruz.
-                    // Eğer kullanıcının GÜNCEL rozetlerini görmek istersen buraya fetch ekleriz, 
-                    // ama performans için şimdilik admin kontrolü yapalım:
+                try {
+                    const res = await fetch(`${API_BASE}/comments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newComment)
+                    });
 
-                    let badgeHTML = "";
+                    if (res.ok) {
+                        textArea.value = "";
+                        loadComments(); // Listeyi yenile
+                    } else {
+                        alert("Yorum gönderilemedi.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    if (btn) btn.innerText = "Yorum Yap";
+                }
+            }
 
-                    // Basit Admin Kontrolü (Backend'den veri gelene kadar)
-                    if (c.username === "Admin" || c.username === "OnurCy") {
-                        badgeHTML = `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>`;
+            // ==========================================
+            // 2. YORUMLARI YÜKLE (Veritabanından Çeker)
+            // ==========================================
+            async function loadComments() {
+                const list = document.getElementById('commentsList');
+                const countSpan = document.getElementById('commentCount');
+                const currentUser = JSON.parse(localStorage.getItem('user'));
+
+                // Sayfa ID'sini Bul
+                const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
+                const autoId = createSlug(pageTitle);
+                const type = window.location.href.includes('blog') ? 'blog' : 'book';
+
+                try {
+                    // Backend'den Yorumları İste
+                    const res = await fetch(`${API_BASE}/comments?type=${type}&id=${autoId}`);
+                    const comments = await res.json();
+
+                    if (list) list.innerHTML = "";
+                    if (countSpan) countSpan.innerText = comments.length;
+
+                    if (comments.length === 0 && list) {
+                        list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
+                        return;
                     }
 
-                    // SİLME BUTONU (Sadece sahibi veya Admin görebilir)
-                    let deleteBtnHTML = "";
-                    const isOwner = currentUser && (currentUser.username === c.username);
-                    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
+                    // 🔥 ROZET SÖZLÜĞÜ (Senin Tasarımın)
+                    const tagStyles = {
+                        'admin': { label: '👑 Yönetici', bg: '#ffd700', text: '#000' },
+                        'mod': { label: '🛡️ Moderatör', bg: '#2980b9', text: '#fff' },
+                        'dev': { label: '💻 Geliştirici', bg: '#00d2ff', text: '#000' },
+                        'vip': { label: '💎 VIP Üye', bg: '#9b59b6', text: '#fff' },
+                        'supporter': { label: '💖 Destekçi', bg: '#ff6b81', text: '#fff' },
+                        'verified': { label: '✅ Onaylı', bg: '#2ecc71', text: '#fff' },
+                        'writer': { label: '🖋️ Yazar', bg: '#34495e', text: '#fff' },
+                        'poet': { label: '🪶 Şair', bg: '#a29bfe', text: '#000' },
+                        'bug_hunter': { label: '🐛 Bug Avcısı', bg: '#e74c3c', text: '#fff' },
+                        'bookworm': { label: '📚 Kitap Kurdu', bg: '#27ae60', text: '#fff' },
+                        'coffee': { label: '☕ Kahve Sever', bg: '#6f4e37', text: '#fff' },
+                        'cat_lover': { label: '🐱 Kedi Sever', bg: '#ff9ff3', text: '#000' }
+                    };
 
-                    if (isOwner || isAdmin) {
-                        deleteBtnHTML = `
+                    // Yorumları Bas
+                    for (const c of comments) {
+                        const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                        // Kullanıcı bilgilerini ve rozetleri çekmek için istersen /users/:username yapabilirsin
+                        // Ama şimdilik basit tutmak adına yorumdaki username'i kullanıyoruz.
+                        // Eğer kullanıcının GÜNCEL rozetlerini görmek istersen buraya fetch ekleriz, 
+                        // ama performans için şimdilik admin kontrolü yapalım:
+
+                        let badgeHTML = "";
+
+                        // Basit Admin Kontrolü (Backend'den veri gelene kadar)
+                        if (c.username === "Admin" || c.username === "OnurCy") {
+                            badgeHTML = `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>`;
+                        }
+
+                        // SİLME BUTONU (Sadece sahibi veya Admin görebilir)
+                        let deleteBtnHTML = "";
+                        const isOwner = currentUser && (currentUser.username === c.username);
+                        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
+
+                        if (isOwner || isAdmin) {
+                            deleteBtnHTML = `
                         <button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
                             <i class="ph-bold ph-trash"></i> Sil
                         </button>`;
-                    }
+                        }
 
-                    const profileLink = `profile.html?u=${c.username}`;
+                        const profileLink = `profile.html?u=${c.username}`;
 
-                    const html = `
+                        const html = `
                     <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid #333;">
                         <a href="${profileLink}" style="text-decoration:none;">
                             <img src="${c.avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" style="width:40px; height:40px; border-radius:50%; border:2px solid #d4a373; object-fit:cover;">
@@ -1083,219 +1092,219 @@
                         </div>
                     </div>`;
 
-                    if (list) list.innerHTML += html;
-                }
+                        if (list) list.innerHTML += html;
+                    }
 
-            } catch (err) { console.error(err); }
-        }
-
-        // ==========================================
-        // 3. YORUM SİL
-        // ==========================================
-        async function deleteComment(commentId) {
-            if (!confirm("Yorumu silmek istiyor musun?")) return;
-
-            try {
-                const res = await fetch(`${API_BASE}/comments/${commentId}`, { method: 'DELETE' });
-                if (res.ok) {
-                    loadComments(); // Listeyi yenile
-                } else {
-                    alert("Silinemedi.");
-                }
-            } catch (e) { alert("Hata oluştu."); }
-        }
-
-        // --- YORUM SİLME FONKSİYONU ---
-        function deleteComment(identifier) {
-            if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
-
-            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
-
-            // Eğer gelen şey bir sayıysa (ID ise) ID'ye göre filtrele
-            if (typeof identifier === 'number') {
-                allComments = allComments.filter(c => c.id !== identifier);
-            }
-            // Eğer yazıysa (Eski tarihli sistemse) Tarihe göre filtrele
-            else {
-                allComments = allComments.filter(c => c.date !== identifier);
+                } catch (err) { console.error(err); }
             }
 
-            // Yeni listeyi kaydet ve ekranı yenile
-            localStorage.setItem('allComments', JSON.stringify(allComments));
-            loadComments();
-        }
+            // ==========================================
+            // 3. YORUM SİL
+            // ==========================================
+            async function deleteComment(commentId) {
+                if (!confirm("Yorumu silmek istiyor musun?")) return;
 
-        /* --- TEMA MOTORU (ÇİFTE DİKİŞ VERSİYON) --- */
-        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-        const currentTheme = localStorage.getItem('theme');
+                try {
+                    const res = await fetch(`${API_BASE}/comments/${commentId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        loadComments(); // Listeyi yenile
+                    } else {
+                        alert("Silinemedi.");
+                    }
+                } catch (e) { alert("Hata oluştu."); }
+            }
 
-        // 1. Sayfa Yüklenince
-        if (currentTheme === 'dark') {
-            // Ne varsa ekle, garanti olsun!
-            document.body.classList.add('dark');
-            document.body.classList.add('dark-theme');
+            // --- YORUM SİLME FONKSİYONU ---
+            function deleteComment(identifier) {
+                if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
 
-            if (toggleSwitch) toggleSwitch.checked = true;
-        }
+                let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
 
-        // 2. Değiştirme Fonksiyonu
-        function switchTheme(e) {
-            if (e.target.checked) {
-                // Karanlığa Geç
+                // Eğer gelen şey bir sayıysa (ID ise) ID'ye göre filtrele
+                if (typeof identifier === 'number') {
+                    allComments = allComments.filter(c => c.id !== identifier);
+                }
+                // Eğer yazıysa (Eski tarihli sistemse) Tarihe göre filtrele
+                else {
+                    allComments = allComments.filter(c => c.date !== identifier);
+                }
+
+                // Yeni listeyi kaydet ve ekranı yenile
+                localStorage.setItem('allComments', JSON.stringify(allComments));
+                loadComments();
+            }
+
+            /* --- TEMA MOTORU (ÇİFTE DİKİŞ VERSİYON) --- */
+            const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+            const currentTheme = localStorage.getItem('theme');
+
+            // 1. Sayfa Yüklenince
+            if (currentTheme === 'dark') {
+                // Ne varsa ekle, garanti olsun!
                 document.body.classList.add('dark');
                 document.body.classList.add('dark-theme');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                // Aydınlığa Geç
-                document.body.classList.remove('dark');
-                document.body.classList.remove('dark-theme');
-                localStorage.setItem('theme', 'light');
-            }
-        }
 
-        if (toggleSwitch) {
-            toggleSwitch.addEventListener('change', switchTheme);
-        }
-
-        // ==========================================
-        // 🎵 AMBİYANS SES SİSTEMİ
-        // ==========================================
-
-        let currentAudio = null; // Şu an çalan ses
-
-        function toggleAmbiancePanel() {
-            const panel = document.getElementById('ambiancePanel');
-            panel.classList.toggle('active');
-        }
-
-        function playAmbiance(type, element) {
-            const audioId = `audio-${type}`;
-            const audioElement = document.getElementById(audioId);
-            const volumeControl = document.getElementById('volumeControl');
-            const toggleBtn = document.querySelector('.ambiance-toggle');
-
-            // 1. Eğer zaten bu ses çalıyorsa DURDUR
-            if (currentAudio === audioElement && !audioElement.paused) {
-                audioElement.pause();
-                element.classList.remove('active');
-                toggleBtn.classList.remove('playing');
-                currentAudio = null;
-                return;
+                if (toggleSwitch) toggleSwitch.checked = true;
             }
 
-            // 2. Başka bir ses çalıyorsa önce onu sustur
-            stopAllSounds();
-
-            // 3. Yeni sesi ÇAL
-            if (audioElement) {
-                audioElement.volume = volumeControl.value; // Ses seviyesini ayarla
-                audioElement.play().catch(e => console.log("Oynatma hatası:", e));
-
-                currentAudio = audioElement;
-                element.classList.add('active'); // Kutuyu boya
-                toggleBtn.classList.add('playing'); // Ana butonu hareketlendir
-            }
-        }
-
-        function stopAllSounds() {
-            // Tüm sesleri durdur ve kutuların boyasını sil
-            document.querySelectorAll('audio').forEach(audio => {
-                audio.pause();
-                audio.currentTime = 0; // Başa sar
-            });
-            document.querySelectorAll('.sound-item').forEach(item => {
-                item.classList.remove('active');
-            });
-        }
-
-        // Ses Seviyesi Ayarı (Canlı)
-        document.getElementById('volumeControl').addEventListener('input', (e) => {
-            if (currentAudio) {
-                currentAudio.volume = e.target.value;
-            }
-        });
-
-        // --- 💬 GLOBAL YORUM SİSTEMİ (CANLI) ---
-
-        const API_COMMENTS = "/api/comments"; // Senin route adresin
-
-        // URL'den hangi kitapta olduğumuzu alalım (örn: book.html?id=123)
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentRelatedId = urlParams.get('id');
-        const currentType = window.location.pathname.includes('blog') ? 'blog' : 'book'; // Sayfaya göre tip belirle
-
-        // 1. YORUM GÖNDERME FONKSİYONU
-        async function postComment() {
-            const input = document.getElementById('commentText'); // Yorum kutusunun ID'si
-            const text = input.value.trim();
-
-            // Kullanıcı giriş yapmış mı?
-            const user = JSON.parse(localStorage.getItem('user'));
-
-            if (!user) {
-                alert("Yorum yapabilmek için giriş yapmalısın! 🛑");
-                window.location.href = "login.html";
-                return;
-            }
-
-            if (!text) return alert("Boş yorum atılmaz! ✍️");
-            if (!currentRelatedId) return alert("Hata: Hangi sayfada olduğun bulunamadı.");
-
-            // Butonu kilitle
-            const btn = document.querySelector('button[onclick="postComment()"]');
-            if (btn) { btn.innerText = "Yollanıyor..."; btn.disabled = true; }
-
-            try {
-                // 🔥 SENİN BACKEND MODELİNE UYGUN VERİ PAKETİ
-                const payload = {
-                    userId: user._id,          // Backend: userID
-                    username: user.username,   // Backend: username
-                    avatar: user.avatar,       // Backend: avatar
-                    content: text,             // Backend: content
-                    contentType: currentType,  // Backend: contentType ('book' veya 'blog')
-                    relatedId: currentRelatedId // Backend: relatedId
-                };
-
-                const res = await fetch(API_COMMENTS, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    input.value = ""; // Kutuyu temizle
-                    loadComments();   // Yorumları yenile (Canlı hissi için)
-                    alert("Yorumun eklendi! ");
+            // 2. Değiştirme Fonksiyonu
+            function switchTheme(e) {
+                if (e.target.checked) {
+                    // Karanlığa Geç
+                    document.body.classList.add('dark');
+                    document.body.classList.add('dark-theme');
+                    localStorage.setItem('theme', 'dark');
                 } else {
-                    alert("Hata oluştu. Sunucu cevap vermedi.");
+                    // Aydınlığa Geç
+                    document.body.classList.remove('dark');
+                    document.body.classList.remove('dark-theme');
+                    localStorage.setItem('theme', 'light');
                 }
-
-            } catch (err) {
-                console.error(err);
-                alert("Sunucu hatası!");
-            } finally {
-                if (btn) { btn.innerText = "Yorum Yap"; btn.disabled = false; }
             }
-        }
 
-        // 2. YORUMLARI LİSTELEME FONKSİYONU
-        async function loadComments() {
-            const listContainer = document.getElementById('commentsList'); // Yorumların dizileceği div
-            if (!listContainer || !currentRelatedId) return;
+            if (toggleSwitch) {
+                toggleSwitch.addEventListener('change', switchTheme);
+            }
 
-            try {
-                // Senin Backend'deki filtreleme koduna istek atıyoruz
-                // router.get("/", ... req.query ...)
-                const res = await fetch(`${API_COMMENTS}?type=${currentType}&id=${currentRelatedId}`);
-                const comments = await res.json();
+            // ==========================================
+            // 🎵 AMBİYANS SES SİSTEMİ
+            // ==========================================
 
-                if (comments.length === 0) {
-                    listContainer.innerHTML = "<p style='color:#777; text-align:center;'>Henüz yorum yok. İlk sen ol! 🥇</p>";
+            let currentAudio = null; // Şu an çalan ses
+
+            function toggleAmbiancePanel() {
+                const panel = document.getElementById('ambiancePanel');
+                panel.classList.toggle('active');
+            }
+
+            function playAmbiance(type, element) {
+                const audioId = `audio-${type}`;
+                const audioElement = document.getElementById(audioId);
+                const volumeControl = document.getElementById('volumeControl');
+                const toggleBtn = document.querySelector('.ambiance-toggle');
+
+                // 1. Eğer zaten bu ses çalıyorsa DURDUR
+                if (currentAudio === audioElement && !audioElement.paused) {
+                    audioElement.pause();
+                    element.classList.remove('active');
+                    toggleBtn.classList.remove('playing');
+                    currentAudio = null;
                     return;
                 }
 
-                // HTML oluştur
-                listContainer.innerHTML = comments.map(c => `
+                // 2. Başka bir ses çalıyorsa önce onu sustur
+                stopAllSounds();
+
+                // 3. Yeni sesi ÇAL
+                if (audioElement) {
+                    audioElement.volume = volumeControl.value; // Ses seviyesini ayarla
+                    audioElement.play().catch(e => console.log("Oynatma hatası:", e));
+
+                    currentAudio = audioElement;
+                    element.classList.add('active'); // Kutuyu boya
+                    toggleBtn.classList.add('playing'); // Ana butonu hareketlendir
+                }
+            }
+
+            function stopAllSounds() {
+                // Tüm sesleri durdur ve kutuların boyasını sil
+                document.querySelectorAll('audio').forEach(audio => {
+                    audio.pause();
+                    audio.currentTime = 0; // Başa sar
+                });
+                document.querySelectorAll('.sound-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+
+            // Ses Seviyesi Ayarı (Canlı)
+            document.getElementById('volumeControl').addEventListener('input', (e) => {
+                if (currentAudio) {
+                    currentAudio.volume = e.target.value;
+                }
+            });
+
+            // --- 💬 GLOBAL YORUM SİSTEMİ (CANLI) ---
+
+            const API_COMMENTS = "/api/comments"; // Senin route adresin
+
+            // URL'den hangi kitapta olduğumuzu alalım (örn: book.html?id=123)
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentRelatedId = urlParams.get('id');
+            const currentType = window.location.pathname.includes('blog') ? 'blog' : 'book'; // Sayfaya göre tip belirle
+
+            // 1. YORUM GÖNDERME FONKSİYONU
+            async function postComment() {
+                const input = document.getElementById('commentText'); // Yorum kutusunun ID'si
+                const text = input.value.trim();
+
+                // Kullanıcı giriş yapmış mı?
+                const user = JSON.parse(localStorage.getItem('user'));
+
+                if (!user) {
+                    alert("Yorum yapabilmek için giriş yapmalısın! 🛑");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                if (!text) return alert("Boş yorum atılmaz! ✍️");
+                if (!currentRelatedId) return alert("Hata: Hangi sayfada olduğun bulunamadı.");
+
+                // Butonu kilitle
+                const btn = document.querySelector('button[onclick="postComment()"]');
+                if (btn) { btn.innerText = "Yollanıyor..."; btn.disabled = true; }
+
+                try {
+                    // 🔥 SENİN BACKEND MODELİNE UYGUN VERİ PAKETİ
+                    const payload = {
+                        userId: user._id,          // Backend: userID
+                        username: user.username,   // Backend: username
+                        avatar: user.avatar,       // Backend: avatar
+                        content: text,             // Backend: content
+                        contentType: currentType,  // Backend: contentType ('book' veya 'blog')
+                        relatedId: currentRelatedId // Backend: relatedId
+                    };
+
+                    const res = await fetch(API_COMMENTS, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res.ok) {
+                        input.value = ""; // Kutuyu temizle
+                        loadComments();   // Yorumları yenile (Canlı hissi için)
+                        alert("Yorumun eklendi! ");
+                    } else {
+                        alert("Hata oluştu. Sunucu cevap vermedi.");
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Sunucu hatası!");
+                } finally {
+                    if (btn) { btn.innerText = "Yorum Yap"; btn.disabled = false; }
+                }
+            }
+
+            // 2. YORUMLARI LİSTELEME FONKSİYONU
+            async function loadComments() {
+                const listContainer = document.getElementById('commentsList'); // Yorumların dizileceği div
+                if (!listContainer || !currentRelatedId) return;
+
+                try {
+                    // Senin Backend'deki filtreleme koduna istek atıyoruz
+                    // router.get("/", ... req.query ...)
+                    const res = await fetch(`${API_COMMENTS}?type=${currentType}&id=${currentRelatedId}`);
+                    const comments = await res.json();
+
+                    if (comments.length === 0) {
+                        listContainer.innerHTML = "<p style='color:#777; text-align:center;'>Henüz yorum yok. İlk sen ol! 🥇</p>";
+                        return;
+                    }
+
+                    // HTML oluştur
+                    listContainer.innerHTML = comments.map(c => `
             <div class="comment-card" style="background:var(--bg-card); padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid var(--border); display:flex; gap:10px;">
                 <img src="${c.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                 <div>
@@ -1308,14 +1317,14 @@
             </div>
         `).join('');
 
-            } catch (err) {
-                console.error("Yorumlar çekilemedi:", err);
+                } catch (err) {
+                    console.error("Yorumlar çekilemedi:", err);
+                }
             }
+
+            // Sayfa açılınca yorumları getir
+            document.addEventListener("DOMContentLoaded", loadComments);
         }
-
-        // Sayfa açılınca yorumları getir
-        document.addEventListener("DOMContentLoaded", loadComments);
-
     </script>
 </body>
 
