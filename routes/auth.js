@@ -90,9 +90,11 @@ router.post("/login", async (req, res) => {
             message: "Giriş başarılı",
             token,
             user: {
+                _id: user._id,
                 username: user.username,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                avatar: user.avatar
             }
         });
 
