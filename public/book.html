@@ -1098,14 +1098,11 @@
             }
         }
 
-        // ==========================================
-        // 1. YORUM GÖNDER (Backend'e Yollar)
-        // ==========================================
         // --- ZIRHLI YORUM GÖNDERME FONKSİYONU ---
         async function postComment() {
             const input = document.getElementById('commentText');
 
-            // 1. GİRİŞ KONTROLÜ (Detaylı)
+            // 1. GİRİŞ KONTROLÜ
             const rawUser = localStorage.getItem('user');
             if (!rawUser) {
                 alert("Giriş yapmamışsın Kral! Login sayfasına yönlendiriyorum.");
@@ -1118,11 +1115,12 @@
             // 2. KİMLİK (ID) KONTROLÜ (Hem _id hem id'ye bakar)
             const userId = user._id || user.id;
 
+            // 🔥 EĞER ID YOKSA OTOMATİK DÜZELT 🔥
             if (!userId) {
-                console.error("HATA: Kullanıcı objesinde ID yok!", user);
-                alert("Kimlik bilgin bozuk görünüyor. Lütfen ÇIKIŞ yapıp tekrar GİRİŞ yap.");
+                console.error("HATA: Kullanıcı objesinde ID yok! Oturum yenileniyor...", user);
+                alert("Kimlik bilgisi bozulmuş (Eski veri). Güvenlik için seni çıkışa atıyorum, tekrar girince düzelecek! 🔄");
                 localStorage.clear(); // Bozuk veriyi sil
-                window.location.href = "login.html";
+                window.location.href = "login.html"; // Zorla login'e at
                 return;
             }
 
@@ -1130,10 +1128,10 @@
             let token = localStorage.getItem('token') || localStorage.getItem('userToken');
             if (!token) {
                 alert("Anahtarın (Token) eksik. Tekrar giriş yapmalısın.");
+                window.location.href = "login.html";
                 return;
             }
-            // Tırnakları temizle
-            token = token.replace(/"/g, '').trim();
+            token = token.replace(/"/g, '').trim(); // Tırnakları temizle
 
             // 4. İÇERİK KONTROLÜ
             const text = input.value.trim();
@@ -1144,7 +1142,6 @@
             if (btn) { btn.innerText = "⏳..."; btn.disabled = true; }
 
             try {
-                // URL'den ID al
                 const urlParams = new URLSearchParams(window.location.search);
                 const currentId = urlParams.get('id');
                 const type = window.location.pathname.includes('blog') ? 'blog' : 'book';
@@ -1158,13 +1155,11 @@
                     relatedId: currentId
                 };
 
-                console.log("📤 Gönderilen Paket:", payload); // Konsoldan kontrol et
-
                 const res = await fetch("/api/comments", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}` // Temiz Token
+                        "Authorization": `Bearer ${token}`
                     },
                     body: JSON.stringify(payload)
                 });
@@ -1175,8 +1170,7 @@
                     alert("Yorumun yapıştırıldı! 🚀");
                 } else {
                     const err = await res.json();
-                    console.error("Sunucu Hatası:", err);
-                    alert("Hata: " + (err.message || "Sunucu reddetti (500/400)"));
+                    alert("Hata: " + (err.message || "Sunucu reddetti"));
                 }
             } catch (err) {
                 console.error("Bağlantı Hatası:", err);
