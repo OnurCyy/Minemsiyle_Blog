@@ -1101,66 +1101,86 @@
         // ==========================================
         // 1. YORUM GÖNDER (Backend'e Yollar)
         // ==========================================
-        // 1. YORUM GÖNDERME (Token + ID Fix)
+        // --- ZIRHLI YORUM GÖNDERME FONKSİYONU ---
         async function postComment() {
             const input = document.getElementById('commentText');
-            const text = input.value.trim();
-            const user = JSON.parse(localStorage.getItem('user'));
 
-            // TOKEN TEMİZLİĞİ
-            let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
-            let cleanToken = rawToken ? rawToken.replace(/"/g, '') : null;
-
-            if (!user) {
-                alert("Giriş yapmalısın!");
+            // 1. GİRİŞ KONTROLÜ (Detaylı)
+            const rawUser = localStorage.getItem('user');
+            if (!rawUser) {
+                alert("Giriş yapmamışsın Kral! Login sayfasına yönlendiriyorum.");
                 window.location.href = "login.html";
                 return;
             }
 
-            // EĞER HALA ID YOKSA UYAR
-            if (!user._id) {
-                alert("Kimlik bilgisi eksik! Lütfen ÇIKIŞ yapıp tekrar GİRİŞ yap.");
+            const user = JSON.parse(rawUser);
+
+            // 2. KİMLİK (ID) KONTROLÜ (Hem _id hem id'ye bakar)
+            const userId = user._id || user.id;
+
+            if (!userId) {
+                console.error("HATA: Kullanıcı objesinde ID yok!", user);
+                alert("Kimlik bilgin bozuk görünüyor. Lütfen ÇIKIŞ yapıp tekrar GİRİŞ yap.");
+                localStorage.clear(); // Bozuk veriyi sil
+                window.location.href = "login.html";
                 return;
             }
 
-            if (!text) return alert("Boş yorum atılmaz!");
+            // 3. TOKEN TEMİZLİĞİ
+            let token = localStorage.getItem('token') || localStorage.getItem('userToken');
+            if (!token) {
+                alert("Anahtarın (Token) eksik. Tekrar giriş yapmalısın.");
+                return;
+            }
+            // Tırnakları temizle
+            token = token.replace(/"/g, '').trim();
 
+            // 4. İÇERİK KONTROLÜ
+            const text = input.value.trim();
+            if (!text) return alert("Boş yorum olmaz! ✍️");
+
+            // Butonu Kilitle
             const btn = document.querySelector('.blog-send-btn');
             if (btn) { btn.innerText = "⏳..."; btn.disabled = true; }
 
             try {
-                const type = window.location.pathname.includes('blog') ? 'blog' : 'book';
+                // URL'den ID al
                 const urlParams = new URLSearchParams(window.location.search);
-                const relatedId = urlParams.get('id');
+                const currentId = urlParams.get('id');
+                const type = window.location.pathname.includes('blog') ? 'blog' : 'book';
 
                 const payload = {
-                    userId: user._id, // ID buradan gidiyor
+                    userId: userId, // Garantilenmiş ID
                     username: user.username,
                     avatar: user.avatar,
                     content: text,
                     contentType: type,
-                    relatedId: relatedId
+                    relatedId: currentId
                 };
 
-                const res = await fetch("/api/comments", { // Adresini kontrol et
+                console.log("📤 Gönderilen Paket:", payload); // Konsoldan kontrol et
+
+                const res = await fetch("/api/comments", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${cleanToken}` // 🔑 ANAHTAR BURADA
+                        "Authorization": `Bearer ${token}` // Temiz Token
                     },
                     body: JSON.stringify(payload)
                 });
 
                 if (res.ok) {
                     input.value = "";
-                    loadComments();
+                    if (typeof loadComments === "function") loadComments();
                     alert("Yorumun yapıştırıldı! 🚀");
                 } else {
-                    alert("Gönderilemedi.");
+                    const err = await res.json();
+                    console.error("Sunucu Hatası:", err);
+                    alert("Hata: " + (err.message || "Sunucu reddetti (500/400)"));
                 }
             } catch (err) {
-                console.error(err);
-                alert("Hata oluştu!");
+                console.error("Bağlantı Hatası:", err);
+                alert("Sunucuya ulaşılamadı!");
             } finally {
                 if (btn) { btn.innerText = "Yorumu Yayınla 🚀"; btn.disabled = false; }
             }
