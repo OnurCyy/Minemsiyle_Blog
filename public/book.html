@@ -1101,139 +1101,143 @@
         // ==========================================
         // 1. YORUM GÖNDER (Backend'e Yollar)
         // ==========================================
+        // 1. YORUM GÖNDERME (Token + ID Fix)
         async function postComment() {
-            const textArea = document.getElementById('commentText');
-            if (!textArea) return;
-            const text = textArea.value.trim();
-            if (!text) { alert("Boş yorum olmaz."); return; }
-
+            const input = document.getElementById('commentText');
+            const text = input.value.trim();
             const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) return alert("Yorum yapmak için giriş yapmalısın!");
 
-            console.log("👤 KULLANICI DETAYI:", user);
-            console.log("🆔 ID VAR MI?:", user?._id || user?.id);
+            // TOKEN TEMİZLİĞİ
+            let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
+            let cleanToken = rawToken ? rawToken.replace(/"/g, '') : null;
 
-            if (!user || (!user._id && !user.id)) {
-                alert("Kimlik bilgisi eksik! Lütfen Çıkış yapıp tekrar gir.");
-                localStorage.clear(); // Bozuk veriyi temizle
+            if (!user) {
+                alert("Giriş yapmalısın!");
                 window.location.href = "login.html";
                 return;
+            }
 
-                // Sayfa Bilgilerini Al
-                const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
-                const autoId = createSlug(pageTitle);
-                const type = window.location.href.includes('blog') ? 'blog' : 'book';
+            // EĞER HALA ID YOKSA UYAR
+            if (!user._id) {
+                alert("Kimlik bilgisi eksik! Lütfen ÇIKIŞ yapıp tekrar GİRİŞ yap.");
+                return;
+            }
 
-                let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
-                let cleanToken = rawToken ? rawToken.replace(/"/g, '') : null;
+            if (!text) return alert("Boş yorum atılmaz!");
 
-                const newComment = {
-                    userId: user._id || "eski_user",
+            const btn = document.querySelector('.blog-send-btn');
+            if (btn) { btn.innerText = "⏳..."; btn.disabled = true; }
+
+            try {
+                const type = window.location.pathname.includes('blog') ? 'blog' : 'book';
+                const urlParams = new URLSearchParams(window.location.search);
+                const relatedId = urlParams.get('id');
+
+                const payload = {
+                    userId: user._id, // ID buradan gidiyor
                     username: user.username,
                     avatar: user.avatar,
                     content: text,
                     contentType: type,
-                    relatedId: autoId
+                    relatedId: relatedId
                 };
 
-                const btn = document.querySelector('button[onclick="postComment()"]');
-                if (btn) btn.innerText = "Yükleniyor...";
+                const res = await fetch("/api/comments", { // Adresini kontrol et
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${cleanToken}` // 🔑 ANAHTAR BURADA
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-                try {
-                    const res = await fetch(`${API_BASE}/comments`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            "Authorization": `Bearer ${cleanToken}`
-                        },
-                        body: JSON.stringify(newComment)
-                    });
-
-                    if (res.ok) {
-                        textArea.value = "";
-                        loadComments(); // Listeyi yenile
-                    } else {
-                        alert("Yorum gönderilemedi.");
-                    }
-                } catch (err) {
-                    console.error(err);
-                } finally {
-                    if (btn) btn.innerText = "Yorum Yap";
+                if (res.ok) {
+                    input.value = "";
+                    loadComments();
+                    alert("Yorumun yapıştırıldı! 🚀");
+                } else {
+                    alert("Gönderilemedi.");
                 }
+            } catch (err) {
+                console.error(err);
+                alert("Hata oluştu!");
+            } finally {
+                if (btn) { btn.innerText = "Yorumu Yayınla 🚀"; btn.disabled = false; }
             }
+        }
 
-            // ==========================================
-            // 2. YORUMLARI YÜKLE (FİNAL VERSİYON 💎)
-            // ==========================================
-            async function loadComments() {
-                const list = document.getElementById('commentsList');
-                const countSpan = document.getElementById('commentCount');
-                const currentUser = JSON.parse(localStorage.getItem('user'));
+        // ==========================================
+        // 2. YORUMLARI YÜKLE (FİNAL VERSİYON 💎)
+        // ==========================================
+        async function loadComments() {
+            const list = document.getElementById('commentsList');
+            const countSpan = document.getElementById('commentCount');
+            const currentUser = JSON.parse(localStorage.getItem('user'));
 
-                // 🔥 DÜZELTME: ID'yi URL'den alıyoruz (Eski slug yöntemini kaldırdık)
-                const urlParams = new URLSearchParams(window.location.search);
-                const currentId = urlParams.get('id');
-                const type = window.location.pathname.includes('blog') ? 'blog' : 'book';
+            // 🔥 DÜZELTME: ID'yi URL'den alıyoruz (Eski slug yöntemini kaldırdık)
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentId = urlParams.get('id');
+            const type = window.location.pathname.includes('blog') ? 'blog' : 'book';
 
-                if (!currentId) return; // ID yoksa çalışma
+            if (!currentId) return; // ID yoksa çalışma
 
-                try {
-                    // Backend'den Yorumları İste
-                    const res = await fetch(`${API_BASE}/comments?type=${type}&id=${currentId}`);
-                    const comments = await res.json();
+            try {
+                // Backend'den Yorumları İste
+                const res = await fetch(`${API_BASE}/comments?type=${type}&id=${currentId}`);
+                const comments = await res.json();
 
-                    if (list) list.innerHTML = "";
-                    if (countSpan) countSpan.innerText = comments.length;
+                if (list) list.innerHTML = "";
+                if (countSpan) countSpan.innerText = comments.length;
 
-                    if (comments.length === 0 && list) {
-                        list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center; padding: 20px;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
-                        return;
+                if (comments.length === 0 && list) {
+                    list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center; padding: 20px;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
+                    return;
+                }
+
+                // 🔥 ROZET SÖZLÜĞÜ (Senin Tasarımın)
+                const tagStyles = {
+                    'admin': { label: '👑 Yönetici', bg: '#ffd700', text: '#000' },
+                    'mod': { label: '🛡️ Moderatör', bg: '#2980b9', text: '#fff' },
+                    'dev': { label: '💻 Geliştirici', bg: '#00d2ff', text: '#000' },
+                    'vip': { label: '💎 VIP Üye', bg: '#9b59b6', text: '#fff' },
+                    'supporter': { label: '💖 Destekçi', bg: '#ff6b81', text: '#fff' },
+                    'verified': { label: '✅ Onaylı', bg: '#2ecc71', text: '#fff' },
+                    'writer': { label: '🖋️ Yazar', bg: '#34495e', text: '#fff' },
+                    'poet': { label: '🪶 Şair', bg: '#a29bfe', text: '#000' },
+                    'bug_hunter': { label: '🐛 Bug Avcısı', bg: '#e74c3c', text: '#fff' },
+                    'bookworm': { label: '📚 Kitap Kurdu', bg: '#27ae60', text: '#fff' },
+                    'coffee': { label: '☕ Kahve Sever', bg: '#6f4e37', text: '#fff' },
+                    'cat_lover': { label: '🐱 Kedi Sever', bg: '#ff9ff3', text: '#000' }
+                };
+
+                // Yorumları Bas
+                for (const c of comments) {
+                    const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+                    let badgeHTML = "";
+
+                    // Rozet Kontrolü (Admin veya OnurCy ise)
+                    if (c.username === "Admin" || c.username === "OnurCy") {
+                        badgeHTML = `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>`;
                     }
+                    // İleride buraya diğer rozetler için de if eklenebilir
 
-                    // 🔥 ROZET SÖZLÜĞÜ (Senin Tasarımın)
-                    const tagStyles = {
-                        'admin': { label: '👑 Yönetici', bg: '#ffd700', text: '#000' },
-                        'mod': { label: '🛡️ Moderatör', bg: '#2980b9', text: '#fff' },
-                        'dev': { label: '💻 Geliştirici', bg: '#00d2ff', text: '#000' },
-                        'vip': { label: '💎 VIP Üye', bg: '#9b59b6', text: '#fff' },
-                        'supporter': { label: '💖 Destekçi', bg: '#ff6b81', text: '#fff' },
-                        'verified': { label: '✅ Onaylı', bg: '#2ecc71', text: '#fff' },
-                        'writer': { label: '🖋️ Yazar', bg: '#34495e', text: '#fff' },
-                        'poet': { label: '🪶 Şair', bg: '#a29bfe', text: '#000' },
-                        'bug_hunter': { label: '🐛 Bug Avcısı', bg: '#e74c3c', text: '#fff' },
-                        'bookworm': { label: '📚 Kitap Kurdu', bg: '#27ae60', text: '#fff' },
-                        'coffee': { label: '☕ Kahve Sever', bg: '#6f4e37', text: '#fff' },
-                        'cat_lover': { label: '🐱 Kedi Sever', bg: '#ff9ff3', text: '#000' }
-                    };
+                    // SİLME BUTONU (Sadece sahibi veya Admin görebilir)
+                    let deleteBtnHTML = "";
+                    const isOwner = currentUser && (currentUser.username === c.username);
+                    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
 
-                    // Yorumları Bas
-                    for (const c of comments) {
-                        const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-
-                        let badgeHTML = "";
-
-                        // Rozet Kontrolü (Admin veya OnurCy ise)
-                        if (c.username === "Admin" || c.username === "OnurCy") {
-                            badgeHTML = `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>`;
-                        }
-                        // İleride buraya diğer rozetler için de if eklenebilir
-
-                        // SİLME BUTONU (Sadece sahibi veya Admin görebilir)
-                        let deleteBtnHTML = "";
-                        const isOwner = currentUser && (currentUser.username === c.username);
-                        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
-
-                        if (isOwner || isAdmin) {
-                            // Not: deleteComment fonksiyonunun da main.js'de olması lazım
-                            deleteBtnHTML = `
+                    if (isOwner || isAdmin) {
+                        // Not: deleteComment fonksiyonunun da main.js'de olması lazım
+                        deleteBtnHTML = `
                 <button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
                     <i class="ph-bold ph-trash"></i> Sil
                 </button>`;
-                        }
+                    }
 
-                        const profileLink = `profile.html?u=${c.username}`;
+                    const profileLink = `profile.html?u=${c.username}`;
 
-                        const html = `
+                    const html = `
             <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
                 <a href="${profileLink}" style="text-decoration:none;">
                     <img src="${c.avatar || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" style="width:40px; height:40px; border-radius:50%; border:2px solid #d4a373; object-fit:cover;">
@@ -1252,48 +1256,48 @@
                 </div>
             </div>`;
 
-                        if (list) list.innerHTML += html;
-                    }
-
-                } catch (err) { console.error(err); }
-            }
-
-            // ==========================================
-            // 3. YORUM SİL
-            // ==========================================
-            async function deleteComment(commentId) {
-                if (!confirm("Yorumu silmek istiyor musun?")) return;
-
-                try {
-                    const res = await fetch(`${API_BASE}/comments/${commentId}`, { method: 'DELETE' });
-                    if (res.ok) {
-                        loadComments(); // Listeyi yenile
-                    } else {
-                        alert("Silinemedi.");
-                    }
-                } catch (e) { alert("Hata oluştu."); }
-            }
-
-            // --- YORUM SİLME FONKSİYONU ---
-            function deleteComment(identifier) {
-                if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
-
-                let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
-
-                // Eğer gelen şey bir sayıysa (ID ise) ID'ye göre filtrele
-                if (typeof identifier === 'number') {
-                    allComments = allComments.filter(c => c.id !== identifier);
-                }
-                // Eğer yazıysa (Eski tarihli sistemse) Tarihe göre filtrele
-                else {
-                    allComments = allComments.filter(c => c.date !== identifier);
+                    if (list) list.innerHTML += html;
                 }
 
-                // Yeni listeyi kaydet ve ekranı yenile
-                localStorage.setItem('allComments', JSON.stringify(allComments));
-                loadComments();
+            } catch (err) { console.error(err); }
+        }
+
+        // ==========================================
+        // 3. YORUM SİL
+        // ==========================================
+        async function deleteComment(commentId) {
+            if (!confirm("Yorumu silmek istiyor musun?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/comments/${commentId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadComments(); // Listeyi yenile
+                } else {
+                    alert("Silinemedi.");
+                }
+            } catch (e) { alert("Hata oluştu."); }
+        }
+
+        // --- YORUM SİLME FONKSİYONU ---
+        function deleteComment(identifier) {
+            if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
+
+            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
+
+            // Eğer gelen şey bir sayıysa (ID ise) ID'ye göre filtrele
+            if (typeof identifier === 'number') {
+                allComments = allComments.filter(c => c.id !== identifier);
             }
-        }  
+            // Eğer yazıysa (Eski tarihli sistemse) Tarihe göre filtrele
+            else {
+                allComments = allComments.filter(c => c.date !== identifier);
+            }
+
+            // Yeni listeyi kaydet ve ekranı yenile
+            localStorage.setItem('allComments', JSON.stringify(allComments));
+            loadComments();
+        }
+
     </script>
 </body>
 
