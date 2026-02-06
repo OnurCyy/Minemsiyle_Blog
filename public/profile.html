@@ -375,7 +375,9 @@
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" class="avatar-img"
                     id="avatarDisplay">
                 <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-                <label for="avatarInput" class="edit-avatar-btn"><i class="ph-bold ph-pencil-simple"></i></label>
+                <label for="avatarInput" class="edit-avatar-btn" id="avatarEditIcon" style="display: none;">
+                    <i class="ph-bold ph-pencil-simple"></i>
+                </label>
             </div>
 
             <h1 class="user-name" id="displayName">Yükleniyor...</h1>
@@ -536,9 +538,11 @@
                 // Admin Butonu Kontrolü (Sadece Kendi Profilinde ve Yetkiliyse)
                 const actions = document.querySelector('.actions');
                 const adminBtn = document.getElementById('adminPanelBtnArea');
+                const avatarBtn = document.getElementById('avatarEditIcon');
 
                 if (sessionUser && sessionUser.username === user.username) {
                     if (actions) actions.style.display = 'flex';
+                    if (avatarBtn) avatarBtn.style.display = 'flex';
                     if (user.role === 'admin' || user.username === 'OnurCy') {
                         if (adminBtn) {
                             adminBtn.style.display = 'block';
@@ -548,6 +552,7 @@
                 } else {
                     if (actions) actions.style.display = 'none';
                     if (adminBtn) adminBtn.style.display = 'none';
+                    if (avatarBtn) avatarBtn.style.display = 'none';
                 }
 
             } catch (error) { console.error(error); }
