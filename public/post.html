@@ -884,30 +884,42 @@
             } catch (err) { console.error(err); }
         }
         // ==========================================
-        // 3. YORUM SİL
+        // 🗑️ SİLME FONKSİYONU (TEK VE DOĞRU OLAN)
         // ==========================================
         async function deleteComment(commentId) {
-            if (!confirm("Yorumu silmek istiyor musun?")) return;
+            if (!confirm("Bu yorumu gerçekten silmek istiyor musun?")) return;
+
+            // 1. Token'ı al (Anahtar olmadan sunucu sildirmez)
+            let token = localStorage.getItem('token') || localStorage.getItem('userToken');
+            if (!token) {
+                alert("Giriş yapmamışsın veya yetkin yok.");
+                return;
+            }
+            // Tırnak temizliği
+            token = token.replace(/"/g, '').trim();
 
             try {
-                const res = await fetch(`${API_BASE}/comments/${commentId}`, { method: 'DELETE' });
+                // 2. Backend'e İstek At
+                const res = await fetch(`${API_BASE}/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // 🔑 Anahtarı göster
+                    }
+                });
+
+                // 3. Sonucu Kontrol Et
                 if (res.ok) {
+                    alert("Yorum silindi! 🗑️");
                     loadComments(); // Listeyi yenile
                 } else {
-                    alert("Silinemedi.");
+                    const err = await res.json();
+                    alert("Hata: " + (err.message || "Silemedin."));
                 }
-            } catch (e) { alert("Hata oluştu."); }
-        }
-        function deleteComment(identifier) {
-            if (!confirm("Silmek istediğine emin misin?")) return;
-            let allComments = JSON.parse(localStorage.getItem('allComments') || "[]");
-            if (typeof identifier === 'number') {
-                allComments = allComments.filter(c => c.id !== identifier);
-            } else {
-                allComments = allComments.filter(c => c.date !== identifier);
+            } catch (e) {
+                console.error(e);
+                alert("Sunucu hatası oluştu.");
             }
-            localStorage.setItem('allComments', JSON.stringify(allComments));
-            loadComments();
         }
 
         function formatContent(text) {
