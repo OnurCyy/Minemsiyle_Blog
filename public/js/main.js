@@ -216,6 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     fetchBooksFromDB();
     fetchSidebarData();
     fetchPosts();
+    updateHeaderProfile();
 
     // ==========================================
     // 🚧 BAKIM MODU KONTROLÜ (BURAYA EKLENDİ)
