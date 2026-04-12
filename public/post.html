@@ -185,15 +185,13 @@
         // 🌍 GLOBAL AYARLAR VE URL PARÇALAMA
         // ==========================================
         const API_BASE = "/api";
-        const API_BASE_URL = "";
         let contentId = null;
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-        const owners = ['onurceylan5e502@gmail.com', 'mumine.erdogann@gmail.com'];
 
         // 🔥 YENİ SİSTEM: URL'DEN ID/SLUG OKUMA
         const pathArray = window.location.pathname.split('/');
-        const currentRelatedId = pathArray[pathArray.length - 1]; // Linkin sonundaki yazıyı alır
-        const currentType = window.location.pathname.includes('blog') ? 'blog' : 'book';
+        const currentRelatedId = pathArray[pathArray.length - 1]; // Linkin sonundaki ID'yi alır
+        const currentType = 'blog'; // 👈 BURASI BLOG İÇİN SABİT
 
 
         // ==========================================
@@ -202,104 +200,176 @@
         document.addEventListener("DOMContentLoaded", async () => {
             checkUserLoginForComments();
 
-            // ID Kontrolü (Hatalı linkle geldiyse)
-            if (!currentRelatedId || currentRelatedId === "kitap" || currentRelatedId === "blog") {
-                document.getElementById("articleArea").innerHTML = "<p style='text-align:center; margin-top:50px; color:var(--danger); font-size:20px;'>😔 Ops! Link hatalı veya yazı bulunamadı.</p>";
+            // ID Kontrolü
+            if (!currentRelatedId || currentRelatedId === "blog") {
+                showError("Linkte ID bulunamadı. Lütfen ana sayfadan tekrar deneyin.");
                 return;
             }
 
+            // Backend'den Blog Yazısını Çek
             try {
-                // 🔥 Hangi sayfadaysak ona göre Backend'den veriyi çek (/books veya /posts)
-                const endpoint = currentType === 'blog' ? 'posts' : 'books';
-                const res = await fetch(`${API_BASE}/${endpoint}/${currentRelatedId}`);
+                // Blog yazıları için /posts adresine gidiyoruz
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`);
 
-                if (!res.ok) throw new Error("Yazı bulunamadı");
-                const item = await res.json();
+                if (!res.ok) {
+                    showError(`Yazı bulunamadı! (Hata Kodu: ${res.status})`);
+                    return;
+                }
 
-                contentId = item._id || currentRelatedId;
-                const contentCategory = item.category || item.tag || 'Genel';
-                const date = new Date(item.createdAt || item.date || Date.now()).toLocaleDateString('tr-TR');
+                const post = await res.json();
+                contentId = post._id || currentRelatedId;
 
-                document.title = `${item.title} | Minemsiyle`;
+                // Sayfayı Doldur
+                renderPost(post);
 
-                const realImage = item.image || item.cover || "";
-                let imgHTML = realImage.length > 5 ? `<img src="${realImage}" class="article-cover" alt="${item.title}">` : '';
-
-                // Yazıyı Ekrana Bas
-                document.getElementById("articleArea").innerHTML = `
-                    <div class="article-header">
-                        <div class="article-meta">${contentCategory} • ${date}</div>
-                        <h1 class="article-title">${item.title}</h1>
-                    </div>
-                    ${imgHTML}
-                    <div class="article-content">${formatContent(item.content || item.desc)}</div>
-                `;
-
-                // Yazı yüklendikten sonra diğer özellikleri çalıştır
-                checkSaveStatus();
+                // Etkileşimleri Başlat
+                updateHeaderProfile();
                 checkLikeStatus();
+                checkSaveStatus();
                 loadComments();
 
             } catch (err) {
-                console.error("Hata:", err);
-                document.getElementById("articleArea").innerHTML = "<h3 style='text-align:center; margin-top:50px;'>😔 Yazı/Kitap yüklenemedi.</h3>";
+                console.error("Fetch Hatası:", err);
+                showError("Sunucuya bağlanılamadı. Backend kapalı olabilir.");
             }
         });
 
+        // YAZIYI EKRANA ÇİZME FONKSİYONU
+        function renderPost(post) {
+            const date = new Date(post.createdAt || post.date || Date.now()).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const contentArea = document.getElementById("articleArea");
+            const interactionArea = document.querySelector(".blog-footer");
+
+            document.title = `${post.title} | Minemsiyle`;
+
+            const imageSrc = post.cover || post.image || "";
+            let imgHTML = imageSrc.length > 5 ? `<img src="${imageSrc}" class="article-cover" alt="${post.title}" style="width:100%; border-radius:12px; margin-bottom:20px; object-fit:cover;">` : '';
+
+            contentArea.innerHTML = `
+                <div class="article-header">
+                    <div class="article-meta" style="color:var(--accent); font-weight:bold; font-size:0.8rem; margin-bottom:10px;">
+                        ${post.category || post.tag || "GENEL"} • ${date}
+                    </div>
+                    <h1 class="article-title" style="font-family:var(--serif); font-size:2.2rem; margin-bottom:20px;">${post.title}</h1>
+                </div>
+                ${imgHTML}
+                <div class="article-content" style="font-size:1.1rem; line-height:1.7; color:var(--ink);">
+                    ${formatContent(post.content || post.desc)}
+                </div>
+            `;
+
+            if (interactionArea) interactionArea.style.display = "block";
+        }
+
+        function showError(message) {
+            const area = document.getElementById("articleArea");
+            area.innerHTML = `
+            <div style="text-align:center; padding:50px; background:var(--bg-card); border-radius:12px; border:1px solid var(--border);">
+                <h2 style="color:#ef4444;">😔 Ops!</h2>
+                <p>${message}</p>
+                <a href="/" style="display:inline-block; margin-top:20px; color:var(--accent); text-decoration:underline;">Ana Sayfaya Dön</a>
+            </div>
+            `;
+        }
+
+        function formatContent(text) {
+            if (!text) return "İçerik yok.";
+            if (!text.includes("<p>")) return text.split('\n').map(p => p.trim() ? `<p>${p}</p>` : "").join('');
+            return text;
+        }
 
         // ==========================================
-        // 2. YORUM SİSTEMİ
+        // 2. YARDIMCI FONKSİYONLAR & PROFİL
         // ==========================================
+        function updateHeaderProfile() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const profileLink = document.getElementById('headerProfileLink');
+            if (user && user.avatar && profileLink) {
+                profileLink.innerHTML = `<img src="${user.avatar}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;" alt="Profil">`;
+                profileLink.href = "/profile.html";
+            }
+        }
+
         function checkUserLoginForComments() {
             const user = JSON.parse(localStorage.getItem('user'));
             const commentBox = document.querySelector('.blog-comment-box');
             if (!commentBox) return;
             if (!user) {
                 commentBox.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 120px;">
-                    <i class="ph-duotone ph-lock-key" style="font-size: 2rem; color: var(--accent);"></i>
-                    <span>Yorum yapmak için <a href="/login.html" style="color: var(--accent); font-weight: bold;">giriş yapmalısın</a>.</span>
-                </div>`;
+                <div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--panel); border: 1px dashed var(--line); border-radius: 12px;">
+                    <i class="ph-duotone ph-lock-key" style="font-size: 2rem; margin-bottom: 10px; color: var(--accent);"></i>
+                    <p style="margin:0;">Yorum yapmak için <a href="/login.html" style="color: var(--accent); font-weight: bold; text-decoration: underline;">giriş yapmalısın</a>.</p>
+                </div>
+            `;
             }
         }
 
+        // ==========================================
+        // 3. YORUM SİSTEMİ (ZIRHLI)
+        // ==========================================
         async function postComment() {
-            const textArea = document.getElementById('commentText');
-            if (!textArea) return;
-            const text = textArea.value.trim();
-            if (!text) return alert("Boş yorum olmaz.");
+            const input = document.getElementById('commentText');
+            const rawUser = localStorage.getItem('user');
 
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) return alert("Giriş yapmalısın!");
+            if (!rawUser) {
+                alert("Giriş yapmamışsın Kral! Login sayfasına yönlendiriyorum.");
+                window.location.href = "/login.html";
+                return;
+            }
 
-            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
+            const user = JSON.parse(rawUser);
+            const userId = user._id || user.id;
+
+            if (!userId) {
+                alert("Kimlik bilgisi bozulmuş. Tekrar giriş yapmalısın! 🔄");
+                localStorage.clear();
+                window.location.href = "/login.html";
+                return;
+            }
+
+            let token = localStorage.getItem('token') || localStorage.getItem('userToken');
+            if (!token) return alert("Anahtarın (Token) eksik. Tekrar giriş yapmalısın.");
+            token = token.replace(/"/g, '').trim();
+
+            const text = input.value.trim();
+            if (!text) return alert("Boş yorum olmaz! ✍️");
+
             const btn = document.querySelector('.blog-send-btn');
-            if (btn) { btn.innerText = "Yükleniyor..."; btn.disabled = true; }
-
-            const payload = {
-                userId: user._id,
-                username: user.username,
-                avatar: user.avatar,
-                content: text,
-                contentType: currentType,
-                relatedId: currentRelatedId,
-                title: pageTitle // 🔥 İSİM BURADA GÖNDERİLİYOR
-            };
+            if (btn) { btn.innerText = "⏳..."; btn.disabled = true; }
 
             try {
-                const res = await fetch(`${API_BASE}/comments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
+
+                const payload = {
+                    userId: userId,
+                    username: user.username,
+                    avatar: user.avatar,
+                    content: text,
+                    contentType: currentType, // 'blog'
+                    relatedId: currentRelatedId,
+                    title: pageTitle
+                };
+
+                const res = await fetch("/api/comments", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
                     body: JSON.stringify(payload)
                 });
+
                 if (res.ok) {
-                    textArea.value = "";
+                    input.value = "";
                     loadComments();
+                    alert("Yorumun yapıştırıldı! 🚀");
                 } else {
-                    alert("Yorum gönderilemedi.");
+                    const err = await res.json();
+                    alert("Hata: " + (err.message || "Sunucu reddetti"));
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Bağlantı Hatası:", err);
+                alert("Sunucuya ulaşılamadı!");
             } finally {
                 if (btn) { btn.innerText = "Yorumu Yayınla"; btn.disabled = false; }
             }
@@ -320,12 +390,12 @@
                 if (countSpan) countSpan.innerText = comments.length;
 
                 if (comments.length === 0 && list) {
-                    list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok.</p>";
+                    list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center; padding: 20px;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
                     return;
                 }
 
                 for (const c of comments) {
-                    const displayDate = new Date(c.date).toLocaleDateString('tr-TR');
+                    const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                     let badgeHTML = (c.username === "Minemsi" || c.username === "OnurCy") ? `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>` : "";
 
                     let deleteBtnHTML = "";
@@ -333,21 +403,33 @@
                     const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
 
                     if (isOwner || isAdmin) {
-                        deleteBtnHTML = `<button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="ph-bold ph-trash"></i> Sil</button>`;
+                        deleteBtnHTML = `<button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"><i class="ph-bold ph-trash"></i> Sil</button>`;
                     }
 
+                    const profileLink = `/profile.html?u=${c.username}`;
+
                     const html = `
-                    <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px;">
-                        <img src="${c.avatar || defaultAvatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                        <a href="${profileLink}" style="text-decoration:none;">
+                            <img src="${c.avatar || defaultAvatar}" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--line); object-fit:cover;">
+                        </a>
                         <div style="flex:1;">
-                            <h4 style="margin:0; display:flex; align-items:center;">${c.username} ${badgeHTML}</h4>
-                            <small style="color:#888;">${displayDate}</small>
-                            <p style="margin:5px 0 0 0;">${c.content}</p>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <a href="${profileLink}" style="text-decoration:none;">
+                                    <h4 style="color:var(--accent); font-size:0.95rem; margin:0; display:flex; align-items:center; flex-wrap:wrap; gap:5px;">
+                                        ${c.username} ${badgeHTML}
+                                    </h4>
+                                </a>
+                                <small style="color:var(--muted); font-size:0.7rem;">${displayDate}</small>
+                            </div>
+                            <p style="color:var(--ink); font-size:0.95rem; margin:5px 0 0 0; line-height:1.5; word-break: break-word;">${c.content}</p>
                             ${deleteBtnHTML}
                         </div>
                     </div>`;
+
                     if (list) list.innerHTML += html;
                 }
+
             } catch (err) { console.error(err); }
         }
 
@@ -362,76 +444,21 @@
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) { loadComments(); }
-            } catch (e) { console.error(e); }
-        }
-
-
-        // ==========================================
-        // 3. KAYDETME & BEĞENME SİSTEMİ
-        // ==========================================
-        async function toggleSave() {
-            const userString = localStorage.getItem('user');
-            if (!userString) return alert("Giriş yapmalısın!");
-
-            const icon = document.getElementById('saveIcon');
-            const text = document.getElementById('saveText');
-            const btn = document.getElementById('saveBtn');
-            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
-            const isSaved = icon.style.fill !== "none" && icon.style.fill !== "";
-
-            if (!isSaved) {
-                icon.style.fill = "var(--accent)"; icon.style.stroke = "var(--accent)";
-                text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; btn.style.borderColor = "var(--accent)";
-            } else {
-                icon.style.fill = "none"; icon.style.stroke = "currentColor";
-                text.innerText = "Kaydet"; text.style.color = "var(--ink)"; btn.style.borderColor = "var(--line)";
-            }
-
-            try {
-                let token = localStorage.getItem('token');
-                if (token) token = token.replace(/"/g, '').trim();
-
-                await fetch(`${API_BASE}/users/save`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({
-                        itemId: currentRelatedId,
-                        title: pageTitle,
-                        type: currentType,
-                        url: window.location.href
-                    })
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        async function checkSaveStatus() {
-            const userString = localStorage.getItem('user');
-            if (!userString || !document.getElementById('saveBtn')) return;
-
-            try {
-                let token = localStorage.getItem('token');
-                if (token) token = token.replace(/"/g, '').trim();
-
-                const res = await fetch(`${API_BASE}/users/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
-                    const userData = await res.json();
-                    if (userData.savedItems && userData.savedItems.some(item => item.itemId === currentRelatedId)) {
-                        const icon = document.getElementById('saveIcon');
-                        const text = document.getElementById('saveText');
-                        const btn = document.getElementById('saveBtn');
-                        icon.style.fill = "var(--accent)"; icon.style.stroke = "var(--accent)";
-                        text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; btn.style.borderColor = "var(--accent)";
-                    }
+                    alert("Yorum silindi! 🗑️");
+                    loadComments();
                 }
             } catch (e) { console.error(e); }
         }
 
+        // ==========================================
+        // 4. BEĞENME (LIKE) & KAYDETME (SAVE)
+        // ==========================================
         async function toggleLike() {
             const userString = localStorage.getItem('user');
             if (!userString) return alert("Giriş yapmalısın!");
-            const user = JSON.parse(userString);
 
+            const user = JSON.parse(userString);
             const icon = document.getElementById('likeIcon');
             const text = document.getElementById('likeText');
             const btn = document.getElementById('likeBtn');
@@ -440,10 +467,14 @@
 
             if (!isLiked) {
                 icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63";
-                text.innerText = "Beğendin"; text.style.color = "#e91e63"; btn.style.borderColor = "#e91e63";
+                if (text) text.innerText = "Beğendin";
+                if (text) text.style.color = "#e91e63";
+                if (btn) btn.style.borderColor = "#e91e63";
             } else {
                 icon.style.fill = "none"; icon.style.stroke = "currentColor";
-                text.innerText = "Beğen"; text.style.color = "var(--ink)"; btn.style.borderColor = "var(--line)";
+                if (text) text.innerText = "Beğen";
+                if (text) text.style.color = "var(--ink)";
+                if (btn) btn.style.borderColor = "var(--line)";
             }
 
             try {
@@ -473,8 +504,72 @@
                         const icon = document.getElementById('likeIcon');
                         const text = document.getElementById('likeText');
                         const btn = document.getElementById('likeBtn');
-                        icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63";
-                        text.innerText = "Beğendin"; text.style.color = "#e91e63"; btn.style.borderColor = "#e91e63";
+                        if (icon) { icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63"; }
+                        if (text) { text.innerText = "Beğendin"; text.style.color = "#e91e63"; }
+                        if (btn) btn.style.borderColor = "#e91e63";
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function toggleSave() {
+            const userString = localStorage.getItem('user');
+            if (!userString) return alert("Giriş yapmalısın!");
+
+            const user = JSON.parse(userString);
+            const icon = document.getElementById('saveIcon');
+            const text = document.getElementById('saveText');
+            const btn = document.getElementById('saveBtn');
+            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
+            const isSaved = icon.style.fill !== "none" && icon.style.fill !== "";
+
+            if (!isSaved) {
+                icon.style.fill = "var(--accent)"; icon.style.stroke = "var(--accent)";
+                if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
+                if (btn) btn.style.borderColor = "var(--accent)";
+            } else {
+                icon.style.fill = "none"; icon.style.stroke = "currentColor";
+                if (text) { text.innerText = "Kaydet"; text.style.color = "var(--ink)"; }
+                if (btn) btn.style.borderColor = "var(--line)";
+            }
+
+            try {
+                let token = localStorage.getItem('token');
+                if (token) token = token.replace(/"/g, '').trim();
+
+                await fetch(`${API_BASE}/users/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        itemId: currentRelatedId,
+                        title: pageTitle,
+                        type: currentType,
+                        url: window.location.href
+                    })
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function checkSaveStatus() {
+            const userString = localStorage.getItem('user');
+            if (!userString || !document.getElementById('saveBtn')) return;
+
+            const user = JSON.parse(userString);
+
+            try {
+                let token = localStorage.getItem('token');
+                if (token) token = token.replace(/"/g, '').trim();
+
+                const res = await fetch(`${API_BASE}/users/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const userData = await res.json();
+                    if (userData.savedItems && userData.savedItems.some(item => item.itemId === currentRelatedId)) {
+                        const icon = document.getElementById('saveIcon');
+                        const text = document.getElementById('saveText');
+                        const btn = document.getElementById('saveBtn');
+                        if (icon) { icon.style.fill = "var(--accent)"; icon.style.stroke = "var(--accent)"; }
+                        if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
+                        if (btn) btn.style.borderColor = "var(--accent)";
                     }
                 }
             } catch (e) { console.error(e); }
@@ -491,43 +586,29 @@
             }
         }
 
-        function formatContent(text) {
-            if (!text) return "";
-            if (!text.includes("<p>")) return text.split('\n').map(para => para.trim() ? `<p>${para}</p>` : "").join('');
-            return text;
-        }
-
         // ==========================================
-        // 4. MÜZİK/AMBİYANS SİSTEMİ
+        // 5. TEMA AYARI (ÇİFTE DİKİŞ)
         // ==========================================
-        let currentAudio = null;
-        function toggleAmbiancePanel() { document.getElementById('ambiancePanel').classList.toggle('active'); }
-        function playAmbiance(type, element) {
-            const audioId = `audio-${type}`;
-            const audioElement = document.getElementById(audioId);
-            const volumeControl = document.getElementById('volumeControl');
-            const toggleBtn = document.querySelector('.ambiance-toggle');
+        const themeToggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        if (themeToggleSwitch) {
+            const currentTheme = localStorage.getItem('theme');
 
-            if (currentAudio === audioElement && !audioElement.paused) {
-                audioElement.pause(); element.classList.remove('active'); toggleBtn.classList.remove('playing');
-                currentAudio = null; return;
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.body.classList.add('dark', 'dark-theme');
+                themeToggleSwitch.checked = true;
             }
-            stopAllSounds();
-            if (audioElement) {
-                audioElement.volume = volumeControl.value;
-                audioElement.play().catch(e => console.log(e));
-                currentAudio = audioElement;
-                element.classList.add('active'); toggleBtn.classList.add('playing');
-            }
-        }
-        function stopAllSounds() {
-            document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
-            document.querySelectorAll('.sound-item').forEach(item => item.classList.remove('active'));
-        }
-        const volCtrl = document.getElementById('volumeControl');
-        if (volCtrl) {
-            volCtrl.addEventListener('input', (e) => {
-                if (currentAudio) currentAudio.volume = e.target.value;
+
+            themeToggleSwitch.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.body.classList.add('dark', 'dark-theme');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    document.body.classList.remove('dark', 'dark-theme');
+                    localStorage.setItem('theme', 'light');
+                }
             });
         }
     </script>
