@@ -37,6 +37,9 @@ const BookSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    title: {
+        type: String
+    },
     pageCount: {
         type: Number,
         default: 0

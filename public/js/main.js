@@ -44,7 +44,7 @@ function renderBooks() {
     }
 
     grid.innerHTML = BOOKS.map(b => `
-       <a href="book.html?id=${b.id}" data-category="${b.tag}" class="book card" style="text-decoration:none; color:inherit; display:flex;">
+      <a href="/kitap/${b.id}" data-category="${b.tag}" class="book card" style="text-decoration:none; color:inherit; display:flex;">
             <img src="${b.cover}" class="book__cover-art" onerror="this.src='https://placehold.co/150?text=Kapak+Yok'">
             <div class="book__info">
                 <div>
@@ -328,7 +328,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 return `
             <article class="blog-card" style="background:var(--bg-card); border-radius:12px; border:1px solid var(--border); overflow:hidden; display:flex; flex-direction:column;">
-                <a href="post.html?id=${post._id}" style="text-decoration:none; color:inherit;">
+                <a href="/blog/${post._id}" style="text-decoration:none; color:inherit;">
                     ${imgHTML}
                     <div class="blog-card-content" style="padding:20px;">
                         <span style="font-size:0.75rem; color:var(--accent); font-weight:bold; letter-spacing:1px; text-transform:uppercase;">${post.category || 'GENEL'} • ${date}</span>
@@ -436,52 +436,6 @@ function checkLoginStatus() {
     }
 }
 
-/* --- BÜLTEN ABONELİĞİ (FİNAL VERSİYON) --- */
-async function aboneOl() {
-    // 1. Yeni ID'yi yakala (modalEmail)
-    const emailInput = document.getElementById("modalEmail");
-
-    // Eğer input bulunamazsa hata vermesin diye kontrol
-    if (!emailInput) {
-        console.error("Input bulunamadı!");
-        return;
-    }
-
-    const email = emailInput.value.trim();
-
-    if (!email) {
-        alert("Lütfen bir mail adresi yaz! 📧");
-        return;
-    }
-
-    try {
-        const API_URL = "/api";
-
-        const res = await fetch(`${API_URL}/subs`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-            alert("Harika! Aramıza hoş geldin! 🎉");
-            emailInput.value = ""; // Kutuyu temizle
-
-            // ✅ İŞLEM BAŞARILIYSA PENCEREYİ KAPAT
-            const modal = document.getElementById('newsletter-modal');
-            if (modal) modal.close();
-
-        } else {
-            alert("Hata: " + data);
-        }
-
-    } catch (err) {
-        console.error(err);
-        alert("Sunucuya ulaşılamadı! Backend açık mı?");
-    }
-}
 (async function () {
     // Eğer zaten bakım sayfasındaysak veya Admin panelindeysek dur, sayfayı göster.
     if (window.location.pathname.includes("maintenance.html") ||

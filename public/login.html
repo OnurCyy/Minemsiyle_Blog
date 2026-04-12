@@ -5,119 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giriş Yap | Minemsiyle</title>
-    <link rel="stylesheet" href="css/main.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="icon" href="./assets/images/Logo.png" type="image/png">
-    <style>
-        /* Bu sayfaya özel ortalama stilleri */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #121212;
-            /* Dark tema */
-            margin: 0;
-        }
-
-        .auth-container {
-            background: #1e1e1e;
-            padding: 40px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid #333;
-        }
-
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-        }
-
-        .auth-tab {
-            flex: 1;
-            padding: 10px;
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .auth-tab.active {
-            color: #d4a373;
-            /* Gold renk */
-            border-bottom: 2px solid #d4a373;
-            margin-bottom: -2px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            background: #121212;
-            border: 1px solid #333;
-            color: white;
-            border-radius: 8px;
-            box-sizing: border-box;
-            /* Taşmayı önler */
-        }
-
-        .btn-full {
-            width: 100%;
-            padding: 12px;
-            background: #d4a373;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            color: #000;
-        }
-
-        .btn-full:hover {
-            background: #b58b61;
-        }
-
-        .link {
-            color: #888;
-            text-decoration: none;
-            font-size: 12px;
-            display: block;
-            text-align: right;
-            margin-top: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="./css/login.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Lora:ital,wght@0,400;1,500&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
 <body>
 
     <div class="auth-container">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h2 style="color:#d4a373; margin:0;">Mümine'msi</h2>
-            <p style="color:#666; font-size:14px;">Okur dünyasına hoş geldin.</p>
-        </div>
-
         <div class="auth-tabs">
-            <button class="auth-tab active" onclick="switchTab('login')">Giriş Yap</button>
-            <button class="auth-tab" onclick="switchTab('register')">Kayıt Ol</button>
+            <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Giriş Yap</button>
+            <button class="auth-tab" id="registerTab" onclick="switchTab('register')">Kayıt Ol</button>
         </div>
 
-        <form id="loginForm">
+        <h2>Mümine'msi</h2>
+        <p class="subtitle">Okur dünyasına hoş geldin.</p>
+
+        <form id="loginForm" class="active-form">
             <div class="input-group">
                 <input type="email" id="loginEmail" placeholder="E-posta Adresi" required>
             </div>
             <div class="input-group">
                 <input type="password" id="loginPassword" placeholder="Şifre" required>
             </div>
-            <a href="#" class="link" onclick="openResetModal()">Şifremi Unuttum?</a>
-            <button type="submit" class="btn-full">Giriş Yap</button>
+            <a href="#" class="link" onclick="openResetModal()"
+                style="display: block; text-align: right; margin-bottom: 10px;">Şifremi Unuttum?</a>
+            <button type="submit" class="btn-full">Kütüphaneye Gir</button>
         </form>
 
         <form id="registerForm" style="display: none;">
@@ -130,10 +47,19 @@
             <div class="input-group">
                 <input type="password" id="regPassword" placeholder="Şifre Belirle" required>
             </div>
-            <button type="submit" class="btn-full">Kayıt Ol</button>
+            <button type="submit" class="btn-full">Okur Kartı Oluştur</button>
         </form>
 
-        <div style="text-align:center; margin-top:20px;">
+        <div class="social-section">
+            <p>Hızlı Erişim</p>
+            <div class="social-btns-row">
+                <div class="social-btn" onclick="loginWithGoogle()"><i class="ph-fill ph-google-logo"></i></div>
+                <div class="social-btn" onclick="loginWithDiscord()"><i class="ph-fill ph-discord-logo"></i></div>
+                <div class="social-btn" onclick="loginWithTwitter()"><i class="ph-fill ph-twitter-logo"></i></div>
+            </div>
+        </div>
+
+        <div class="back-link-container" style="text-align:center; margin-top:20px;">
             <a href="index.html" class="link" style="text-align:center;">← Ana Sayfaya Dön</a>
         </div>
     </div>
@@ -216,92 +142,142 @@
         </div>
     </div>
 
-    <script>
-        // API Adresimiz (Otomatik algılar)
-        const API_URL = "/api";
+    <div id="reset-modal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); backdrop-filter:blur(5px); z-index:9999; align-items:center; justify-content:center; animation:fadeIn 0.3s;">
+        <div
+            style="background:#1e1e1e; padding:35px; border-radius:12px; border:1px solid #333; width:90%; max-width:400px; text-align:left; box-shadow:0 0 50px rgba(212, 163, 115, 0.1); position:relative;">
 
-        // --- SAYFA YÜKLENİNCE ---
+            <i class="ph ph-x" onclick="closeResetModal()"
+                style="position:absolute; top:20px; right:20px; color:#888; cursor:pointer; font-size:1.5rem; transition:0.3s;"
+                onmouseover="this.style.color='#d4a373'" onmouseout="this.style.color='#888'"></i>
+
+            <div style="text-align:center; margin-bottom:25px;">
+                <div
+                    style="background:rgba(212, 163, 115, 0.1); width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px auto;">
+                    <i class="ph-fill ph-lock-key-open" style="font-size:30px; color:#d4a373;"></i>
+                </div>
+                <h3 style="color:#fff; margin:0; font-family:'Poppins', sans-serif; font-size:1.5rem;">Hesabını Kurtar
+                </h3>
+                <p style="color:#888; font-size:0.9rem; margin-top:5px; font-family:'Lora', serif;">Kod gönderip şifreni
+                    yenile.</p>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:20px;">
+                <div>
+                    <label
+                        style="color:#d4a373; font-size:0.75rem; font-weight:bold; letter-spacing:1px; display:block; margin-bottom:8px;">E-POSTA</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="email" id="resetEmail" placeholder="mail@adresin.com"
+                            style="flex:1; background:#121212; border:1px solid #333; color:white; padding:12px; border-radius:8px; outline:none;"
+                            onfocus="this.style.borderColor='#d4a373'" onblur="this.style.borderColor='#333'">
+                        <button onclick="sendCode()" id="sendCodeBtn"
+                            style="background:#2a2a2a; color:#fff; border:1px solid #333; padding:0 15px; border-radius:8px; cursor:pointer; font-size:0.8rem; white-space:nowrap; transition:0.3s;"
+                            onmouseover="this.style.background='#d4a373'; this.style.color='#1a1a1a'"
+                            onmouseout="this.style.background='#2a2a2a'; this.style.color='#fff'">
+                            Kod Gönder
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label
+                        style="color:#d4a373; font-size:0.75rem; font-weight:bold; letter-spacing:1px; display:block; margin-bottom:8px;">GELEN
+                        KOD</label>
+                    <input type="text" id="resetCode" placeholder="######" maxlength="6"
+                        style="width:100%; background:#121212; border:1px solid #333; color:#fff; padding:12px; border-radius:8px; outline:none; text-align:center; letter-spacing:5px; font-weight:bold; box-sizing:border-box;"
+                        onfocus="this.style.borderColor='#d4a373'" onblur="this.style.borderColor='#333'">
+                </div>
+
+                <div style="position:relative;">
+                    <label
+                        style="color:#d4a373; font-size:0.75rem; font-weight:bold; letter-spacing:1px; display:block; margin-bottom:8px;">YENİ
+                        ŞİFRE</label>
+                    <input type="password" id="resetNewPass" placeholder="Yeni şifren..."
+                        style="width:100%; background:#121212; border:1px solid #333; color:white; padding:12px 40px 12px 12px; border-radius:8px; outline:none; box-sizing:border-box;"
+                        onfocus="this.style.borderColor='#d4a373'" onblur="this.style.borderColor='#333'">
+                    <i class="ph ph-eye-slash" id="togglePassIcon" onclick="togglePasswordVisibility()"
+                        style="position:absolute; right:12px; bottom:12px; color:#888; cursor:pointer; font-size:1.3rem; z-index:10;"
+                        onmouseover="this.style.color='#d4a373'" onmouseout="this.style.color='#888'"></i>
+                </div>
+            </div>
+
+            <button onclick="verifyAndReset()"
+                style="width:100%; background:#d4a373; border:none; color:#1a1a1a; font-weight:800; padding:12px; border-radius:8px; cursor:pointer; margin-top:25px; transition:0.3s;"
+                onmouseover="this.style.background='#b58b61'" onmouseout="this.style.background='#d4a373'">
+                Şifreyi Değiştir
+            </button>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // 1. EN ÖNEMLİ ADIM: Backend'imizin tam adresini veriyoruz. 
+        // Eğer backend'i 5000 portunda başlattıysan burası böyle kalmalı.
+        const API_URL = "http://localhost:5000/api";
+
+        // 2. SOSYAL MEDYA GİRİŞİ: Google butonuna tıklandığında çalışacak basit fonksiyon
+        function loginWithGoogle() {
+            window.location.href = `${API_URL}/auth/google`;
+        }
+        // Discord Giriş Fonksiyonu
+        function loginWithDiscord() {
+            window.location.href = `${API_URL}/auth/discord`;
+        }
+        function loginWithTwitter() {
+            window.location.href = `${API_URL}/auth/twitter`;
+        }
+
+        // 3. SAYFA AÇILDIĞINDA: Google bizi geri gönderdiyse URL'deki "token"ı yakala!
         document.addEventListener("DOMContentLoaded", () => {
-            // Eğer zaten giriş yapmışsak, içeri al
-            const token = localStorage.getItem("token");
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
             if (token) {
-                // Token varsa geçerli mi diye sormuyoruz, direkt profile atıyoruz
-                // (Gerekirse profile sayfası geçersizse dışarı atar)
-                window.location.href = "profile.html";
+                // Bileti (token) cebe (localStorage) koy
+                localStorage.setItem('token', token);
+                // Adres çubuğundaki o uzun yazıyı temizle (göze güzel görünsün)
+                window.history.replaceState({}, document.title, window.location.pathname);
+
+                alert("Google ile giriş başarılı! Profiline yönlendiriliyorsun... 🎉");
+                window.location.href = "profile.html"; // Profile yolla
+            } else {
+                // Token yok ama adam zaten giriş yapmışsa, beklemeden profile at
+                if (localStorage.getItem("token")) {
+                    window.location.href = "profile.html";
+                }
             }
         });
 
-        // --- SEKME DEĞİŞTİRME ---
-        function switchTab(tab) {
+        // 4. SEKME DEĞİŞTİRME (Giriş Yap / Kayıt Ol arası geçiş)
+        function switchTab(type) {
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
-            const btns = document.querySelectorAll('.auth-tab');
 
-            if (tab === 'login') {
+            if (type === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
                 loginForm.style.display = 'block';
                 registerForm.style.display = 'none';
-                btns[0].classList.add('active');
-                btns[1].classList.remove('active');
             } else {
-                loginForm.style.display = 'none';
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
                 registerForm.style.display = 'block';
-                btns[0].classList.remove('active');
-                btns[1].classList.add('active');
+                loginForm.style.display = 'none';
             }
         }
 
-        // --- 🔥 GİRİŞ YAPMA (LOGIN) ---
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const btn = e.target.querySelector('button');
-
-            btn.innerText = "Giriliyor...";
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    // 1. Token'ı kaydet (Adı 'token' olmalı, 'userToken' değil!)
-                    localStorage.setItem('token', data.token);
-
-                    // 2. Kullanıcı bilgisini kaydet
-                    localStorage.setItem('user', JSON.stringify(data.user));
-
-                    // 3. (Opsiyonel) Eski 'users' çöpünü temizle ki kafa karışmasın
-                    localStorage.removeItem('users');
-
-                    alert("✅ Giriş Başarılı! Hoş geldin " + data.user.username);
-                    window.location.href = 'profile.html';
-                } else {
-                    alert("❌ Hata: " + (data.message || "Giriş başarısız."));
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Sunucuya bağlanılamadı! İnternetini kontrol et.");
-            } finally {
-                btn.innerText = "Giriş Yap";
-                btn.disabled = false;
-            }
-        });
-
-        // --- 🔥 KAYIT OLMA (REGISTER) ---
+        // 5. NORMAL KAYIT OLMA İŞLEMİ
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Sayfanın yenilenmesini engelle
+
             const username = document.getElementById('regUsername').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
             const btn = e.target.querySelector('button');
 
             btn.innerText = "Kaydediliyor...";
-            btn.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}/auth/register`, {
@@ -313,79 +289,134 @@
 
                 if (res.ok) {
                     alert("🎉 Kayıt Başarılı! Şimdi giriş yapabilirsin.");
-                    switchTab('login'); // Giriş sekmesine geçir
-                    document.getElementById('loginEmail').value = email; // Maili otomatik doldur
+                    switchTab('login'); // Giriş sekmesine at
+                    document.getElementById('loginEmail').value = email; // E-postayı otomatik doldur
                 } else {
                     alert("❌ Hata: " + (data.message || "Kayıt yapılamadı."));
                 }
             } catch (err) {
-                console.error(err);
-                alert("Sunucu hatası!");
+                alert("Sunucuya bağlanılamadı. Backend açık mı?");
             } finally {
                 btn.innerText = "Kayıt Ol";
-                btn.disabled = false;
             }
         });
 
-        // --- ŞİFRE SIFIRLAMA MODAL İŞLEMLERİ ---
-        function openResetModal() {
-            const modal = document.getElementById('reset-modal');
-            if (modal) modal.style.display = 'flex';
-        }
-        function closeResetModal() {
-            document.getElementById('reset-modal').style.display = 'none';
+        // 6. NORMAL GİRİŞ YAPMA İŞLEMİ
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const btn = e.target.querySelector('button');
+
+            btn.innerText = "Giriliyor...";
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('token', data.token); // Bileti kaydet
+                    alert("✅ Giriş Başarılı!");
+                    window.location.href = 'profile.html';
+                } else {
+                    alert("❌ Hata: " + (data.message || "Giriş başarısız."));
+                }
+            } catch (err) {
+                alert("Sunucuya bağlanılamadı. Backend açık mı?");
+            } finally {
+                btn.innerText = "Giriş Yap";
+            }
+        });
+
+        // --- MODAL AÇ / KAPA ---
+        function openResetModal() { document.getElementById('reset-modal').style.display = 'flex'; }
+        function closeResetModal() { document.getElementById('reset-modal').style.display = 'none'; }
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('resetNewPass');
+            const icon = document.getElementById('togglePassIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.classList.replace('ph-eye-slash', 'ph-eye');
+            } else {
+                passInput.type = 'password';
+                icon.classList.replace('ph-eye', 'ph-eye-slash');
+            }
         }
 
-        // Kod Gönder
+        // --- 1. MAİL İLE KOD GÖNDERME ---
         async function sendCode() {
-            const email = document.getElementById('resetEmail').value;
-            if (!email) return alert("E-posta yazmadın!");
+            const email = document.getElementById('resetEmail').value.trim();
+            const btn = document.getElementById('sendCodeBtn');
+
+            if (!email) return alert("Önce e-posta adresini girmelisin.");
+
+            btn.innerText = "Yollanıyor...";
+            btn.disabled = true;
+
             try {
+                // SENİN BACKEND ROTANA GÖRE AYARLANDI
                 const res = await fetch(`${API_URL}/auth/send-reset-code`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
                 const data = await res.json();
-                alert(data.message);
-            } catch (e) { alert("Hata oluştu."); }
+
+                if (res.ok) {
+                    alert("✅ " + data.message);
+                    btn.innerText = "Gönderildi";
+                    btn.style.background = "#d4a373";
+                    btn.style.color = "#1a1a1a";
+                } else {
+                    alert("❌ Hata: " + (data.message || "Kod gönderilemedi."));
+                    btn.innerText = "Kod Gönder";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert("Sunucuya ulaşılamıyor!");
+                btn.innerText = "Kod Gönder";
+                btn.disabled = false;
+            }
         }
 
-        // Doğrula ve Değiştir
+        // --- 2. KODU ONAYLA VE ŞİFREYİ DEĞİŞTİR ---
         async function verifyAndReset() {
-            const email = document.getElementById('resetEmail').value;
-            const code = document.getElementById('resetCode').value;
-            const newPassword = document.getElementById('resetNewPass').value;
-            if (!code || !newPassword) return alert("Eksik bilgi!");
+            const email = document.getElementById('resetEmail').value.trim();
+            const code = document.getElementById('resetCode').value.trim();
+            const newPassword = document.getElementById('resetNewPass').value.trim();
+
+            if (!email || !code || !newPassword) {
+                return alert("Tüm alanları doldurmalısın!");
+            }
 
             try {
+                // SENİN BACKEND ROTANA GÖRE AYARLANDI
                 const res = await fetch(`${API_URL}/auth/verify-reset-code`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, code, newPassword })
                 });
                 const data = await res.json();
-                if (res.ok) {
-                    alert("Şifre değişti! Giriş yapabilirsin.");
-                    closeResetModal();
-                } else {
-                    alert(data.message);
-                }
-            } catch (e) { alert("Hata oluştu."); }
-        }
 
-        // Şifre Göster/Gizle
-        function togglePasswordVisibility() {
-            const input = document.getElementById('resetNewPass');
-            const icon = document.getElementById('togglePassIcon');
-            if (input.type === "password") {
-                input.type = "text";
-                icon.classList.replace('ph-eye-slash', 'ph-eye');
-                icon.style.color = "#d4a373";
-            } else {
-                input.type = "password";
-                icon.classList.replace('ph-eye', 'ph-eye-slash');
-                icon.style.color = "#666";
+                if (res.ok) {
+                    alert("🎉 " + data.message);
+                    closeResetModal();
+                    // Formu temizle
+                    document.getElementById('resetCode').value = '';
+                    document.getElementById('resetNewPass').value = '';
+                    // Otomatik e-postayı giriş kısmına yaz
+                    document.getElementById('loginEmail').value = email;
+                } else {
+                    alert("❌ Hata: " + (data.message || "Şifre değiştirilemedi."));
+                }
+            } catch (err) {
+                alert("Sunucuya ulaşılamıyor!");
             }
         }
     </script>

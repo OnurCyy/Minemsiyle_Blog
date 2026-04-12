@@ -18,15 +18,35 @@ const userSchema = new mongoose.Schema(
             type: String,
             require: true,
         },
-        resetCode: {
+        googleId: {
             type: String,
             default: null
+        },
+        discordId: {
+            type: String
+        },
+        twitterId: {
+            type: String
+        },
+        resetCode: {
+            type: String,
+            default: ""
+        },
+        resetCodeExpires: {
+            type: Date
         },
         role: {
             type: String,
             enum: ["admin", "user"],
             default: "user",
         },
+        savedItems: [{
+            itemId: { type: String },
+            title: { type: String },
+            type: { type: String }, // 'blog' mu yoksa 'book' mu?
+            url: { type: String },
+            savedAt: { type: Date, default: Date.now }
+        }],
         isBanned: {
             type: Boolean,
             default: false
@@ -50,10 +70,6 @@ const userSchema = new mongoose.Schema(
         bio: {
             type: String,
             default: "Merhaba, ben yeni bir kitap kurduyum! 📚"
-        },
-        xp: {
-            type: Number,
-            default: 0
         },
         level: {
             type: Number,

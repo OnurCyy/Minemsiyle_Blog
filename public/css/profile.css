@@ -1,43 +1,71 @@
 /* =============================================================
-   📚 PROFILE.CSS - MODERN YAPI & KİTAP TEMASI (HİBRİD)
+   📚 PROFILE.CSS - V2 AÇIK KİTAP KONSEPTİ (ANA TEMA RENKLERİ)
    ============================================================= */
 
-/* 1. YAZI TİPLERİ VE DEĞİŞKENLER */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&family=Inter:wght@300;400;600&display=swap');
+/* Fontları Çekiyoruz (Temandaki Libre Baskerville ve Inter) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
+/* --- ☀️ AYDINLIK TEMA (Varsayılan) --- */
 :root {
-    /* 🎨 RENK PALETİ (Sıcak Tonlar) */
-    --bg-body: #171412;
-    /* Çok koyu gri (Tam siyah değil) */
-    --bg-card: #1e1e1e;
-    /* Kart rengi */
-    --text-main: #eaeaea;
-    /* Okunaklı açık renk */
-    --text-muted: #a0a0a0;
-    /* Gri yazılar */
+    /* Renk Paleti: Krem zemin + Kömür metin + Bordo/Tarçın vurgu */
+    --bg: #f4efe3;
+    --panel: #fbf6ea;
+    --ink: #2c2c2c;
+    --muted: #666666;
+    --line: rgba(44, 44, 44, .12);
+    --shadow: 0 14px 40px rgba(0, 0, 0, .06);
 
-    /* 🔥 VURGU RENGİ: Bisküvi / Sütlü Kahve */
-    --accent: #c48b5e;
-    --accent-hover: #b07d54;
+    /* Vurgular */
+    --accent: #c07d56;
+    /* Tarçın / Yanık Turuncu */
+    --accent2: #7a8264;
+    /* Zeytin Yeşili */
 
-    --border: #333;
+    /* Tipografi */
+    --serif: "Libre Baskerville", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+    /* Ölçüler */
+    --radius: 14px;
+    --radius2: 18px;
+    --max: 1120px;
+
+    /* Ekstra */
     --danger: #ef4444;
-    --radius: 12px;
 }
 
+/* --- 🌙 KARANLIK TEMA --- */
+[data-theme="dark"] {
+    /* Acı kahve, siyaha yakın */
+    --bg: #171412;
+    --panel: #211d1a;
+
+    /* Metin: Sütlü kahve köpüğü beyazı */
+    --ink: #ede6e1;
+    --muted: #968c86;
+
+    --line: rgba(237, 230, 225, .1);
+    --shadow: 0 18px 55px rgba(0, 0, 0, .5);
+
+    /* Vurgu: Tarçın ve pastel toprak */
+    --accent: #dca685;
+    --accent2: #a3ad85;
+}
+
+/* =========================================
+   GENEL AYARLAR
+   ========================================= */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
-    /* Genel yazılar modern olsun */
-    transition: all 0.3s ease;
+    font-family: var(--sans);
 }
 
 body {
-    background-color: var(--bg-body);
-    color: var(--text-main);
-    line-height: 1.6;
+    background-color: var(--bg);
+    color: var(--ink);
+    transition: background 0.3s, color 0.3s;
 }
 
 a {
@@ -45,23 +73,19 @@ a {
     color: inherit;
 }
 
-ul {
-    list-style: none;
-}
-
-/* --- 2. HEADER (ÜST MENÜ) --- */
+/* HEADER */
 header {
-    background-color: var(--bg-body);
-    border-bottom: 1px solid var(--border);
+    background-color: var(--panel);
+    border-bottom: 1px solid var(--line);
     padding: 15px 0;
-    margin-bottom: 30px;
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .container {
-    max-width: 1200px;
+    max-width: var(--max);
     margin: 0 auto;
     padding: 0 20px;
     display: flex;
@@ -69,205 +93,358 @@ header {
     align-items: center;
 }
 
-.brand {
-    font-family: 'Merriweather', serif;
-    /* Başlıklar Kitap Fontu */
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--accent);
-}
-
-.nav-links {
-    display: flex;
-    gap: 20px;
+.brand img {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .nav-links a {
     font-size: 0.95rem;
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--muted);
+    transition: 0.3s;
 }
 
 .nav-links a:hover {
     color: var(--accent);
 }
 
-/* --- 3. ANA GÖVDE (İKİ SÜTUNLU YAPI) --- */
-.main-layout {
+/* PROFİL YERLEŞİM (Açık Kitap) */
+.profile-layout {
     display: flex;
     gap: 30px;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: var(--max);
+    margin: 40px auto;
     padding: 0 20px;
-    padding-bottom: 50px;
     align-items: flex-start;
-    /* Yukarı hizalı */
 }
 
-/* --- SOL: PROFİL KARTI (SABİT) --- */
-.profile-card {
-    width: 300px;
-    flex-shrink: 0;
-    background-color: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 30px;
-    text-align: center;
+/* SOL KART */
+.profile-sidebar {
+    flex: 1;
+    min-width: 300px;
+    max-width: 320px;
     position: sticky;
     top: 90px;
-    /* Header'ın altında kalsın */
 }
 
-.avatar-img {
-    width: 110px;
-    height: 110px;
+.profile-card {
+    background: var(--panel);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.card-header {
+    height: 80px;
+    background: var(--accent);
+}
+
+.avatar-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: -60px auto 15px auto;
+}
+
+.avatar-container img {
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
+    border: 5px solid var(--panel);
     object-fit: cover;
-    border: 3px solid var(--accent);
-    padding: 3px;
-    margin-bottom: 15px;
+    background: var(--bg);
 }
 
-.user-name {
-    font-family: 'Merriweather', serif;
-    font-size: 1.5rem;
-    margin-bottom: 5px;
+.edit-avatar-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--accent);
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: 0.3s;
+}
+
+[data-theme="dark"] .edit-avatar-btn {
+    color: #1a1a1a;
+}
+
+.edit-avatar-btn:hover {
+    background: var(--accent2);
+    transform: scale(1.1);
+}
+
+.profile-card h3 {
+    color: var(--ink);
+    margin: 0;
+    font-size: 22px;
+    font-family: var(--serif);
+    font-weight: 700;
 }
 
 .user-handle {
     color: var(--accent);
-    font-size: 0.9rem;
-    margin-bottom: 20px;
+    font-size: 13px;
+    margin-top: 5px;
     display: block;
 }
 
-.stats {
+.user-tags {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.user-tag {
+    background: var(--line);
+    color: var(--ink);
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.bio-quote {
+    padding: 20px;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--muted);
+    font-size: 14px;
+    border-bottom: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+    margin-top: 15px;
+}
+
+.profile-stats {
     display: flex;
     justify-content: space-around;
-    padding: 15px 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 20px;
+    padding: 20px 10px;
+    background: var(--bg);
 }
 
-.stat-box strong {
-    display: block;
-    font-size: 1.2rem;
-    font-family: 'Merriweather', serif;
+.stat-box {
+    display: flex;
+    flex-direction: column;
 }
 
-.stat-box span {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+.stat-num {
+    color: var(--ink);
+    font-size: 22px;
+    font-weight: bold;
+    font-family: var(--serif);
 }
 
-/* Butonlar */
-.action-btn {
-    display: block;
+.stat-label {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* BUTONLAR */
+.btn-full {
     width: 100%;
     padding: 12px;
-    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
     border: none;
-    cursor: pointer;
+    border-radius: 8px;
     font-weight: 600;
-    margin-bottom: 10px;
-    background-color: var(--accent);
-    color: #1a1a1a;
-    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: var(--sans);
 }
 
-.action-btn:hover {
-    background-color: var(--accent-hover);
-    transform: translateY(-1px);
+[data-theme="dark"] .btn-full {
+    color: #1a1a1a;
+}
+
+.btn-full:hover {
+    background: var(--accent2);
 }
 
 .logout-btn {
-    background-color: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
 }
 
 .logout-btn:hover {
     border-color: var(--danger);
     color: var(--danger);
+    background: transparent;
 }
 
-/* --- SAĞ: İÇERİK ALANI --- */
-.content-area {
-    flex: 1;
-}
-
-.tabs {
-    display: flex;
-    gap: 25px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 25px;
-}
-
-.tab {
-    padding-bottom: 10px;
-    color: var(--text-muted);
+/* ŞİFRE DEĞİŞTİRME BUTONU (İnce Çizgili) */
+.btn-outline {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 10px 15px;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: 600;
-    font-family: 'Merriweather', serif;
-    position: relative;
-}
-
-.tab.active {
-    color: var(--accent);
-}
-
-.tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
+    font-size: 13px;
+    font-family: var(--sans);
+    transition: 0.3s;
     width: 100%;
-    height: 2px;
-    background-color: var(--accent);
-}
-
-/* Liste Elemanları */
-.list-item {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 20px;
-    border-radius: var(--radius);
-    margin-bottom: 15px;
+    text-align: left;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 8px;
 }
 
-.list-item:hover {
+.btn-outline:hover {
+    color: var(--accent);
     border-color: var(--accent);
+    background: var(--bg);
 }
 
-.item-info h3 {
-    font-family: 'Merriweather', serif;
-    font-size: 1.1rem;
-    margin-bottom: 5px;
+/* SAĞ PANEL */
+.profile-main {
+    flex: 2;
+    background: var(--panel);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: 30px;
+    box-shadow: var(--shadow);
+    min-height: 500px;
 }
 
-.tag {
-    background: #333;
-    color: #ccc;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.75rem;
+.content-tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
 }
 
-.delete-icon {
-    color: var(--text-muted);
+.content-tab {
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 1.2rem;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    transition: 0.3s;
+    font-family: var(--sans);
 }
 
-.delete-icon:hover {
-    color: var(--danger);
+.content-tab:hover {
+    color: var(--ink);
+    background: var(--bg);
 }
 
-/* --- SWITCH (AÇ/KAPA) BUTONU --- */
+.content-tab.active {
+    color: var(--accent);
+    background: var(--bg);
+    border-bottom: 2px solid var(--accent);
+    border-radius: 8px 8px 0 0;
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-pane.active-pane {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* BOŞ DURUM */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--muted);
+}
+
+.empty-state i {
+    font-size: 50px;
+    color: var(--line);
+    margin-bottom: 15px;
+}
+
+/* AYARLAR FORMU */
+.pane-title {
+    color: var(--ink);
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-family: var(--serif);
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-group input:focus,
+.input-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(192, 125, 86, 0.1);
+}
+
+.input-group textarea {
+    resize: vertical;
+}
+
+/* TEMA BUTONU */
 .switch-container {
     display: flex;
     align-items: center;
@@ -293,7 +470,7 @@ header {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #333;
+    background-color: var(--line);
     transition: .4s;
     border-radius: 34px;
     display: flex;
@@ -323,40 +500,7 @@ input:checked+.slider:before {
     transform: translateX(24px);
 }
 
-/* --- ☀️ AYDINLIK MOD (LIGHT MODE) - KİTAP SAYFASI --- */
-body.light-mode {
-    --bg-body: #f4efe3;
-    /* Eski kağıt rengi */
-    --bg-card: #ffffff;
-    --text-main: #2c2420;
-    /* Koyu kahve */
-    --text-muted: #6b5d55;
-    --border: #e6dace;
-}
-
-body.light-mode .tag {
-    background: #f0e6d2;
-    color: #5c4b40;
-}
-
-body.light-mode .action-btn {
-    color: #fff;
-}
-
-/* --- MOBİL UYUM --- */
-@media (max-width: 768px) {
-    .main-layout {
-        flex-direction: column;
-    }
-
-    .profile-card {
-        width: 100%;
-        position: static;
-        margin-bottom: 20px;
-    }
-}
-
-/* Modal Stilleri (Öncekiyle aynı, sadece renkler değişkenden) */
+/* KESME MODALI (CROPPER) */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -368,6 +512,7 @@ body.light-mode .action-btn {
     display: none;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(5px);
 }
 
 .modal-overlay.open {
@@ -375,39 +520,132 @@ body.light-mode .action-btn {
 }
 
 .modal-box {
-    background: var(--bg-card);
+    background: var(--panel);
     padding: 30px;
     border-radius: var(--radius);
     width: 90%;
-    max-width: 400px;
-    border: 1px solid var(--border);
+    max-width: 500px;
+    border: 1px solid var(--line);
+    text-align: center;
+    box-shadow: var(--shadow);
 }
 
-.form-group input {
-    width: 100%;
-    padding: 12px;
-    margin-top: 5px;
-    border-radius: 6px;
-    background: var(--bg-body);
-    border: 1px solid var(--border);
-    color: var(--text-main);
+.cropper-container-box {
+    max-height: 400px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    margin-bottom: 15px;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-/* --- LOGO BOYUT AYARI --- */
-.brand img {
-    height: 60px;
-    /* Yüksekliği sınırla (İsteğine göre 50px-80px yapabilirsin) */
-    width: auto;
-    /* Enini orantılı daralt */
-    object-fit: contain;
-    /* Resmi bozmadan sığdır */
-    display: block;
-    /* Kaymaları önle */
-}
-
-/* Mobilde biraz daha küçük olsun istersen: */
+/* MOBİL UYUM */
 @media (max-width: 768px) {
-    .brand img {
-        height: 45px;
+    .profile-layout {
+        flex-direction: column;
+        margin: 20px auto;
     }
+
+    .profile-sidebar {
+        width: 100%;
+        max-width: 100%;
+        position: static;
+    }
+
+    .profile-main {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .content-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 5px;
+    }
+
+    .content-tab {
+        white-space: nowrap;
+    }
+}
+
+/* =========================================
+   📚 KAYDEDİLENLER (SAVED ITEMS) LİSTESİ
+   ========================================= */
+.saved-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.saved-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 15px 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.saved-card:hover {
+    border-color: var(--accent);
+    transform: translateX(5px);
+    box-shadow: var(--shadow);
+}
+
+/* Soldaki İkon (Blog mu Kitap mı belli etsin) */
+.saved-icon {
+    width: 45px;
+    height: 45px;
+    background: rgba(192, 125, 86, 0.1);
+    color: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.saved-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.saved-title {
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    line-height: 1.3;
+}
+
+.saved-meta {
+    color: var(--muted);
+    font-size: 12px;
+    font-family: var(--sans);
+}
+
+/* Raftan Kaldır (Sil) Butonu */
+.remove-saved-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-saved-btn:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
 }

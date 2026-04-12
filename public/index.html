@@ -60,10 +60,6 @@
                     <div id="searchResults" class="search-results"></div>
                 </div>
 
-                <button class="btn btn--ghost" id="subscribeBtn" type="button" onclick="aboneOl()"
-                    style="flex-shrink: 0;">Takip et</button>
-
-
                 <button id="themeToggle" class="theme-toggle" aria-label="Tema değiştir" style="flex-shrink: 0;">
                     <span class="theme-icon moon">☀️</span>
                     <span class="theme-thumb"></span>
@@ -261,47 +257,6 @@
                         <button class="btn btn--ghost" id="copyBtn">Bağlantıyı Paylaş</button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog class="modal" id="newsletter-modal" style="max-width: 400px;">
-        <div class="modal__inner" style="text-align: center; padding: 40px;">
-            <div onclick="closeNewsletterModal()"
-                style="position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.05);"
-                onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'; this.style.transform='scale(1.1)'"
-                onmouseout="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.transform='scale(1)'">
-
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" style="color: #aaa;">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-
-            </div>
-
-            <div style="font-size: 3rem; margin-bottom: 10px;">💌</div>
-            <h3 style="font-family: var(--serif); margin: 0 0 10px; color: var(--ink)">Mümine'msi Mektuplar</h3>
-            <p class="muted" style="margin-bottom: 24px; font-size: 14px;">
-                Yeni bir kitap incelemesi veya deneme yazısı geldiğinde ilk senin haberin olsun. Spam yok, sadece
-                edebiyat var.
-            </p>
-
-            <div class="newsletter-form-wrapper">
-
-                <input type="email" id="newsletterEmail" placeholder="E-posta adresin..." required
-                    style="width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); margin-bottom: 12px;">
-
-                <button type="button" onclick="handleSubscribe()" id="subscribeBtn" class="btn btn--primary"
-                    style="width: 100%;">
-                    Abone Ol 🚀
-                </button>
-
-            </div>
-
-            <div style="margin-top: 20px; font-size: 12px; color: var(--muted);">
-                veya sosyal medyadan takip et:<br>
-                <a href="#" style="color: var(--accent); font-weight: 600; text-decoration: none;">@minemsiyle</a>
             </div>
         </div>
     </dialog>

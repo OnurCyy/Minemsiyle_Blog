@@ -4,357 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilim | Minemsiyle</title>
+    <title>Okur Kimliğim | Mümine'msi</title>
+
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+
     <link rel="stylesheet" href="css/profile.css">
-    <link rel="icon" href="./assets/images/Logo.png" type="image/png">s
+    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
+
     <script>
         (function () {
-            // Hafızaya bak, yoksa 'light' yap
-            var savedTheme = localStorage.getItem('theme') || 'light';
-            // Sayfa yüklenmeden HTML'e rengi bas
+            var savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'light') document.documentElement.classList.add('light-mode');
         })();
     </script>
-
-    <style>
-        /* =========================================
-    🛠️ GENEL AYARLAR VE DÜZELTMELER
-    ========================================= */
-
-        /* 1. YAZI TAŞMASINI ENGELLEME */
-        .user-handle,
-        #profileBio,
-        .user-name {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            word-break: break-word;
-            max-width: 100%;
-        }
-
-        /* 2. LOGO AYARI */
-        .brand img {
-            height: 60px;
-            width: auto;
-            object-fit: contain;
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .brand img {
-                height: 45px;
-            }
-        }
-
-        /* 3. AVATAR VE DÜZENLEME BUTONU */
-        .avatar-container {
-            position: relative;
-            display: inline-block;
-        }
-
-        .edit-avatar-btn {
-            position: absolute;
-            bottom: 10px;
-            right: 5px;
-            background: var(--accent);
-            color: #1a1a1a;
-            border: 2px solid var(--bg-card);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: 0.3s;
-            z-index: 10;
-        }
-
-        .edit-avatar-btn:hover {
-            transform: scale(1.1);
-        }
-
-        /* =========================================
-    🏷️ ETİKETLER VE ROZETLER (PROFİL ÜSTÜ)
-    ========================================= */
-        .user-tags {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-
-        .user-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            margin: 3px;
-            color: #fff !important;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            position: relative;
-            overflow: hidden;
-            cursor: default;
-            transition: transform 0.2s;
-            text-transform: uppercase;
-        }
-
-        .user-tag:hover {
-            transform: translateY(-2px);
-        }
-
-        /* PARILDAMA EFEKTİ (SHINE) */
-        .user-tag::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transition: 0.5s;
-        }
-
-        .user-tag:hover::after {
-            left: 100%;
-        }
-
-        /* ÖZEL GÖKKUŞAĞI ETİKETİ (OWNER) */
-        .owner-tag {
-            background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
-            background-size: 400%;
-            color: #fff;
-            border: none;
-            animation: glowing 20s linear infinite;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes glowing {
-            0% {
-                background-position: 0 0;
-            }
-
-            100% {
-                background-position: 400% 0;
-            }
-        }
-
-        /* =========================================
-    🏆 FİNAL ROZET SİSTEMİ (GRID YAPISI)
-    ========================================= */
-
-        /* 1. KAPSAYICI KUTU (GRID) */
-        /* !important kullanarak diğer tüm ayarları eziyoruz */
-        #badgesList .badges-grid,
-        .badges-grid {
-            display: grid !important;
-            /* En az 130px genişliğinde, sığdığı kadar yan yana */
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
-            gap: 15px !important;
-            width: 100% !important;
-            padding: 10px 0;
-            margin-top: 15px;
-            box-sizing: border-box;
-        }
-
-        /* 2. TEKİL KART TASARIMI */
-        .badge-card {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-align: center !important;
-
-            width: 100% !important;
-            min-height: 160px !important;
-            aspect-ratio: 1 / 1;
-            /* Kare olması için */
-
-            background: #2d3436 !important;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-
-            position: relative;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 15px 5px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        /* 3. KAZANILMIŞ (PARLAYAN) KART */
-        .badge-card.earned {
-            background: linear-gradient(145deg, #2d3436 0%, #000000 100%) !important;
-            border-color: var(--badge-color) !important;
-            border-width: 2px !important;
-            /* Çerçeveyi belirginleştir */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5),
-                0 0 20px var(--badge-glow) !important;
-        }
-
-        .badge-card.earned:hover {
-            transform: translateY(-5px);
-        }
-
-        /* 4. İÇERİK AYARLARI */
-        .badge-icon-area {
-            font-size: 38px;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 0 8px var(--badge-glow));
-        }
-
-        .badge-card h4 {
-            color: #fff !important;
-            font-size: 0.9rem !important;
-            margin: 5px 0 0 0 !important;
-            font-weight: bold;
-        }
-
-        .badge-card p {
-            font-size: 0.75rem !important;
-            color: #aaa !important;
-            margin: 3px 0 0 0 !important;
-            line-height: 1.2;
-        }
-
-        /* 5. KİLİTLİ DURUM */
-        .badge-card.locked {
-            opacity: 0.5;
-            filter: grayscale(100%);
-        }
-
-        .lock-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(2px);
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            z-index: 5;
-            border-radius: 16px;
-        }
-
-        .lock-icon {
-            font-size: 28px;
-            color: #fff;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 12px;
-            border-radius: 50%;
-        }
-
-        /* =========================================
-    📱 MOBİL VE RESPONSIVE AYARLAR
-    ========================================= */
-        @media (max-width: 768px) {
-
-            /* Profil Düzeni */
-            .profile-card {
-                width: 100% !important;
-                margin-bottom: 20px;
-            }
-
-            .profile-container,
-            .profile-header {
-                flex-direction: column !important;
-                align-items: center !important;
-                text-align: center;
-            }
-
-            .profile-info {
-                border-right: none !important;
-                border-bottom: 1px solid var(--line);
-                padding-bottom: 20px;
-                margin-bottom: 20px;
-                width: 100%;
-            }
-
-            .profile-stats {
-                justify-content: center;
-                gap: 30px;
-                width: 100%;
-            }
-
-            /* Rozet Grid Mobilde de Düzgün Görünsün */
-            #badgesList .badges-grid {
-                /* Mobilde 2 sütuna zorlayabiliriz veya otomatikte bırakabiliriz.
-    Otomatik (yukarıdaki kod) zaten sığdıracaktır. */
-                justify-content: center;
-            }
-        }
-
-        /* =========================================
-    🖼️ MODALLAR VE DİĞERLERİ
-    ========================================= */
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: var(--text-muted);
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            margin-top: 20px;
-        }
-
-        .empty-state i {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            opacity: 0.3;
-            color: var(--accent);
-        }
-
-        .modal-box input,
-        .modal-box textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            background: var(--bg-body);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            outline: none;
-            margin-bottom: 10px;
-        }
-
-        .password-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .cropper-container-box {
-            max-height: 400px;
-            background: #000;
-            margin-bottom: 15px;
-        }
-
-        .preview-box {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid var(--accent);
-            margin: 0 auto 15px auto;
-        }
-    </style>
 </head>
 
 <body>
-
     <header>
         <div class="container">
             <a class="brand" href="index.html" aria-label="Ana Sayfa">
                 <img src="assets/images/Logo.png" alt="Minemsiyle.com">
             </a>
             <nav class="nav-links">
-                <a href="blog.html">Blog</a>
+                <a href="blog.html">Kütüphane</a>
             </nav>
             <div class="switch-container">
                 <label class="theme-switch">
@@ -368,484 +42,126 @@
         </div>
     </header>
 
-    <div class="main-layout">
+    <div class="profile-layout">
 
-        <aside class="profile-card">
-            <div class="avatar-container">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" class="avatar-img"
-                    id="avatarDisplay">
-                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-                <label for="avatarInput" class="edit-avatar-btn" id="avatarEditIcon" style="display: none;">
-                    <i class="ph-bold ph-pencil-simple"></i>
-                </label>
-            </div>
+        <aside class="profile-sidebar">
+            <div class="profile-card">
+                <div class="card-header"></div>
 
-            <h1 class="user-name" id="displayName">Yükleniyor...</h1>
+                <div class="avatar-container">
+                    <img id="avatarDisplay" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar">
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    <label for="avatarInput" class="edit-avatar-btn" id="avatarEditIcon" style="display: none;">
+                        <i class="ph-bold ph-camera"></i>
+                    </label>
+                </div>
 
-            <div style="margin-bottom: 15px;">
-                <span class="user-handle" id="displayEmail">@...</span>
-            </div>
+                <h3 id="displayName">Kullanıcı Aranıyor...</h3>
+                <p class="user-handle" id="displayEmail">@...</p>
 
-            <div class="user-tags" id="userTagsContainer"></div>
+                <div class="user-tags" id="userTagsContainer" style="margin-top: 10px;"></div>
 
-            <p id="displayBio"
-                style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; font-style: italic;">
-                "Henüz bir biyografi eklenmemiş."
-            </p>
+                <div class="bio-quote">
+                    <p id="displayBio">"Henüz bir dize yazılmamış..."</p>
+                </div>
 
-            <div class="stats">
-                <div class="stat-box"><strong id="statSaved">0</strong><span>Kaydedilen</span></div>
-                <div class="stat-box"><strong id="statComments">0</strong><span>Yorum</span></div>
-            </div>
+                <div class="profile-stats">
+                    <div class="stat-box">
+                        <span class="stat-num" id="statSaved">0</span>
+                        <span class="stat-label">Kaydedilen</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num" id="statComments">0</span>
+                        <span class="stat-label">Yorum</span>
+                    </div>
+                </div>
 
-            <div class="profile-info">
-                <div id="adminPanelBtnArea" style="margin: 20px 0;"></div>
-            </div>
+                <div id="adminPanelBtnArea" style="padding: 10px;"></div>
 
-            <div class="actions" style="display: none; gap: 10px;">
-                <button class="action-btn" onclick="openSettings()">Profili Düzenle ⚙️</button>
-                <button class="action-btn logout-btn" onclick="logout()">Güvenli Çıkış 🚪</button>
+                <div class="actions" style="display: none; padding: 15px; color: aliceblue;">
+                    <button class="btn-full logout-btn" onclick="logout()">Güvenli Çıkış 🚪</button>
+                </div>
             </div>
         </aside>
 
-        <section class="content-area">
-            <div class="tabs">
-                <div class="tab" onclick="switchTab('badges')">🏆 Rozetler</div>
+        <main class="profile-main">
+
+            <div class="content-tabs">
+                <button class="content-tab active" onclick="switchProfileTab('saved', this)">
+                    <i class="ph-fill ph-bookmark-simple"></i> Kaydettiklerim
+                </button>
+                <button class="content-tab" onclick="switchProfileTab('comments', this)">
+                    <i class="ph-fill ph-chat-text"></i> Yorumlarım
+                </button>
+                <button class="content-tab" onclick="switchProfileTab('settings', this)" id="settingsTabBtn">
+                    <i class="ph-fill ph-gear"></i> Ayarlar
+                </button>
             </div>
 
-            <div id="saved-content" class="tab-content active"></div>
+            <div id="saved-tab" class="tab-pane active-pane">
+                <div class="empty-state">
+                    <i class="ph-fill ph-books"></i>
+                    <p>Kütüphanen şu an boş. Hoşuna giden yazıları buraya kaydedebilirsin.</p>
+                </div>
+            </div>
 
-            <div id="badges-content" class="tab-content" style="display: block !important;">
-                <div class="badges-grid" id="badgesList"></div>
+            <div id="comments-tab" class="tab-pane">
+                <div class="empty-state">
+                    <i class="ph-fill ph-chat-teardrop-text"></i>
+                    <p>Henüz hiçbir yazıya yorum yapmadın. Düşüncelerini paylaşmaktan çekinme!</p>
+                </div>
             </div>
-        </section>
-    </div>
 
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-box">
-            <h2 style="margin-bottom: 20px; font-family: 'Merriweather', serif;">Profili Düzenle</h2>
-            <div class="form-group">
-                <label style="color: #888; font-size: 0.85rem;">Kullanıcı Adı</label>
-                <input type="text" id="editUsername" placeholder="İsminiz">
+            <div id="settings-tab" class="tab-pane">
+                <h3 class="pane-title">Profili Düzenle</h3>
+                <form id="profileSettingsForm" onsubmit="event.preventDefault(); saveSettings();">
+                    <div class="input-group">
+                        <label>Kullanıcı Adı</label>
+                        <input type="text" id="editUsername" placeholder="Yeni kullanıcı adın">
+                    </div>
+                    <div class="input-group">
+                        <label>Biyografi</label>
+                        <textarea id="editBio" placeholder="Kendinden bahset..." rows="3"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <button type="button" class="btn-outline" onclick="togglePasswordSection()">
+                            <i class="ph-fill ph-lock-key"></i> Şifremi Değiştir
+                        </button>
+                    </div>
+
+                    <div id="passwordSection"
+                        style="display: none; background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px dashed var(--border); margin-bottom: 15px;">
+                        <div class="input-group">
+                            <label>Yeni Şifre</label>
+                            <input type="password" id="newPass" placeholder="Yeni şifreni gir">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label>Yeni Şifre (Tekrar)</label>
+                            <input type="password" id="confirmPass" placeholder="Yeni şifreni tekrar gir">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-full" style="margin-top: 15px;">Değişiklikleri Kaydet</button>
+                </form>
             </div>
-            <div class="form-group" style="margin-top: 10px;">
-                <label style="color: #888; font-size: 0.85rem;">Hakkımda (Bio)</label>
-                <textarea id="editBio" placeholder="Kendinden bahset..."></textarea>
-            </div>
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
-            <p style="color: var(--accent); font-size: 0.8rem;">🔒 Şifre Değiştir</p>
-            <div class="password-grid">
-                <input type="password" id="newPass" placeholder="Yeni Şifre">
-                <input type="password" id="confirmPass" placeholder="Tekrar">
-            </div>
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="action-btn logout-btn" onclick="closeSettings()">İptal</button>
-                <button class="action-btn" onclick="saveSettings()">Kaydet</button>
-            </div>
-        </div>
+        </main>
     </div>
 
     <div class="modal-overlay" id="cropperModal">
         <div class="modal-box" style="max-width: 500px;">
-            <h2 style="margin-bottom: 15px;">Fotoğrafı Ayarla</h2>
-            <div class="preview-box box-shadow"></div>
+            <h2 style="margin-bottom: 15px; color: var(--accent);">Fotoğrafı Ayarla</h2>
+            <div class="preview-box"></div>
             <div class="cropper-container-box">
                 <img id="imageToCrop" src="" alt="Resim" style="max-width: 100%;">
             </div>
             <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="action-btn logout-btn" onclick="closeCropper()">Vazgeç</button>
-                <button class="action-btn" onclick="cropAndSave()">Böyle İyi ✅</button>
+                <button class="btn-full logout-btn" onclick="closeCropper()">Vazgeç</button>
+                <button class="btn-full" onclick="cropAndSave()">Böyle İyi ✅</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-
-    <script src="js/main.js"></script>
-
-    <script>
-        // --- 1. OTOMATİK İSİM DÜZELTME (Olası hatalara karşı) ---
-        (function autoClean() {
-            try {
-                let user = JSON.parse(localStorage.getItem('user'));
-                if (user && user.username && user.username.includes(':')) {
-                    user.username = user.username.split(':')[0];
-                    localStorage.setItem('user', JSON.stringify(user));
-                }
-            } catch (e) { }
-        })();
-
-        // --- GLOBAL AYARLAR ---
-        const API_BASE = "/api";
-        let cropper;
-        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-
-        // 🔥 ROZET SÖZLÜĞÜ (BAŞARIM LİSTESİ)
-        const badgeDictionary = {
-            'admin': { label: 'Yönetici', color: '#d63031', icon: 'ph-crown', desc: 'Sitenin Mutlak Hakimi' },
-            'mod': { label: 'Moderatör', color: '#e67e22', icon: 'ph-shield-star', desc: 'Düzenin Bekçisi' },
-            'dev': { label: 'Geliştirici', color: '#0984e3', icon: 'ph-code', desc: 'Kodların Efendisi' },
-            'vip': { label: 'VIP Üye', color: '#f1c40f', icon: 'ph-sparkle', desc: 'Ayrıcalıklı Özel Üye', textDark: true },
-            'supporter': { label: 'Destekçi', color: '#e84393', icon: 'ph-heart', desc: 'Siteye Destek Olan' },
-            'verified': { label: 'Onaylı', color: '#00b894', icon: 'ph-check-circle', desc: 'Güvenilir Hesap' },
-            'writer': { label: 'Yazar', color: '#9b59b6', icon: 'ph-pen-nib', desc: 'Hikaye Anlatıcısı' },
-            'poet': { label: 'Şair', color: '#a29bfe', icon: 'ph-feather', desc: 'Kelimelerin Dansçısı' },
-            'bug_hunter': { label: 'Bug Avcısı', color: '#00cec9', icon: 'ph-bug', desc: 'Hataları Bulan Dedektif' },
-            'bookworm': { label: 'Kitap Kurdu', color: '#6ab04c', icon: 'ph-book-open', desc: 'Okumadan Duramayan' },
-            'coffee': { label: 'Kahve Sever', color: '#6d4c41', icon: 'ph-coffee', desc: 'Kafein Bağımlısı' },
-            'cat_lover': { label: 'Kedi Sever', color: '#ff9f43', icon: 'ph-cat', desc: 'Miyav!' }
-        };
-
-        // --- SAYFA YÜKLENİNCE ---
-        document.addEventListener("DOMContentLoaded", () => {
-            initVisitCounter();
-            checkTheme();
-            loadUserProfile();
-        });
-
-        // --- 2. PROFİL YÜKLEME ---
-        async function loadUserProfile() {
-            const params = new URLSearchParams(window.location.search);
-            let targetUsername = params.get('u');
-            const sessionUser = JSON.parse(localStorage.getItem('user'));
-
-            // Linkte ?u=yoksa, giriş yapan kullanıcıyı göster
-            if (!targetUsername) {
-                if (sessionUser) targetUsername = sessionUser.username;
-                else return window.location.href = "login.html";
-            }
-            // Hata temizliği
-            if (targetUsername) targetUsername = targetUsername.replace(/:\d+$/, '');
-
-            try {
-                const res = await fetch(`${API_BASE}/users/${targetUsername}`);
-                if (!res.ok) {
-                    document.getElementById('displayName').innerText = "Kullanıcı Bulunamadı";
-                    return;
-                }
-                const user = await res.json();
-
-                // Verileri Ekrana Bas
-                if (document.getElementById('avatarDisplay')) document.getElementById('avatarDisplay').src = user.avatar || defaultAvatar;
-                if (document.getElementById('displayName')) document.getElementById('displayName').innerText = user.username;
-                if (document.getElementById('displayBio')) document.getElementById('displayBio').innerText = user.bio || "Henüz bir biyografi yok.";
-                if (document.getElementById('displayEmail')) document.getElementById('displayEmail').innerText = user.email || "";
-
-                // 🔥 ROZET SİSTEMLERİNİ ÇALIŞTIR
-                renderUserTags(user);     // İsim altı (Küçük etiketler)
-                renderAchievements(user); // Sağ taraf (Büyük Başarım Listesi)
-
-                // Admin Butonu Kontrolü (Sadece Kendi Profilinde ve Yetkiliyse)
-                const actions = document.querySelector('.actions');
-                const adminBtn = document.getElementById('adminPanelBtnArea');
-                const avatarBtn = document.getElementById('avatarEditIcon');
-
-                if (sessionUser && sessionUser.username === user.username) {
-                    if (actions) actions.style.display = 'flex';
-                    if (avatarBtn) avatarBtn.style.display = 'flex';
-                    if (user.role === 'admin' || user.username === 'OnurCy') {
-                        if (adminBtn) {
-                            adminBtn.style.display = 'block';
-                            adminBtn.innerHTML = `<a href="adminPanel.html" class="action-btn" style="background:#d63031; color:white; width:100%; justify-content:center; text-decoration:none;">👑 Yönetici Paneli</a>`;
-                        }
-                    }
-                } else {
-                    if (actions) actions.style.display = 'none';
-                    if (adminBtn) adminBtn.style.display = 'none';
-                    if (avatarBtn) avatarBtn.style.display = 'none';
-                }
-
-            } catch (error) { console.error(error); }
-        }
-
-        // --- 3. İSİM ALTI ETİKETLER (Sadece Kazanılanlar) ---
-        function renderUserTags(user) {
-            const tagsBox = document.getElementById('userTagsContainer');
-            if (!tagsBox) return;
-            let tags = user.tags || user.badges || [];
-            if (typeof tags === 'string') tags = tags.split(',');
-
-            if (tags.length > 0) {
-                tagsBox.innerHTML = tags.map(tag => {
-                    const info = badgeDictionary[tag] || { color: '#333', icon: 'ph-tag', label: tag.toUpperCase() };
-                    const textColor = info.textDark ? '#000' : '#fff';
-                    return `
-                        <span class="user-tag" style="background:${info.color}; color:${textColor}; padding:4px 10px; border-radius:12px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin:2px; font-weight:bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-                            <i class="ph-fill ${info.icon}"></i> ${info.label}
-                        </span>`;
-                }).join('');
-            } else {
-                tagsBox.innerHTML = `<span class="user-tag" style="background:#2d3436; color:#aaa; padding:4px 10px; border-radius:12px;">Üye</span>`;
-            }
-        }
-
-        // --- 4. GELİŞMİŞ ROZET LİSTESİ (DÜZELTİLMİŞ) ---
-        function renderAchievements(user) {
-            const container = document.getElementById('badgesList');
-            if (!container) return;
-
-            // Kullanıcının sahip olduğu rozetleri al
-            let userBadges = user.tags || user.badges || [];
-            if (typeof userBadges === 'string') userBadges = userBadges.split(',');
-
-            // 🔥 DÜZELTME BURADA: 
-            // İçine yeni bir div açmıyoruz! Direkt container'ı temizleyip içine basıyoruz.
-            container.innerHTML = '';
-
-            // Eğer HTML'de class="badges-grid" silinmişse diye garantiye alalım
-            container.classList.add('badges-grid');
-
-            // Sözlükteki HER BİR rozeti dönüyoruz
-            Object.keys(badgeDictionary).forEach(key => {
-                const info = badgeDictionary[key];
-                const isEarned = userBadges.includes(key);
-
-                // Renk ayarları
-                const badgeColor = info.color;
-                const glowColor = info.color + "66";
-
-                let cardContent = '';
-                let cardClass = '';
-                // CSS değişkenlerini satır içine gömüyoruz
-                let styleVars = `style="--badge-color: ${badgeColor}; --badge-glow: ${glowColor};"`;
-
-                if (isEarned) {
-                    // --- KAZANILMIŞ ---
-                    cardClass = 'earned';
-                    cardContent = `
-                        <div class="badge-icon-area" style="color:${badgeColor}">
-                            <i class="ph-fill ${info.icon}"></i>
-                        </div>
-                        <h4 style="color:#fff; margin:0; font-size:15px; font-weight:700;">${info.label}</h4>
-                        <p style="color:#aaa; margin:5px 0 0 0; font-size:12px; line-height:1.4;">${info.desc}</p>
-                        <div style="margin-top:10px; font-size:10px; color:${badgeColor}; text-transform:uppercase; letter-spacing:1px; font-weight:bold;">
-                            <i class="ph-bold ph-check"></i> KAZANILDI
-                        </div>
-                    `;
-                } else {
-                    // --- KİLİTLİ ---
-                    cardClass = 'locked';
-                    cardContent = `
-                        <div class="lock-overlay">
-                            <i class="ph-fill ph-lock-key lock-icon"></i>
-                        </div>
-                        <div class="badge-icon-area" style="color:#555">
-                            <i class="ph-fill ${info.icon}"></i>
-                        </div>
-                        <h4 style="color:#777; margin:0; font-size:15px;">${info.label}</h4>
-                        <p style="color:#555; margin:5px 0 0 0; font-size:12px;">${info.desc}</p>
-                    `;
-                }
-
-                const html = `
-                    <div class="badge-card ${cardClass}" ${styleVars}>
-                        ${cardContent}
-                    </div>
-                `;
-
-                // Direkt ana kutuya ekle
-                container.innerHTML += html;
-            });
-        }
-        // --- 5. PROFİL GÜNCELLEME (KURTARILAN FONKSİYON 🚑) ---
-        async function saveSettings() {
-            // 1. Verileri Al
-            const newName = document.getElementById('editUsername').value.trim();
-            const newBio = document.getElementById('editBio').value.trim();
-            const newPass = document.getElementById('newPass').value.trim();
-
-            // 2. Token Avı
-            let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
-
-            if (!rawToken) {
-                alert("⚠️ Oturumun bitmiş. Lütfen çıkış yapıp tekrar gir.");
-                window.location.href = "login.html";
-                return;
-            }
-
-            // 3. Temiz Token
-            const cleanToken = rawToken.replace(/"/g, '').trim();
-            const updateData = {};
-
-            // Sadece dolu olan kutuları gönder
-            if (newName) updateData.username = newName;
-            if (newBio) updateData.bio = newBio;
-            if (newPass && newPass.length >= 4) updateData.newPassword = newPass;
-
-            // Butonu kilitle (Çift tıklamayı önle)
-            const btn = document.querySelector('button[onclick="saveSettings()"]');
-            const oldText = btn ? btn.innerText : "Kaydet";
-            if (btn) { btn.innerText = "⏳..."; btn.disabled = true; }
-
-            try {
-                const res = await fetch(`${API_BASE}/users/update`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${cleanToken}`
-                    },
-                    body: JSON.stringify(updateData)
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    alert("✅ Profilin güncellendi !");
-
-                    // LocalStorage güncelle
-                    let user = JSON.parse(localStorage.getItem('user'));
-                    if (user) {
-                        if (newName) user.username = newName;
-                        if (newBio) user.bio = newBio;
-                        localStorage.setItem('user', JSON.stringify(user));
-                    }
-                    location.reload();
-                } else {
-                    console.error("Hata:", data);
-                    alert("Hata: " + (data.message || "Güncellenemedi."));
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Sunucuya ulaşılamadı!");
-            } finally {
-                if (btn) { btn.innerText = oldText; btn.disabled = false; }
-            }
-        }
-
-        // --- DİĞER FONKSİYONLAR ---
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-
-            if (tabName === 'badges') {
-                // HTML yapına göre ID kontrolü
-                if (document.getElementById('badgesList')) document.getElementById('badgesList').parentElement.style.display = 'block';
-                else if (document.getElementById('badges-content')) document.getElementById('badges-content').style.display = 'block';
-            } else {
-                const target = document.getElementById(tabName + '-content');
-                if (target) target.style.display = 'block';
-            }
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            // Basit buton aktiflik ayarı
-            const tabs = document.querySelectorAll('.tab');
-            if (tabName === 'saved' && tabs[0]) tabs[0].classList.add('active');
-            if (tabName === 'badges' && tabs[1]) tabs[1].classList.add('active');
-        }
-
-        function checkTheme() {
-            if (localStorage.getItem('theme') === 'light') {
-                document.body.classList.add('light-mode');
-                if (document.getElementById('themeCheckbox')) document.getElementById('themeCheckbox').checked = true;
-            }
-        }
-        function toggleThemeSwitch() {
-            const cb = document.getElementById('themeCheckbox');
-            document.body.classList.toggle('light-mode');
-            localStorage.setItem('theme', cb.checked ? 'light' : 'dark');
-        }
-        function initVisitCounter() {
-            if (!sessionStorage.getItem('counted')) {
-                let v = parseInt(localStorage.getItem('visits') || '0') + 1;
-                localStorage.setItem('visits', v);
-                sessionStorage.setItem('counted', 'true');
-            }
-        }
-        function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
-        function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
-        function logout() {
-            if (confirm("Çıkış yapılıyor?")) { localStorage.clear(); window.location.href = 'login.html'; }
-        }
-
-        // --- FOTOĞRAF KIRPMA (Cropper.js) ---
-        const avatarInput = document.getElementById('avatarInput');
-        const imageToCrop = document.getElementById('imageToCrop');
-        const cropperModal = document.getElementById('cropperModal');
-        if (avatarInput) {
-            avatarInput.addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (event) {
-                        imageToCrop.src = reader.result;
-                        cropperModal.classList.add('open');
-                        if (cropper) cropper.destroy();
-                        cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1 });
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-        function closeCropper() {
-            if (cropperModal) cropperModal.classList.remove('open');
-            if (cropper) { cropper.destroy(); cropper = null; }
-            if (avatarInput) avatarInput.value = "";
-        }
-        // --- 7. FOTOĞRAF KIRPMA VE KAYDETME (FİNAL DÜZELTME 📸) ---
-        async function cropAndSave() {
-            if (!cropper) return;
-
-            // 1. Resmi Kırp ve Base64'e Çevir
-            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
-            const base64Image = canvas.toDataURL("image/jpeg", 0.8); // Kalite 0.8 (Hız için)
-
-            // 2. Token Bul (Aynı Dedektif Mantığı)
-            let rawToken = localStorage.getItem('token') || localStorage.getItem('userToken');
-            if (!rawToken) {
-                alert("Oturum süren dolmuş. Lütfen tekrar giriş yap.");
-                return;
-            }
-            const cleanToken = rawToken.replace(/"/g, '');
-
-            // Butonu kilitle ki 2 kere basmasınlar
-            const saveBtn = document.querySelector('#cropperModal button[onclick="cropAndSave()"]');
-            const originalText = saveBtn.innerText;
-            saveBtn.innerText = "Yükleniyor...";
-            saveBtn.disabled = true;
-
-            try {
-                // 3. Backend'e Gönder
-                // Backend 'avatar' bekliyor, 'profileImage' değil!
-                const res = await fetch(`${API_BASE}/users/update`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${cleanToken}`
-                    },
-                    body: JSON.stringify({ avatar: base64Image })
-                });
-
-                if (res.ok) {
-                    // 4. BAŞARILI! Resmi ekranda değiştir
-                    document.getElementById('avatarDisplay').src = base64Image;
-
-                    // Header'daki küçük resmi de değiştir (Varsa)
-                    const headerImg = document.querySelector('.header-avatar-img');
-                    if (headerImg) headerImg.src = base64Image;
-
-                    // LocalStorage güncelle
-                    let user = JSON.parse(localStorage.getItem('user'));
-                    if (user) {
-                        user.avatar = base64Image;
-                        localStorage.setItem('user', JSON.stringify(user));
-                    }
-
-                    closeCropper();
-                    alert("Fotoğrafın on numara oldu! 📸");
-
-                } else {
-                    const data = await res.json();
-                    alert("Hata: " + (data.message || "Resim yüklenemedi."));
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Sunucu hatası! Resim çok büyük olabilir.");
-            } finally {
-                // Butonu eski haline getir
-                saveBtn.innerText = originalText;
-                saveBtn.disabled = false;
-            }
-        }
-    </script>
-
+    <script src="js/profile.js"></script>
 </body>
 
 </html>

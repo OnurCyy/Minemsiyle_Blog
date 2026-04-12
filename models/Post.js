@@ -44,6 +44,9 @@ const PostSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    title: {
+        type: String
+    },
     createdAt: {
         type: Date,
         default: Date.now

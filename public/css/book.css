@@ -1,0 +1,664 @@
+  /* --- RENK PALETİ VE TEMA AYARLARI --- */
+  :root {
+      /* ☀️ AÇIK TEMA (Varsayılan) */
+      --bg: #f4efe3;
+      /* Arka plan */
+      --bg-card: #f8f9fa;
+      /* Kart/Kutu arka planı */
+      --bg-body: #f1f3f5;
+      /* Input/Textarea içi */
+      --ink: #1a1a1a;
+      /* Ana yazı rengi (Siyah) */
+      --text-main: #2c3e50;
+      /* İkincil yazı */
+      --text-muted: #6c757d;
+      /* Silik yazı */
+      --border: #e9ecef;
+      /* Kenarlıklar */
+      --accent: #d35400;
+      /* Turuncu vurgu rengi */
+      --accent-hover: #e67e22;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 🌙 KOYU TEMA (Dark Mode) */
+  body.dark-theme,
+  .dark {
+      --bg: #171412;
+      /* Koyu gri/siyah */
+      --bg-card: #1e1e1e;
+      /* Kartlar biraz daha açık gri */
+      --bg-body: #2d2d2d;
+      /* Input içi */
+      --ink: #e0e0e0;
+      /* Yazılar beyaz */
+      --text-main: #ced4da;
+      --text-muted: #adb5bd;
+      --border: #333333;
+      /* Kenarlıklar koyu gri */
+      --accent: #e67e22;
+      /* Turuncu biraz daha parlak */
+      --accent-hover: #d35400;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      /* Gölgeler daha sert */
+  }
+
+  /* Geçiş animasyonu (Göz yormasın diye yumuşak geçiş) */
+  body,
+  .interaction-bar,
+  .book-cover-img,
+  .single-comment {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* --- SAYFA YAPISI VE LAYOUT --- */
+  body {
+      background-color: var(--bg);
+      color: var(--ink);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      font-family: var(--sans, 'Segoe UI', sans-serif);
+  }
+
+  .container-detail {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+      min-height: 80vh;
+  }
+
+  /* KİTAP ÜST BÖLÜM (Kapak + Bilgi) */
+  .book-hero {
+      display: flex;
+      gap: 50px;
+      align-items: flex-start;
+      margin-bottom: 50px;
+      animation: fadeIn 0.5s ease;
+  }
+
+  /* Sol: Kapak Resmi */
+  .book-cover-wrapper {
+      flex-shrink: 0;
+      position: relative;
+  }
+
+  .book-cover-img {
+      width: 300px;
+      height: 450px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      /* Derinlik gölgesi */
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s ease;
+  }
+
+  .book-cover-img:hover {
+      transform: translateY(-5px);
+      /* Üzerine gelince hafif kalksın */
+  }
+
+  /* Sağ: Bilgiler */
+  .book-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+  }
+
+  .book-tag {
+      display: inline-block;
+      background-color: var(--accent);
+      color: #fff;
+      /* Yazı okunurluğu için beyaz */
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      align-self: flex-start;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .book-title {
+      font-family: var(--serif, 'Merriweather', serif);
+      font-size: 3rem;
+      line-height: 1.1;
+      margin: 0 0 15px 0;
+      color: var(--ink);
+  }
+
+  .book-meta {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+  }
+
+  .book-desc {
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: var(--ink);
+      opacity: 0.9;
+  }
+
+  /* --- ETKİLEŞİM ALANI (BEĞEN & YORUM) --- */
+  #interactionArea {
+      margin-top: 50px;
+      padding-top: 30px;
+      border-top: 1px solid var(--border);
+  }
+
+  /* Beğen Butonu Kutusu */
+  .interaction-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 15px;
+      padding: 10px 25px 10px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      margin-bottom: 40px;
+      transition: transform 0.2s;
+  }
+
+  .interaction-bar:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+  }
+
+  /* Yuvarlak Kalp Butonu */
+  .like-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg-body);
+      color: var(--text-muted);
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      /* Zıplama efekti */
+  }
+
+  .like-btn:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+  }
+
+  /* Kalp Dolu (Beğenilmiş) Hali */
+  .like-btn.active {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+      transform: scale(1.1);
+  }
+
+  /* --- YORUM ALANI TASARIMI --- */
+  .blog-comment-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+  }
+
+  .blog-comment-box {
+      background: var(--bg-card);
+      padding: 25px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+
+  textarea#commentText {
+      width: 100%;
+      min-height: 120px;
+      background: var(--bg-body);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 15px;
+      color: var(--ink);
+      font-family: inherit;
+      resize: vertical;
+      transition: 0.3s;
+      outline: none;
+  }
+
+  textarea#commentText:focus {
+      border-color: var(--accent);
+      background: var(--bg-body);
+      box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
+      /* Vurgu halkası */
+  }
+
+  .blog-send-btn {
+      margin-top: 15px;
+      background: var(--accent);
+      color: #fff;
+      /* Kontrast için beyaz veya siyah seçilmeli */
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      float: right;
+      transition: 0.2s;
+  }
+
+  .blog-send-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Yorum Listesi */
+  .single-comment {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s;
+  }
+
+  .single-comment:hover {
+      transform: translateX(5px);
+      border-color: var(--accent);
+  }
+
+  .single-comment img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      object-fit: cover;
+  }
+
+  /* MOBİL UYUM (Responsive) */
+  @media (max-width: 768px) {
+      .book-hero {
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          gap: 30px;
+      }
+
+      .book-cover-img {
+          width: 200px;
+          height: 300px;
+      }
+
+      .book-title {
+          font-size: 2rem;
+      }
+
+      .book-tag {
+          align-self: center;
+          /* Mobilde ortala */
+      }
+
+      .book-meta {
+          justify-content: center;
+      }
+  }
+
+  /* Animasyon */
+  @keyframes fadeIn {
+      from {
+          opacity: 0;
+          transform: translateY(20px);
+      }
+
+      to {
+          opacity: 1;
+          transform: translateY(0);
+      }
+  }
+
+  /* --- HEADER / NAVBAR KISMI İÇİN GEREKLİLER --- */
+  .header {
+      border-bottom: 1px solid var(--line);
+      padding: 15px 0;
+      background-color: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+  }
+
+  .header__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+
+  .nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+  }
+
+  .nav__link {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 500;
+      transition: 0.2s;
+  }
+
+  .nav__link:hover {
+      color: var(--accent);
+  }
+
+  /* Theme Switch */
+  .theme-switch-wrapper {
+      display: flex;
+      align-items: center;
+  }
+
+  .theme-switch {
+      display: inline-block;
+      height: 28px;
+      position: relative;
+      width: 54px;
+  }
+
+  .theme-switch input {
+      display: none;
+  }
+
+  .slider {
+      background-color: var(--line);
+      bottom: 0;
+      cursor: pointer;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      transition: .4s;
+      border-radius: 34px;
+  }
+
+  .slider:before {
+      background-color: var(--panel);
+      bottom: 3px;
+      content: "☀️";
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      position: absolute;
+      transition: .4s;
+      border-radius: 50%;
+  }
+
+  input:checked+.slider {
+      background-color: var(--accent);
+  }
+
+  input:checked+.slider:before {
+      transform: translateX(24px);
+      content: "🌙";
+      background-color: #fff;
+  }
+
+  /* --- DÜZELTİLMİŞ YORUM ALANI --- */
+
+  /* Yorum Kutusu (Kapsayıcı) */
+  .comment-form {
+      display: flex;
+      /* Esnek kutu yapısı */
+      flex-direction: column;
+      /* Alt alta diz */
+      gap: 15px;
+      /* Elemanlar arası boşluk (Textarea ve Buton arası) */
+      background: var(--bg-card);
+      padding: 25px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Metin Alanı */
+  .comment-form textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 15px;
+      background: var(--bg-body);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: 0.3s;
+      /* Margin'i kaldırdık çünkü 'gap' kullanıyoruz */
+      margin: 0;
+  }
+
+  .comment-form textarea:focus {
+      border-color: var(--accent);
+      background: var(--bg-body);
+      /* Odaklanınca renk değişmesin */
+      box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
+  }
+
+  /* Gönder Butonu */
+  .send-comment-btn {
+      align-self: flex-end;
+      /* Kutunun en sağına yasla */
+      background: var(--accent);
+      color: #fff;
+      /* Yazı rengi beyaz */
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      /* Float (Kaydırma) özelliğini sildik, flex hallediyor */
+  }
+
+  .send-comment-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      opacity: 0.9;
+  }
+
+  /* Yorum Listesi (Formdan İyice Uzaklaşsın) */
+  .comments-list {
+      margin-top: 50px;
+      /* Üstteki formla arayı açtık */
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      /* Hafif bir ayırıcı çizgi */
+  }
+
+  /* Tekil Yorum Kartı */
+  .single-comment {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      /* Yorumlar arası boşluk */
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+  }
+
+  /* --- YORUM ALANI (İSİM DÜZELTMELİ VERSİYON) --- */
+
+  /* 1. Kapsayıcı Kutu (Daha önce 'comment-form' demiştik, doğrusu bu) */
+  .blog-comment-box {
+      display: flex;
+      /* Esnek kutu */
+      flex-direction: column;
+      /* Alt alta diz */
+      gap: 20px;
+      /* Yazı ile Buton arasına 20px net boşluk koy */
+      background: var(--bg-card);
+      padding: 25px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      margin-bottom: 40px;
+  }
+
+  /* 2. Yazı Alanı */
+  .blog-comment-box textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 15px;
+      background: var(--bg-body);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: 0.3s;
+      margin: 0;
+      /* Gap kullandığımız için margin'e gerek yok */
+  }
+
+  .blog-comment-box textarea:focus {
+      border-color: var(--accent);
+      background: var(--bg-body);
+      box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
+  }
+
+  /* 3. Butonun Çerçevesi (Varsa footer div'i temizle) */
+  .blog-comment-footer {
+      display: flex;
+      justify-content: flex-end;
+      /* Butonu en sağa it */
+      width: 100%;
+  }
+
+  /* 4. Gönder Butonu (Doğru sınıf: 'blog-send-btn') */
+  .blog-send-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 50px;
+      /* Daha modern yuvarlak hatlar */
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      /* Float SİLİNDİ, artık Flexbox yönetiyor */
+  }
+
+  .blog-send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      opacity: 0.9;
+  }
+
+  /* 5. Yorum Listesi */
+  .comments-list {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+  }
+
+  /* Tekil Yorum Kartı */
+  .single-comment {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 20px;
+  }
+
+  /* --- YORUM SİLME BUTONU --- */
+  .delete-comment-btn {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      /* Kırmızı renk */
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 8px;
+      border-radius: 50%;
+      margin-left: auto;
+      /* En sağa yaslar */
+      opacity: 0.6;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+
+  .delete-comment-btn:hover {
+      background-color: rgba(239, 68, 68, 0.1);
+      /* Hafif kırmızı zemin */
+      opacity: 1;
+      transform: scale(1.1);
+  }
+
+  .ambiance-widget {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+  }
+
+  .ambiance-toggle {
+      width: 55px !important;
+      height: 55px !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: var(--panel) !important;
+      border: 2px solid var(--line) !important;
+      color: var(--accent) !important;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+  }
+
+  body.dark .ambiance-panel,
+  body.dark-theme .ambiance-panel {
+      background: var(--panel);
+      border-color: var(--line);
+      color: var(--ink);
+  }
+
+  body.dark .sound-item,
+  body.dark-theme .sound-item {
+      background: var(--bg);
+      border-color: var(--line);
+      color: var(--ink);
+  }
+
+  body.dark .ambiance-header,
+  body.dark-theme .ambiance-header {
+      color: var(--ink);
+      border-color: var(--line);
+  }

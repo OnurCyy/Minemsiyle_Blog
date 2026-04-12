@@ -1888,6 +1888,8 @@ html {
     justify-content: center;
 }
 
+
+
 .ambiance-toggle:hover {
     transform: scale(1.1);
     border-color: var(--accent);
@@ -1912,17 +1914,15 @@ html {
     bottom: 70px;
     left: 0;
     width: 260px;
-    /* Biraz genişlettik */
-    background: rgba(30, 30, 30, 0.95);
-    /* Koyu hafif şeffaf */
+    background: color-mix(in srgb, var(--panel) 95%, transparent);
     backdrop-filter: blur(10px);
-    /* Buzlu cam efekti */
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow);
     display: none;
     animation: slideUp 0.3s ease;
+    color: var(--ink)
 }
 
 .ambiance-panel.active {

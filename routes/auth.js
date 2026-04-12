@@ -81,7 +81,7 @@ router.post("/login", async (req, res) => {
 
         // 4️⃣ Token
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id, role: user.role, username: user.username },
             process.env.JWT_SECRET || "gizlisifre", // .env yoksa patlamasın diye
             { expiresIn: "7d" } // 1 gün az olabilir, 7 gün yapalım rahat etsinler
         );

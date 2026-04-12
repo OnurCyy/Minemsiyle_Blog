@@ -1,0 +1,266 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Ana Kapsayıcıyı Sabitleyelim */
+.auth-container {
+    background: #1e1e1e;
+    padding: 80px 30px 40px 30px;
+    /* Üstten boşluğu artırdık */
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    border: 1px solid #333;
+    border-left: 5px solid #d4a373;
+    position: relative;
+    /* Ayraçlar buna göre hizalanacak */
+    display: flex;
+    flex-direction: column;
+    min-height: 550px;
+    /* Formlar değiştikçe kutu boyu oynamasın */
+}
+
+/* Ayraçların Konumunu Netleştirelim */
+.auth-tabs {
+    display: flex;
+    gap: 10px;
+    position: absolute;
+    top: 0;
+    left: 30px;
+    z-index: 10;
+    /* En üstte görünsünler */
+}
+
+.auth-tab {
+    padding: 10px 15px;
+    height: 45px;
+    /* Sabit yükseklik */
+    background: #2a2a2a;
+    color: #888;
+    border: none;
+    border-radius: 0 0 8px 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.auth-tab.active {
+    background: #d4a373;
+    color: #1a1a1a;
+    height: 60px;
+    /* Aktif olan aşağı sarksın */
+}
+
+/* Formların Birbirini Ezmesini Engelleyelim */
+form {
+    width: 100%;
+    display: none;
+    /* Başlangıçta gizli */
+}
+
+form.active-form {
+    display: block;
+    /* Sadece aktif olan görünsün */
+}
+
+/* "Ana Sayfaya Dön" Linkini En Alta Sabitleyelim */
+.back-link-container {
+    margin-top: auto;
+    /* Kutunun en altına iter */
+    padding-top: 20px;
+    text-align: center;
+}
+
+.link {
+    color: #666;
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.link:hover {
+    color: #d4a373;
+}
+
+/* FORM ELEMANLARI */
+h2 {
+    font-family: 'Poppins', sans-serif;
+    color: #d4a373;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 5px;
+    background: transparent !important;
+    border: none;
+    border-bottom: 1px solid #333;
+    color: #fff;
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-group input:focus {
+    border-bottom: 1px solid #d4a373;
+}
+
+/* Tarayıcı Beyazlığını Silme */
+input:-webkit-autofill {
+    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0px 1000px #1e1e1e inset !important;
+}
+
+.btn-full {
+    width: 100%;
+    padding: 14px;
+    background: #d4a373;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    margin: 20px 0;
+    transition: 0.3s;
+}
+
+.btn-full:hover {
+    background: #b58b61;
+    transform: scale(1.02);
+}
+
+/* SOSYAL BUTONLAR - JİLET GİBİ YAN YANA */
+.social-section {
+    margin-top: 30px;
+}
+
+.social-section p {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.social-btns-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.social-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    /* Yuvarlak daha şık durur */
+    background: #252525;
+    border: 1px solid #333;
+    color: #d4a373;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.social-btn:hover {
+    background: #d4a373;
+    color: #1a1a1a;
+    transform: translateY(-5px);
+}
+
+/* =========================================
+   📱 MOBİL EKRANLAR İÇİN SİHİRLİ DOKUNUŞLAR
+   ========================================= */
+@media screen and (max-width: 480px) {
+
+    /* 1. Kutuyu Ekranı Kaplayacak Şekilde Küçültelim */
+    .auth-container {
+        width: 90%;
+        /* Kenarlardan çok az boşluk kalsın */
+        padding: 70px 20px 30px 20px;
+        /* Yan paddingleri 30'dan 20'ye düşürdük */
+        min-height: auto;
+        /* Telefonda gereksiz uzun durmasını engeller */
+        border-left: 3px solid #d4a373;
+        /* Kitap sırtını biraz incelttik */
+    }
+
+    /* 2. Ayraçları Yeni Hizaya Göre Ayarlayalım */
+    .auth-tabs {
+        left: 20px;
+        /* Kutunun yeni padding'ine hizaladık */
+        gap: 5px;
+        /* Ayraçların arasını biraz daralttık */
+    }
+
+    .auth-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+        height: 40px;
+    }
+
+    .auth-tab.active {
+        height: 50px;
+        /* Sarkma animasyonu telefonda daha kibar olsun */
+    }
+
+    /* 3. İOS Zoom Krizini Çözelim (Hacker Dokunuşu 🕵️‍♂️) */
+    .input-group input {
+        font-size: 16px !important;
+        /* iPhone'lar 16px altı inputlarda otomatik zoom yapar, bunu engelledik! */
+        padding: 10px 5px;
+    }
+
+    /* 4. Metinleri ve Butonları Ekran Oranına Uyduralım */
+    h2 {
+        font-size: 22px;
+    }
+
+    .subtitle {
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+
+    .social-section {
+        margin-top: 20px;
+    }
+
+    .social-btn {
+        width: 45px;
+        /* Parmakla basmaya uygun ama devasa olmayan boyut */
+        height: 45px;
+        font-size: 20px;
+    }
+
+    /* 5. Geri Dön Linkini Düzenleyelim */
+    .back-link-container {
+        padding-top: 15px;
+    }
+}
