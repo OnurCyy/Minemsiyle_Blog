@@ -56,45 +56,43 @@ app.use(passport.session());
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
+
 //-------------------------------------------- STRAJEDİLER ------------------------------------------------------------
+
+const BASE_URL = process.env.BASE_URL || "https://minemsiyle.com";
 
 // --- GOOGLE STRATEJİSİ ---
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "/api/auth/google/callback"
+    callbackURL: `${BASE_URL}/api/auth/google/callback` // 👈 JİLET AYAR BURADA
 },
     async (accessToken, refreshToken, profile, done) => {
         try {
-            // 1. Bu Google hesabı daha önce sitemize kayıt olmuş mu?
             let user = await User.findOne({ googleId: profile.id });
 
             if (!user) {
-                // 2. Peki bu e-posta adresiyle normal yoldan kayıt olan biri var mı?
                 user = await User.findOne({ email: profile.emails[0].value });
 
                 if (user) {
-                    // Hesabı var ama Google ile girmemiş. İkisini birleştir!
                     user.googleId = profile.id;
                     if (!user.avatar || user.avatar === 'default_avatar.png') {
-                        user.avatar = profile.photos[0].value; // Fotoğrafı da çekelim
+                        user.avatar = profile.photos[0].value;
                     }
                     await user.save();
                 } else {
-                    // 3. Sitemize İLK DEFA geliyor! Yepyeni hesap aç.
                     const newUsername = profile.displayName.replace(/\s+/g, '').toLowerCase() + Math.floor(Math.random() * 1000);
 
                     user = new User({
                         username: newUsername,
                         email: profile.emails[0].value,
                         googleId: profile.id,
-                        password: "google_" + profile.id, // Mecburi şifre alanı için rastgele bir şey
+                        password: "google_" + profile.id,
                         avatar: profile.photos[0].value
                     });
                     await user.save();
                 }
             }
-
             return done(null, user);
         } catch (err) {
             return done(err, null);
@@ -106,30 +104,24 @@ passport.use(new GoogleStrategy({
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: "/api/auth/discord/callback",
-    scope: ['identify', 'email'] // Kullanıcı adı ve e-posta istiyoruz
+    callbackURL: `${BASE_URL}/api/auth/discord/callback`,
+    scope: ['identify', 'email']
 },
     async (accessToken, refreshToken, profile, done) => {
         try {
-            // 1. Bu Discord hesabı daha önce sitemize kayıt olmuş mu?
             let user = await User.findOne({ discordId: profile.id });
 
             if (!user) {
-                // 2. Peki bu e-posta adresiyle normal yoldan kayıt olan var mı?
                 user = await User.findOne({ email: profile.email });
-
-                // Discord avatar URL'sini oluşturma
                 const discordAvatar = profile.avatar ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png` : 'default_avatar.png';
 
                 if (user) {
-                    // Hesabı var ama Discord ile girmemiş. İkisini birleştir!
                     user.discordId = profile.id;
                     if (!user.avatar || user.avatar === 'default_avatar.png') {
                         user.avatar = discordAvatar;
                     }
                     await user.save();
                 } else {
-                    // 3. Sitemize İLK DEFA geliyor! Yepyeni hesap aç.
                     const newUsername = profile.username.replace(/\s+/g, '').toLowerCase() + Math.floor(Math.random() * 1000);
 
                     user = new User({
@@ -142,7 +134,6 @@ passport.use(new DiscordStrategy({
                     await user.save();
                 }
             }
-
             return done(null, user);
         } catch (err) {
             return done(err, null);
@@ -151,16 +142,15 @@ passport.use(new DiscordStrategy({
 
 // --- X (TWITTER) STRATEJİSİ ---
 passport.use(new TwitterStrategy({
-    consumerKey: process.env.TWITTER_CLIENT_ID,       // Twitter consumerKey kullanır
-    consumerSecret: process.env.TWITTER_CLIENT_SECRET, // Twitter consumerSecret kullanır
-    callbackURL: "/api/auth/twitter/callback",
-    includeEmail: true // E-posta adresini de çekmek için
+    consumerKey: process.env.TWITTER_CLIENT_ID,
+    consumerSecret: process.env.TWITTER_CLIENT_SECRET,
+    callbackURL: `${BASE_URL}/api/auth/twitter/callback`, // 👈 JİLET AYAR BURADA
+    includeEmail: true
 },
     async (token, tokenSecret, profile, done) => {
         try {
             let user = await User.findOne({ twitterId: profile.id });
             if (!user) {
-                // E-posta ile eşleşme kontrolü (Twitter e-posta vermeyebilir, güvenlik önlemi)
                 const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
                 if (email) user = await User.findOne({ email: email });
 
@@ -174,7 +164,7 @@ passport.use(new TwitterStrategy({
                     const newUsername = profile.username.toLowerCase() + Math.floor(Math.random() * 1000);
                     user = new User({
                         username: newUsername,
-                        email: email || `twitter_${profile.id}@no-email.com`, // Email yoksa sahte atıyoruz mecbur
+                        email: email || `twitter_${profile.id}@no-email.com`,
                         twitterId: profile.id,
                         password: "twitter_" + profile.id,
                         avatar: twitterAvatar
