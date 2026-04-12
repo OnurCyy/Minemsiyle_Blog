@@ -478,7 +478,7 @@
             }
 
             try {
-                await fetch(`${API_BASE}/save`, {
+                await fetch(`${API_BASE}/users/save`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -497,7 +497,7 @@
             const user = JSON.parse(userString);
 
             try {
-                const res = await fetch(`${API_BASE}/profile/saved/${user.name || user.username}`);
+                const res = await fetch(`${API_BASE}/profile/saved/${user.username}`);
                 if (res.ok) {
                     const items = await res.json();
                     if (items.some(i => i.itemId === currentRelatedId)) {
@@ -557,13 +557,10 @@
             const user = JSON.parse(userString);
 
             try {
-                let token = localStorage.getItem('token');
-                if (token) token = token.replace(/"/g, '').trim();
-
-                const res = await fetch(`${API_BASE}/users/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`${API_BASE}/profile/saved/${user.username}`);
                 if (res.ok) {
-                    const userData = await res.json();
-                    if (userData.savedItems && userData.savedItems.some(item => item.itemId === currentRelatedId)) {
+                    const savedItems = await res.json();
+                    if (savedItems && savedItems.some(item => item.itemId === currentRelatedId)) {
                         const icon = document.getElementById('saveIcon');
                         const text = document.getElementById('saveText');
                         const btn = document.getElementById('saveBtn');
@@ -572,7 +569,7 @@
                         if (btn) btn.style.borderColor = "var(--accent)";
                     }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Durum kontrol hatası:", e); }
         }
 
         async function shareContent() {
