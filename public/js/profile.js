@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "/api";
 let cropper;
 const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
