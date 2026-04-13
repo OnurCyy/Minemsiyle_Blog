@@ -189,7 +189,7 @@
             <div class="modal-header"
                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
                 <h2 style="margin:0; font-family: Merriweather, serif; color:var(--accent);">Yazıyı Düzenle <span
-                        style="font-weight:300; font-size:1rem; color:var(--muted);">[OnurCy Panel]</span></h2>
+                        style="font-weight:300; font-size:1rem; color:var(--muted);">[Admin Panel]</span></h2>
                 <button onclick="closeEditModal()"
                     style="background:none; border:none; color:var(--muted); font-size:1.5rem; cursor:pointer; transition:0.3s;"
                     onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted)'">✕</button>
@@ -321,7 +321,7 @@
 
                 //  DÜZENLEME BUTONUNU GÖSTER (Sadece Adminlere)
                 const currentUserForEdit = JSON.parse(localStorage.getItem('user'));
-                if (currentUserForEdit && (currentUserForEdit.username === 'OnurCy' || currentUserForEdit.role === 'admin')) {
+                if (currentUserForEdit && (currentUserForEdit.username === 'OnurCy' || currentUserForEdit.username === 'Minemsi' || currentUserForEdit.role === 'admin')) {
                     const editBtn = document.getElementById('adminEditBtn');
                     if (editBtn) {
                         editBtn.style.display = 'flex';
