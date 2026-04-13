@@ -386,7 +386,7 @@ async function loadMyComments() {
                 const postTitle = c.title || c.relatedId || 'Bilinmeyen Yazı';
 
                 // 3. Tıklanabilir Link Oluştur
-                const postLink = c.contentType === 'blog' ? `blog.html?id=${c.relatedId}` : `book.html?id=${c.relatedId}`;
+                const postLink = c.contentType === 'blog' ? `/blog/${c.relatedId}` : `/kitap/${c.relatedId}`;
 
                 html += `
                 <div class="saved-card" style="align-items: flex-start;">

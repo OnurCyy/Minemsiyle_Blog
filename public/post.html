@@ -29,7 +29,7 @@
     <header class="header">
         <div class="header__inner">
             <div class="brand">
-                <a class="brand__logo" href="index.html">
+                <a class="brand__logo" href="/">
                     <img src="/assets/images/Logo.png" alt="Minemsiyle" style="height: 40px;">
                 </a>
             </div>
@@ -48,7 +48,6 @@
 
     <main class="article-container">
         <a href="/" class="back-btn">← Geri Dön</a>
-
         <div id="articleArea">
             <div style="text-align:center; margin-top:50px;">
                 <p style="color:var(--muted);">Sayfa yükleniyor...</p>
@@ -91,6 +90,14 @@
                         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span id="saveText" style="color: var(--ink);">Kaydet</span>
+                </button>
+
+                <button id="adminEditBtn" onclick="openEditModal()" class="btn btn--ghost"
+                    style="display:none; align-items:center; gap:8px; border:1px solid var(--accent); cursor:pointer; border-radius: 50px; padding: 8px 16px; background: var(--accent); color: #111; font-weight: bold; transition: all 0.3s; box-shadow: 0 4px 10px rgba(192, 125, 86, 0.2);"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(192, 125, 86, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 10px rgba(192, 125, 86, 0.2)';">
+                    <i class="ph-bold ph-pencil-simple"></i>
+                    <span>Yazıyı Düzenle</span>
                 </button>
             </div>
         </div>
@@ -174,11 +181,74 @@
         </div>
     </div>
 
+    <div id="editModal" class="modal-overlay"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition: 0.3s opacity;">
+        <div class="modal-content"
+            style="background:#111; padding:35px; border-radius:24px; width:90%; max-width:650px; border:1px solid #333; box-shadow:0 15px 50px rgba(0,0,0,0.6);">
+
+            <div class="modal-header"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                <h2 style="margin:0; font-family: Merriweather, serif; color:var(--accent);">Yazıyı Düzenle <span
+                        style="font-weight:300; font-size:1rem; color:var(--muted);">[OnurCy Panel]</span></h2>
+                <button onclick="closeEditModal()"
+                    style="background:none; border:none; color:var(--muted); font-size:1.5rem; cursor:pointer; transition:0.3s;"
+                    onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted)'">✕</button>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block; color:#888; font-size:0.85rem; margin-bottom:8px;">Yazı Kapak Resmi (Tıkla
+                    Değiştir)</label>
+                <div id="editImagePreviewArea"
+                    style="width:100%; height:180px; background:#222; border-radius:12px; border:2px dashed #444; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; transition: 0.3s;"
+                    onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='#444'">
+                    <img id="editImagePreview" src="" alt="Önizleme"
+                        style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                    <div id="editImagePlaceholder" style="text-align:center; color:#555;">
+                        <i class="ph-bold ph-image-square"
+                            style="font-size:3rem; margin-bottom:5px; display:block;"></i>
+                        <span style="font-size:0.9rem;">Resim Yükle</span>
+                    </div>
+                </div>
+                <input type="file" id="editImageInput" accept="image/*" style="display:none;">
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label for="editTitle"
+                    style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">Başlık</label>
+                <input type="text" id="editTitle" placeholder="Yazı Başlığı"
+                    style="width:100%; padding:14px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:10px; font-family: Merriweather, serif;">
+            </div>
+
+            <div style="margin-bottom:25px;">
+                <label for="editContent"
+                    style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">İçerik</label>
+                <textarea id="editContent" rows="12" placeholder="Yazı İçeriği"
+                    style="width:100%; padding:14px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:10px; resize:vertical; line-height:1.6; font-size:0.95rem;"></textarea>
+            </div>
+
+            <div style="display:flex; gap:15px;">
+                <button onclick="closeEditModal()"
+                    style="flex:1; padding:15px; border-radius:12px; border:1px solid #444; background:none; color:#aaa; font-weight:bold; cursor:pointer; transition:0.3s;"
+                    onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444'"
+                    onmouseout="this.style.borderColor='#444'; this.style.color='#aaa'">Vazgeç</button>
+
+                <button id="editSubmitBtn" onclick="submitEdit()"
+                    style="flex:2; padding:15px; border-radius:12px; border:none; background:var(--accent); color:black; font-weight:bold; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s; box-shadow:0 5px 15px rgba(192,125,86,0.3);"
+                    onmouseover="this.style.transform='translateY(-3px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <i class="ph-bold ph-floppy-disk"></i> Güncellemeyi Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer" style="padding: 30px 0; border-top: 1px solid var(--line); margin-top: 40px;">
         <div class="container" style="text-align:center; color:var(--muted); font-size:12px;">
             &copy; 2026 Minemsiyle
         </div>
     </footer>
+
+
 
     <script>
         // ==========================================
@@ -187,11 +257,27 @@
         const API_BASE = "/api";
         let contentId = null;
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-
-        // 🔥 YENİ SİSTEM: URL'DEN ID/SLUG OKUMA
-        const pathArray = window.location.pathname.split('/');
-        const currentRelatedId = pathArray[pathArray.length - 1];
         const currentType = 'blog';
+        const pathArray = window.location.pathname.split('/');
+
+        // URL'DEN ID/SLUG OKUMA (UNIVERSAL)
+        let currentRelatedId = null;
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.has('id')) {
+            // Eğer link "...book.html?id=123" şeklindeyse buradan alır (Profil'den gelenler)
+            currentRelatedId = urlParams.get('id');
+        } else {
+            // Eğer link ".../kitap/123" şeklindeyse buradan alır (Ana sayfadan gelenler)
+            const pathArray = window.location.pathname.split('/');
+            currentRelatedId = pathArray[pathArray.length - 1];
+        }
+
+        // Güvenlik: Eğer yanlışlıkla sayfa adını aldıysa null yap
+        if (currentRelatedId === "book" || currentRelatedId === "book.html") {
+            currentRelatedId = null;
+        }
+
 
 
         // ==========================================
@@ -232,6 +318,15 @@
                 checkSaveStatus();
                 checkLikeStatus();
                 loadComments();
+
+                //  DÜZENLEME BUTONUNU GÖSTER (Sadece Adminlere)
+                const currentUserForEdit = JSON.parse(localStorage.getItem('user'));
+                if (currentUserForEdit && (currentUserForEdit.username === 'OnurCy' || currentUserForEdit.role === 'admin')) {
+                    const editBtn = document.getElementById('adminEditBtn');
+                    if (editBtn) {
+                        editBtn.style.display = 'flex';
+                    }
+                }
 
             } catch (err) {
                 console.error("Hata:", err);
@@ -552,6 +647,169 @@
                 }
             });
         }
+
+        // 1. Modalı Aç ve mevcut verileri içine doldur
+        function openEditModal() {
+            // Mevcut ekrandaki başlık ve içeriği çekelim
+            const currentTitle = document.querySelector('.article-title').innerText;
+            const currentContent = document.querySelector('.article-content').innerText;
+
+            document.getElementById('editTitle').value = currentTitle;
+            document.getElementById('editContent').value = currentContent;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // 2. Güncellemeyi Backend'e Gönder
+        async function submitEdit() {
+            const newTitle = document.getElementById('editTitle').value.trim();
+            const newContent = document.getElementById('editContent').value.trim();
+
+            if (!newTitle || !newContent) return alert("Boş alan bırakma komutanım!");
+
+            try {
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: newTitle, content: newContent })
+                });
+
+                if (res.ok) {
+                    alert("✅ Yengemizin yazısı başarıyla güncellendi!");
+                    location.reload(); // Sayfayı yenileyip yeni hali görelim
+                } else {
+                    alert("❌ Güncellenemedi.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Bağlantı hatası!");
+            }
+        }
+
+        // post.html içindeki <script> etiketinin en altına veya mevcut modal fonksiyonlarının yerine yapıştır
+
+        // ==========================================
+        // 🔥 V2.0 GELİŞMİŞ DÜZENLEME (EDIT) SİSTEMİ 🔥
+        // ==========================================
+
+        // 1. Gerekli HTML Elementlerini Tanımla
+        const editImageInput = document.getElementById('editImageInput');
+        const editImagePreview = document.getElementById('editImagePreview');
+        const editImagePlaceholder = document.getElementById('editImagePlaceholder');
+        const editImagePreviewArea = document.getElementById('editImagePreviewArea');
+        let currentModalImageBase64 = null; // Resim verisini tutacak global değişken
+
+        // 2. Resim Yükleme Alanına Tıklama Ve Dosya Okuma Dinleyicileri
+        if (editImagePreviewArea && editImageInput) {
+            // Alanın kendisine tıklanınca file input'u aç
+            editImagePreviewArea.addEventListener('click', () => editImageInput.click());
+
+            // Dosya seçilince oku ve önizle
+            editImageInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        currentModalImageBase64 = event.result; // Resmi base64 formatında hafızaya al
+                        setModalImagePreview(currentModalImageBase64); // Önizlemeyi bas
+                    };
+                    reader.readAsDataURL(file); // Resmi oku
+                }
+            });
+        }
+
+        // Önizleme alanını güncelleyen yardımcı fonksiyon
+        function setModalImagePreview(imageBase64) {
+            if (imageBase64 && imageBase64.length > 5) {
+                editImagePreview.src = imageBase64;
+                editImagePreview.style.display = 'block';
+                if (editImagePlaceholder) editImagePlaceholder.style.display = 'none';
+                editImagePreviewArea.style.borderColor = "var(--accent)"; // Jilet gibi vurgula
+            } else {
+                editImagePreview.src = "";
+                editImagePreview.style.display = 'none';
+                if (editImagePlaceholder) editImagePlaceholder.style.display = 'block';
+                editImagePreviewArea.style.borderColor = "#444";
+            }
+        }
+
+        // 3. Modalı Aç ve mevcut verileri içine doldur (Gelişmiş)
+        function openEditModal() {
+            // 1. Mevcut ekrandaki verileri çekelim
+            const currentTitle = document.querySelector('.article-title').innerText;
+            const currentContent = document.querySelector('.article-content').innerText;
+
+            // 2. Mevcut resmi çekelim (Eğer varsa)
+            const currentPostImg = document.querySelector('.article-cover');
+            currentModalImageBase64 = currentPostImg ? currentPostImg.src : null; // Hafızayı doldur
+
+            // 3. Modalı doldur
+            document.getElementById('editTitle').value = currentTitle;
+            document.getElementById('editContent').value = currentContent;
+            setModalImagePreview(currentModalImageBase64); // Önizlemeyi bas
+
+            // 4. Modalı göster (Premium animasyon için display:flex ve opacity:1)
+            const modal = document.getElementById('editModal');
+            modal.style.display = 'flex';
+            modal.style.opacity = '1';
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.style.opacity = '0'; // Premium kapanma
+            setTimeout(() => {
+                modal.style.display = 'none';
+                // Gizli file input'u temizle
+                if (editImageInput) editImageInput.value = "";
+            }, 300); // Animasyon süresi kadar bekle
+        }
+
+        // 4. Güncellemeyi Backend'e Gönder (Resimli Versiyon)
+        async function submitEdit() {
+            const newTitle = document.getElementById('editTitle').value.trim();
+            const newContent = document.getElementById('editContent').value.trim();
+            const btn = document.getElementById('editSubmitBtn');
+
+            if (!newTitle || !newContent) return alert("Boş alan bırakma komutanım!");
+
+            // Premium Yükleniyor Hali
+            const oldBtnHTML = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-spiral"></i>⏳⏳...`;
+            btn.disabled = true;
+
+            try {
+                // Backend'e gidip veriyi güncelleyelim
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        content: newContent,
+                        image: currentModalImageBase64
+                    })
+                });
+
+                if (res.ok) {
+                    // Yengemize zafer müjdesi!
+                    btn.innerHTML = `<i class="ph-bold ph-check-circle"></i> TAMAMLANDI!`;
+                    setTimeout(() => {
+                        location.reload(); // Sayfayı yenileyip yeni hali görelim
+                    }, 1000);
+                } else {
+                    const data = await res.json();
+                    alert("❌ Hata: " + (data.message || "Güncellenemedi."));
+                    btn.innerHTML = oldBtnHTML; btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Bağlantı hatası!");
+                btn.innerHTML = oldBtnHTML; btn.disabled = false;
+            }
+        }
+
     </script>
 </body>
 

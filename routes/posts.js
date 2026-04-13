@@ -67,4 +67,24 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+// DÜZENLEME
+router.put("/:id", async (req, res) => {
+    try {
+        const { title, content, image, category } = req.body;
+        // Sadece giriş yapmış olan OnurCy (yani admin) düzenleyebilsin
+
+
+        const updatedPost = await Post.findByIdAndUpdate(
+            req.params.id,
+            { title, content, image, category },
+            { new: true } // Güncellenmiş halini geri döndür
+        );
+
+        if (!updatedPost) return res.status(404).json({ message: "Yazı bulunamadı" });
+        res.json({ message: "Yazı başarıyla güncellendi!", post: updatedPost });
+    } catch (err) {
+        res.status(500).json({ message: "Güncelleme sırasında hata oluştu." });
+    }
+});
+
 module.exports = router;
