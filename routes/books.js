@@ -53,22 +53,26 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-// DÜZENLEME
+// 🔥 KİTAP DÜZENLEME ROTASI (V2.5) 🔥
 router.put("/:id", async (req, res) => {
     try {
-        const { title, content, image, category } = req.body;
-        // Sadece giriş yapmış olan OnurCy (yani admin) düzenleyebilsin
+        // 1. Kitaplara özel verileri karşılıyoruz
+        const { title, author, tag, publisher, pages, desc, cover } = req.body;
 
-
-        const updatedPost = await Post.findByIdAndUpdate(
+        // 2. Post değil, 'Book' modelini güncelliyoruz! (Senin model ismin Book veya Kitap olabilir)
+        const updatedBook = await Book.findByIdAndUpdate(
             req.params.id,
-            { title, content, image, category },
+            { title, author, tag, publisher, pages, desc, cover },
             { new: true } // Güncellenmiş halini geri döndür
         );
 
-        if (!updatedPost) return res.status(404).json({ message: "Yazı bulunamadı" });
-        res.json({ message: "Yazı başarıyla güncellendi!", post: updatedPost });
+        if (!updatedBook) return res.status(404).json({ message: "Kitap bulunamadı" });
+
+        res.json({ message: "Kitap başarıyla güncellendi!", book: updatedBook });
+
     } catch (err) {
+        // 🔥 ALARM SİSTEMİ AÇIK 🔥
+        console.error("❌ KİTAP GÜNCELLEME HATASI:", err);
         res.status(500).json({ message: "Güncelleme sırasında hata oluştu." });
     }
 });
