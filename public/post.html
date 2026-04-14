@@ -689,84 +689,111 @@
             }
         }
 
-        // post.html içindeki <script> etiketinin en altına veya mevcut modal fonksiyonlarının yerine yapıştır
+
 
         // ==========================================
-        // 🔥 V2.0 GELİŞMİŞ DÜZENLEME (EDIT) SİSTEMİ 🔥
+        // 🔥 V2.3 KÖSTEBEK TEMİZLENDİ - KESİN ÇÖZÜM 🔥
         // ==========================================
+        let currentModalImageBase64 = null;
 
-        // 1. Gerekli HTML Elementlerini Tanımla
-        const editImageInput = document.getElementById('editImageInput');
-        const editImagePreview = document.getElementById('editImagePreview');
-        const editImagePlaceholder = document.getElementById('editImagePlaceholder');
-        const editImagePreviewArea = document.getElementById('editImagePreviewArea');
-        let currentModalImageBase64 = null; // Resim verisini tutacak global değişken
+        // 1. Görüntüyü Güvenle Ekrana Basan Beyin
+        function setModalImagePreview(imageSrc) {
+            const previewImg = document.getElementById('editImagePreview');
+            const placeholder = document.getElementById('editImagePlaceholder');
+            const previewArea = document.getElementById('editImagePreviewArea');
 
-        // 2. Resim Yükleme Alanına Tıklama Ve Dosya Okuma Dinleyicileri
-        if (editImagePreviewArea && editImageInput) {
-            // Alanın kendisine tıklanınca file input'u aç
-            editImagePreviewArea.addEventListener('click', () => editImageInput.click());
+            if (!previewImg || !placeholder) return;
 
-            // Dosya seçilince oku ve önizle
-            editImageInput.addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (event) {
-                        currentModalImageBase64 = event.result; // Resmi base64 formatında hafızaya al
-                        setModalImagePreview(currentModalImageBase64); // Önizlemeyi bas
-                    };
-                    reader.readAsDataURL(file); // Resmi oku
-                }
-            });
-        }
-
-        // Önizleme alanını güncelleyen yardımcı fonksiyon
-        function setModalImagePreview(imageBase64) {
-            if (imageBase64 && imageBase64.length > 5) {
-                editImagePreview.src = imageBase64;
-                editImagePreview.style.display = 'block';
-                if (editImagePlaceholder) editImagePlaceholder.style.display = 'none';
-                editImagePreviewArea.style.borderColor = "var(--accent)"; // Jilet gibi vurgula
+            if (imageSrc && imageSrc.length > 20 && imageSrc !== "null" && imageSrc !== "undefined") {
+                previewImg.src = imageSrc;
+                previewImg.style.display = 'block';
+                placeholder.style.display = 'none';
+                if (previewArea) previewArea.style.borderColor = "var(--accent)";
             } else {
-                editImagePreview.src = "";
-                editImagePreview.style.display = 'none';
-                if (editImagePlaceholder) editImagePlaceholder.style.display = 'block';
-                editImagePreviewArea.style.borderColor = "#444";
+                previewImg.src = "";
+                previewImg.style.display = 'none';
+                placeholder.style.display = 'block';
+                if (previewArea) previewArea.style.borderColor = "#444";
             }
         }
 
-        // 3. Modalı Aç ve mevcut verileri içine doldur (Gelişmiş)
+        // Olay Dinleyicileri (Sayfa Yüklendikten Sonra Kesin Bağlanır)
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputContainer = document.getElementById('editImagePreviewArea');
+            const fileInput = document.getElementById('editImageInput');
+
+            if (inputContainer && fileInput) {
+                inputContainer.addEventListener('click', () => fileInput.click());
+
+                fileInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+
+                            // 🔥 YENİ: SIKIŞTIRMA MOTORU DEVREYE GİRİYOR 🔥
+                            const img = new Image();
+                            img.src = event.target.result;
+
+                            img.onload = function () {
+                                const canvas = document.createElement('canvas');
+                                const MAX_WIDTH = 800; // Jilet gibi web boyutu
+                                let width = img.width;
+                                let height = img.height;
+
+                                // Eğer resim çok büyükse orantılı olarak küçült
+                                if (width > MAX_WIDTH) {
+                                    height = Math.round((height *= MAX_WIDTH / width));
+                                    width = MAX_WIDTH;
+                                }
+
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+
+                                // Resmi görünmez tuvale çiz
+                                ctx.drawImage(img, 0, 0, width, height);
+
+                                // %75 kalite ile JPEG olarak dışarı aktar (Devasa Base64'ü ufacık yapar)
+                                currentModalImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
+
+                                console.log("🚀 [Sıkıştırma Motoru] Resim başarıyla hafifletildi!");
+                                setModalImagePreview(currentModalImageBase64); // Ekrana çiz!
+                            }
+                        };
+                        reader.readAsDataURL(file); // Sadece okuma işlemini başlatır
+                    }
+                });
+            }
+        });
+
+        // 3. Modalı Açan Fonksiyon
         function openEditModal() {
-            // 1. Mevcut ekrandaki verileri çekelim
-            const currentTitle = document.querySelector('.article-title').innerText;
-            const currentContent = document.querySelector('.article-content').innerText;
-
-            // 2. Mevcut resmi çekelim (Eğer varsa)
+            const currentTitle = document.querySelector('.article-title')?.innerText || '';
+            const currentContent = document.querySelector('.article-content')?.innerText || '';
             const currentPostImg = document.querySelector('.article-cover');
-            currentModalImageBase64 = currentPostImg ? currentPostImg.src : null; // Hafızayı doldur
 
-            // 3. Modalı doldur
+            currentModalImageBase64 = currentPostImg ? currentPostImg.src : null;
+
             document.getElementById('editTitle').value = currentTitle;
             document.getElementById('editContent').value = currentContent;
-            setModalImagePreview(currentModalImageBase64); // Önizlemeyi bas
 
-            // 4. Modalı göster (Premium animasyon için display:flex ve opacity:1)
+            setModalImagePreview(currentModalImageBase64);
+
             const modal = document.getElementById('editModal');
             modal.style.display = 'flex';
-            modal.style.opacity = '1';
+            setTimeout(() => { modal.style.opacity = '1'; }, 10);
         }
 
         function closeEditModal() {
             const modal = document.getElementById('editModal');
-            modal.style.opacity = '0'; // Premium kapanma
+            modal.style.opacity = '0';
             setTimeout(() => {
                 modal.style.display = 'none';
-                // Gizli file input'u temizle
-                if (editImageInput) editImageInput.value = "";
-            }, 300); // Animasyon süresi kadar bekle
+                const fileInput = document.getElementById('editImageInput');
+                if (fileInput) fileInput.value = "";
+            }, 300);
         }
-
         // 4. Güncellemeyi Backend'e Gönder (Resimli Versiyon)
         async function submitEdit() {
             const newTitle = document.getElementById('editTitle').value.trim();
@@ -793,7 +820,6 @@
                 });
 
                 if (res.ok) {
-                    // Yengemize zafer müjdesi!
                     btn.innerHTML = `<i class="ph-bold ph-check-circle"></i> TAMAMLANDI!`;
                     setTimeout(() => {
                         location.reload(); // Sayfayı yenileyip yeni hali görelim

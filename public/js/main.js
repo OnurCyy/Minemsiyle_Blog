@@ -315,29 +315,52 @@ document.addEventListener("DOMContentLoaded", async () => {
                 // 1. TARİH DÜZELTME
                 const date = new Date(post.createdAt || post.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
 
-                // 2. RESİM SEÇİMİ (Kritik Nokta 📸)
-                // Veritabanında bazen 'cover', bazen 'image' dolu oluyor.
-                const rawImage = post.cover || post.image || "";
-                // Resim varsa göster, yoksa gri kutu göster
-                const imgHTML = rawImage.length > 5
-                    ? `<img src="${rawImage}" alt="${post.title}" style="width:100%; height:200px; object-fit:cover; border-radius:12px 12px 0 0;" onerror="this.src='https://via.placeholder.com/800x400?text=Resim+Kirik'">`
-                    : `<div style="width:100%; height:200px; background:#222; display:flex; align-items:center; justify-content:center; color:#555; border-radius:12px 12px 0 0;">Resim Yok</div>`;
+                // 2. RESİM SEÇİMİ
+                const rawImage = post.image || post.cover || "https://via.placeholder.com/800x400?text=Resim+Yok";
 
-                // 3. ÖZET METNİ (Sen ne yazdıysan o)
-                // Eğer özet boşsa "..." yazmasın, boş kalsın.
-                const desc = post.excerpt ? post.excerpt : "";
+                // 3. ÖZET METNİ
+                // Eğer excerpt yoksa content'i kırparak gösterir
+                let desc = post.excerpt ? post.excerpt : (post.desc || post.content || 'İçeriği okumak için tıklayın...');
+                // HTML etiketleri varsa temizle (görüntüyü bozmaması için)
+                desc = desc.replace(/<[^>]*>?/gm, '');
 
                 return `
-            <article class="blog-card" style="background:var(--bg-card); border-radius:12px; border:1px solid var(--border); overflow:hidden; display:flex; flex-direction:column;">
-                <a href="/blog/${post._id}" style="text-decoration:none; color:inherit;">
-                    ${imgHTML}
-                    <div class="blog-card-content" style="padding:20px;">
-                        <span style="font-size:0.75rem; color:var(--accent); font-weight:bold; letter-spacing:1px; text-transform:uppercase;">${post.category || 'GENEL'} • ${date}</span>
-                        <h3 style="margin:10px 0; font-size:1.2rem; line-height:1.4;">${post.title}</h3>
-                        <p style="font-size:0.9rem; color:var(--text-muted); line-height:1.6; margin-bottom:15px;">
+            <article class="premium-blog-card" style="background:var(--bg-card); border-radius:16px; border:1px solid var(--border); overflow:hidden; transition:all 0.3s; cursor:pointer; display:flex; flex-direction:column;" 
+                onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='var(--accent)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)';" 
+                onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--border)'; this.style.boxShadow='none';">
+                
+                <a href="/blog/${post._id}" style="text-decoration:none; color:inherit; display:flex; flex-direction:column; height:100%;">
+                    
+                    <div style="width:100%; height:220px; overflow:hidden; position:relative; background:#222;">
+                        <img src="${rawImage}" 
+                             alt="${post.title}" 
+                             style="width:100%; height:100%; object-fit:cover; transition:transform 0.6s ease;" 
+                             onmouseover="this.style.transform='scale(1.08)'" 
+                             onmouseout="this.style.transform='scale(1)'"
+                             onerror="this.src='https://via.placeholder.com/800x400?text=Resim+Kirik'">
+                    </div>
+
+                    <div style="padding:24px; flex:1; display:flex; flex-direction:column;">
+                        
+                        <div style="font-size:0.75rem; color:var(--accent); font-weight:bold; letter-spacing:1.5px; margin-bottom:12px; text-transform:uppercase;">
+                            ${post.category || 'GENEL'} • ${date}
+                        </div>
+                        
+                        <h3 style="margin:0 0 12px 0; font-family: Merriweather, serif; font-size:1.4rem; color:var(--ink); line-height:1.4;">
+                            ${post.title}
+                        </h3>
+                        
+                        <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.6; margin-bottom:20px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
                             ${desc}
                         </p>
-                        <span style="font-size:0.9rem; font-weight:bold; color:var(--ink);">Devamını Oku →</span>
+                        
+                        <div style="margin-top:auto;">
+                            <span style="color:var(--ink); font-weight:bold; display:inline-flex; align-items:center; gap:6px; transition:0.3s;" 
+                               onmouseover="this.style.color='var(--accent)'" 
+                               onmouseout="this.style.color='var(--ink)'">
+                                Devamını Oku →
+                            </span>
+                        </div>
                     </div>
                 </a>
             </article>
