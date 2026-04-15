@@ -89,7 +89,7 @@ router.post("/:id/like", async (req, res) => {
 
         // Mongoose eski int veriyi okuyamayıp null döndürmüş olabilir, biz her ihtimale karşı jilet gibi bir liste oluşturuyoruz
         let currentLikes = Array.isArray(book.likes) ? book.likes : [];
-
+        currentLikes = currentLikes.filter(u => u !== '0' && u !== null && String(u).trim() !== '');
         // 2. Bu adam zaten beğenmiş mi kontrol et
         const hasLiked = currentLikes.includes(username);
 

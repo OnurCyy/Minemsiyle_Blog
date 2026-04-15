@@ -98,6 +98,7 @@ router.post("/:id/like", async (req, res) => {
 
         // Eski verileri temizleyen sistem
         let currentLikes = Array.isArray(post.likes) ? post.likes : [];
+        currentLikes = currentLikes.filter(u => u !== '0' && u !== null && String(u).trim() !== '');
         const hasLiked = currentLikes.includes(username);
 
         if (hasLiked) {

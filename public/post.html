@@ -655,10 +655,15 @@
 
                     // İsimleri listeye şık bir şekilde bas
                     data.likes.forEach(user => {
+
+                        // 🔥 HAYALET SAVAR: Eğer gelen isim '0' ise veya boşluksa bunu görmezden gel ve atla!
+                        if (user == '0' || !user || String(user).trim() === '') return;
+
                         list.innerHTML += `
                 <li style="padding:12px 0; border-bottom:1px solid var(--line, #333); color:var(--ink, #fff); font-weight:600; display:flex; align-items:center; gap:10px;">
                     <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#111; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
-                        ${user.charAt(0).toUpperCase()} </div>
+                        ${String(user).charAt(0).toUpperCase()} 
+                    </div>
                     ${user}
                 </li>`;
                     });
