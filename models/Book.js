@@ -34,8 +34,8 @@ const BookSchema = new mongoose.Schema({
         default: 2026
     },
     likes: {
-        type: Number,
-        default: 0
+        type: [String],
+        default: []
     },
     title: {
         type: String

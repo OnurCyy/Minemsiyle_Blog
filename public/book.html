@@ -71,6 +71,12 @@
 
         </div>
 
+        <div onclick="showLikers()"
+            style="display:inline-flex; align-items:center; gap:6px; margin-top:-5px; margin-bottom:20px; font-size:0.9rem; color:var(--text-muted, #888); cursor:pointer; transition:all 0.3s; font-weight:600;"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted, #888)'">
+            <i class="ph-bold ph-users"></i> Beğenenleri Gör
+        </div>
+
 
         <div class="blog-comments-section">
             <div class="blog-comment-header">
@@ -242,6 +248,27 @@
                     <i class="ph-bold ph-floppy-disk"></i> Güncellemeyi Kaydet
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="likersModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s; backdrop-filter: blur(4px);">
+        <div
+            style="background: var(--bg-card, #1a1a1a); width:90%; max-width:350px; border-radius:16px; padding:24px; border:1px solid var(--line, #333); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--line, #333); padding-bottom:12px;">
+                <h3 style="margin:0; font-size:1.2rem; color:var(--ink, #fff); font-family: Merriweather, serif;">❤️
+                    Beğenenler</h3>
+                <button onclick="closeLikersModal()"
+                    style="background:none; border:none; color:var(--text-muted, #888); font-size:1.5rem; cursor:pointer; transition:0.3s;"
+                    onmouseover="this.style.color='#e91e63'"
+                    onmouseout="this.style.color='var(--text-muted, #888)'">&times;</button>
+            </div>
+
+            <ul id="likersList" style="list-style:none; padding:0; margin:0; max-height:250px; overflow-y:auto;">
+            </ul>
+
         </div>
     </div>
 
@@ -582,40 +609,137 @@
         }
 
         // ==========================================
-        // 4. BEĞENME (LIKE) SİSTEMİ (Lokal)
+        // 🔥 V3.0 PREMIUM BEĞENİ (LIKE) SİSTEMİ 🔥
         // ==========================================
-        function toggleLike(btn) {
-            if (!contentId) return;
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) { alert("Beğenmek için giriş yapmalısın!"); return; }
 
-            let likedItems = JSON.parse(localStorage.getItem('likedItems') || "[]");
-            const index = likedItems.indexOf(contentId);
-            const icon = btn.querySelector('i');
+        // 1. Sayfa Açıldığında Sayacı ve Durumu Yükle
+        async function checkLikeStatus() {
+            const userString = localStorage.getItem('user');
+            let currentUser = null;
+            if (userString) currentUser = JSON.parse(userString);
 
-            if (index > -1) {
-                likedItems.splice(index, 1);
-                btn.classList.remove('active');
-                icon.classList.remove('ph-fill'); icon.classList.add('ph-bold');
-            } else {
-                likedItems.push(contentId);
-                btn.classList.add('active');
-                icon.classList.remove('ph-bold'); icon.classList.add('ph-fill');
-            }
-            localStorage.setItem('likedItems', JSON.stringify(likedItems));
+            const icon = document.getElementById('likeIcon');
+            const text = document.getElementById('likeText');
+            const btn = document.getElementById('likeBtn');
+
+            try {
+                // Kitabın güncel verisini sunucudan çekiyoruz
+                const res = await fetch(`${API_BASE}/books/${currentRelatedId}`);
+                if (res.ok) {
+                    const book = await res.json();
+                    const likeCount = book.likes ? book.likes.length : 0;
+
+                    // Beğeni sayısını ekrana bas (Giriş yapmayanlar da görebilsin)
+                    if (text) text.innerText = `${likeCount} Beğeni`;
+
+                    // Eğer kullanıcı giriş yapmışsa ve adını listede (şeref tablosunda) bulursak butonu yak!
+                    if (currentUser && book.likes && book.likes.includes(currentUser.username)) {
+                        if (icon) { icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63"; }
+                        if (btn) { btn.style.borderColor = "#e91e63"; btn.style.color = "#e91e63"; btn.style.background = "rgba(233, 30, 99, 0.08)"; }
+                    }
+                }
+            } catch (e) { console.error("Durum kontrol hatası:", e); }
         }
 
-        function checkLikeStatus() {
-            if (!contentId) return;
-            const btn = document.querySelector('.like-btn');
-            if (!btn) return;
+        // 2. Butona Tıklandığında Çalışacak Motor
+        async function toggleLike() {
+            const userString = localStorage.getItem('user');
+            if (!userString) return alert("Beğenmek için giriş yapmalısın komutanım!");
+            const user = JSON.parse(userString);
 
-            let likedItems = JSON.parse(localStorage.getItem('likedItems') || "[]");
-            if (likedItems.includes(contentId)) {
-                btn.classList.add('active');
-                const icon = btn.querySelector('i');
-                icon.classList.remove('ph-bold'); icon.classList.add('ph-fill');
+            const icon = document.getElementById('likeIcon');
+            const text = document.getElementById('likeText');
+            const btn = document.getElementById('likeBtn');
+
+            // Tıklama anında ufak bir nabız animasyonu (Premium Hissiyat)
+            if (icon) icon.style.transform = 'scale(0.8)';
+
+            try {
+                // Arka plana "Ben tıkladım, durumu ayarla" emri gönderiyoruz
+                const res = await fetch(`${API_BASE}/books/${currentRelatedId}/like`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user.username })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // Animasyonu bitir ve büyüt
+                    if (icon) {
+                        icon.style.transform = 'scale(1.2)';
+                        setTimeout(() => icon.style.transform = 'scale(1)', 200);
+                    }
+
+                    // Gelen cevaba göre butonu boya veya rengini al
+                    if (data.hasLiked) {
+                        icon.style.fill = "#e91e63";
+                        icon.style.stroke = "#e91e63";
+                        btn.style.borderColor = "#e91e63";
+                        btn.style.color = "#e91e63";
+                        btn.style.background = "rgba(233, 30, 99, 0.08)";
+                    } else {
+                        icon.style.fill = "none";
+                        icon.style.stroke = "currentColor";
+                        btn.style.borderColor = "var(--line)";
+                        btn.style.color = "var(--ink)";
+                        btn.style.background = "transparent";
+                    }
+
+                    // Sayacı anında jilet gibi güncelle
+                    text.innerText = ` ${data.likesCount} Beğeni`;
+                }
+            } catch (e) {
+                console.error("Beğeni gönderme hatası:", e);
             }
+        }
+
+        // ==========================================
+        // 🔥 KİMLER BEĞENDİ SİSTEMİ 🔥
+        // ==========================================
+        async function showLikers() {
+            const modal = document.getElementById('likersModal');
+            const list = document.getElementById('likersList');
+
+            // Yükleniyor animasyonu
+            list.innerHTML = '<li style="text-align:center; color:var(--text-muted, #888); padding:20px 0;"><i class="ph-bold ph-spiral"></i> Yükleniyor...</li>';
+
+            // Modalı ekranda göster
+            modal.style.display = 'flex';
+            setTimeout(() => modal.style.opacity = '1', 10);
+
+            try {
+                // 🔥 DİKKAT: Eğer book.html'deysen burayı /books/ yapmayı unutma! (Şu an posts için)
+                const res = await fetch(`${API_BASE}/books/${currentRelatedId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    list.innerHTML = ''; // Listeyi temizle
+
+                    // Eğer kimse beğenmemişse (veya liste boşsa)
+                    if (!data.likes || data.likes.length === 0) {
+                        list.innerHTML = '<li style="text-align:center; color:var(--text-muted, #888); padding:20px 0;">Henüz kimse beğenmemiş. İlk beğenen sen ol!</li>';
+                        return;
+                    }
+
+                    // İsimleri listeye şık bir şekilde bas
+                    data.likes.forEach(user => {
+                        list.innerHTML += `
+                <li style="padding:12px 0; border-bottom:1px solid var(--line, #333); color:var(--ink, #fff); font-weight:600; display:flex; align-items:center; gap:10px;">
+                    <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#111; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
+                        ${user.charAt(0).toUpperCase()} </div>
+                    ${user}
+                </li>`;
+                    });
+                }
+            } catch (err) {
+                list.innerHTML = '<li style="text-align:center; color:#e91e63; padding:20px 0;">Bağlantı hatası!</li>';
+            }
+        }
+
+        function closeLikersModal() {
+            const modal = document.getElementById('likersModal');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.style.display = 'none', 300);
         }
 
         // ==========================================

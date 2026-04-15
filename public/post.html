@@ -54,11 +54,12 @@
             </div>
         </div>
         <div class="blog-footer">
-
-            <div class="action-buttons" style="display: flex; gap: 12px; margin: 20px 0;">
+            <div class="action-buttons" style="display: flex; flex-wrap: wrap; gap: 15px; margin: 20px 0;">
 
                 <button id="likeBtn" onclick="toggleLike()" class="btn btn--ghost"
-                    style="display:flex; align-items:center; gap:8px; border:1px solid var(--line); cursor:pointer; border-radius: 50px; padding: 8px 16px; background: transparent;">
+                    style="display:flex; align-items:center; gap:8px; border:1px solid var(--line); cursor:pointer; border-radius: 50px; padding: 8px 16px; background: transparent; transition: all 0.3s;"
+                    onmouseover="this.style.background='rgba(233, 30, 99, 0.08)'; this.style.borderColor='#e91e63'; this.style.color='#e91e63'; this.style.transform='translateY(-2px)';"
+                    onmouseout="this.style.transform='translateY(0)'; if(document.getElementById('likeIcon').style.fill === 'none' || document.getElementById('likeIcon').style.fill === '') { this.style.background='transparent'; this.style.borderColor='var(--line)'; this.style.color='var(--ink)'; }">
 
                     <svg id="likeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.3s;">
@@ -66,12 +67,13 @@
                             d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
                         </path>
                     </svg>
-
-                    <span id="likeText" style="color: var(--ink);"> Beğen</span>
+                    <span id="likeText" style="color: inherit;">Beğeni</span>
                 </button>
 
                 <button onclick="shareContent()" class="btn btn--ghost" id="shareBtn"
-                    style="display:flex; align-items:center; gap:8px; border:1px solid var(--line); cursor:pointer;">
+                    style="display:flex; align-items:center; gap:8px; border:1px solid var(--line); cursor:pointer; border-radius: 50px; padding: 8px 16px; background: transparent; transition: all 0.3s;"
+                    onmouseover="this.style.transform='translateY(-2px)';"
+                    onmouseout="this.style.transform='translateY(0)';">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="18" cy="5" r="3"></circle>
@@ -80,11 +82,13 @@
                         <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                         <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                     </svg>
-                    <span id="shareText">Paylaş</span>
+                    <span id="shareText" style="color: var(--ink);">Paylaş</span>
                 </button>
 
                 <button id="saveBtn" onclick="toggleSave()" class="btn btn--ghost"
-                    style="display:flex; align-items:center; gap:8px; border:1px solid var(--line); cursor:pointer; border-radius: 50px; padding: 8px 16px; background: transparent; transition: all 0.3s;">
+                    style="display:flex; align-items:center; gap:8px; border:1px solid var(--line); cursor:pointer; border-radius: 50px; padding: 8px 16px; background: transparent; transition: all 0.3s;"
+                    onmouseover="this.style.transform='translateY(-2px)';"
+                    onmouseout="this.style.transform='translateY(0)';">
                     <svg id="saveIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.3s;">
                         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -99,9 +103,15 @@
                     <i class="ph-bold ph-pencil-simple"></i>
                     <span>Yazıyı Düzenle</span>
                 </button>
+
             </div>
         </div>
 
+        <div onclick="showLikers()"
+            style="display:inline-flex; align-items:center; gap:6px; margin-top:-5px; margin-bottom:20px; font-size:0.9rem; color:var(--text-muted, #888); cursor:pointer; transition:all 0.3s; font-weight:600;"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted, #888)'">
+            <i class="ph-bold ph-users"></i> Beğenenleri Gör
+        </div>
 
         <div class="blog-comments-section">
             <div class="blog-comment-header">
@@ -239,6 +249,27 @@
                     <i class="ph-bold ph-floppy-disk"></i> Güncellemeyi Kaydet
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="likersModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s; backdrop-filter: blur(4px);">
+        <div
+            style="background: var(--bg-card, #1a1a1a); width:90%; max-width:350px; border-radius:16px; padding:24px; border:1px solid var(--line, #333); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--line, #333); padding-bottom:12px;">
+                <h3 style="margin:0; font-size:1.2rem; color:var(--ink, #fff); font-family: Merriweather, serif;">❤️
+                    Beğenenler</h3>
+                <button onclick="closeLikersModal()"
+                    style="background:none; border:none; color:var(--text-muted, #888); font-size:1.5rem; cursor:pointer; transition:0.3s;"
+                    onmouseover="this.style.color='#e91e63'"
+                    onmouseout="this.style.color='var(--text-muted, #888)'">&times;</button>
+            </div>
+
+            <ul id="likersList" style="list-style:none; padding:0; margin:0; max-height:250px; overflow-y:auto;">
+            </ul>
+
         </div>
     </div>
 
@@ -515,60 +546,132 @@
             } catch (e) { console.error("Durum kontrol hatası:", e); }
         }
 
+        // ==========================================
+        // 🔥 BLOG BEĞENİ (LIKE) SİSTEMİ 🔥
+        // ==========================================
+
+        // 1. Sayfa Açıldığında Sayacı ve Durumu Yükle
+        async function checkLikeStatus() {
+            const userString = localStorage.getItem('user');
+            let currentUser = null;
+            if (userString) currentUser = JSON.parse(userString);
+
+            const icon = document.getElementById('likeIcon');
+            const text = document.getElementById('likeText');
+            const btn = document.getElementById('likeBtn');
+
+            try {
+                // 🔥 DİKKAT: /books/ yerine /posts/ kullanıyoruz!
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`);
+                if (res.ok) {
+                    const post = await res.json();
+                    const likeCount = post.likes ? post.likes.length : 0;
+
+                    if (text) text.innerText = `${likeCount} Beğeni`;
+
+                    if (currentUser && post.likes && post.likes.includes(currentUser.username)) {
+                        if (icon) { icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63"; }
+                        if (btn) { btn.style.borderColor = "#e91e63"; btn.style.color = "#e91e63"; btn.style.background = "rgba(233, 30, 99, 0.08)"; }
+                    }
+                }
+            } catch (e) { console.error("Durum kontrol hatası:", e); }
+        }
+
+        // 2. Butona Tıklandığında Çalışacak Motor
         async function toggleLike() {
             const userString = localStorage.getItem('user');
-            if (!userString) return alert("Giriş yapmalısın!");
+            if (!userString) return alert("Beğenmek için giriş yapmalısın komutanım!");
             const user = JSON.parse(userString);
 
             const icon = document.getElementById('likeIcon');
             const text = document.getElementById('likeText');
             const btn = document.getElementById('likeBtn');
-            const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
-            const isLiked = icon.style.fill !== "none";
 
-            if (!isLiked) {
-                icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63";
-                if (text) { text.innerText = "Beğendin"; text.style.color = "#e91e63"; }
-                if (btn) btn.style.borderColor = "#e91e63";
-            } else {
-                icon.style.fill = "none"; icon.style.stroke = "currentColor";
-                if (text) { text.innerText = "Beğen"; text.style.color = "var(--ink)"; }
-                if (btn) btn.style.borderColor = "var(--line)";
-            }
+            if (icon) icon.style.transform = 'scale(0.8)';
 
             try {
-                await fetch(`${API_BASE}/save`, {
+                // 🔥 DİKKAT: /books/ yerine /posts/ kullanıyoruz!
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}/like`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: user.name || user.username,
-                        type: currentType,
-                        itemId: currentRelatedId,
-                        title: pageTitle
-                    })
+                    body: JSON.stringify({ username: user.username })
                 });
-            } catch (e) { console.error(e); }
+
+                if (res.ok) {
+                    const data = await res.json();
+
+                    if (icon) {
+                        icon.style.transform = 'scale(1.2)';
+                        setTimeout(() => icon.style.transform = 'scale(1)', 200);
+                    }
+
+                    if (data.hasLiked) {
+                        icon.style.fill = "#e91e63";
+                        icon.style.stroke = "#e91e63";
+                        btn.style.borderColor = "#e91e63";
+                        btn.style.color = "#e91e63";
+                        btn.style.background = "rgba(233, 30, 99, 0.08)";
+                    } else {
+                        icon.style.fill = "none";
+                        icon.style.stroke = "currentColor";
+                        btn.style.borderColor = "var(--line)";
+                        btn.style.color = "var(--ink)";
+                        btn.style.background = "transparent";
+                    }
+
+                    text.innerText = `${data.likesCount} Beğeni`;
+                }
+            } catch (e) {
+                console.error("Beğeni gönderme hatası:", e);
+            }
         }
 
-        async function checkLikeStatus() {
-            const userString = localStorage.getItem('user');
-            if (!userString || !document.getElementById('likeBtn')) return;
-            const user = JSON.parse(userString);
+        // ==========================================
+        // 🔥 KİMLER BEĞENDİ SİSTEMİ 🔥
+        // ==========================================
+        async function showLikers() {
+            const modal = document.getElementById('likersModal');
+            const list = document.getElementById('likersList');
+
+            // Yükleniyor animasyonu
+            list.innerHTML = '<li style="text-align:center; color:var(--text-muted, #888); padding:20px 0;"><i class="ph-bold ph-spiral"></i> Yükleniyor...</li>';
+
+            // Modalı ekranda göster
+            modal.style.display = 'flex';
+            setTimeout(() => modal.style.opacity = '1', 10);
 
             try {
-                const res = await fetch(`${API_BASE}/profile/saved/${user.name || user.username}`);
+                // 🔥 DİKKAT: Eğer book.html'deysen burayı /books/ yapmayı unutma! (Şu an posts için)
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`);
                 if (res.ok) {
-                    const items = await res.json();
-                    if (items.some(i => i.itemId === currentRelatedId)) {
-                        const icon = document.getElementById('likeIcon');
-                        const text = document.getElementById('likeText');
-                        const btn = document.getElementById('likeBtn');
-                        if (icon) { icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63"; }
-                        if (text) { text.innerText = "Beğendin"; text.style.color = "#e91e63"; }
-                        if (btn) btn.style.borderColor = "#e91e63";
+                    const data = await res.json();
+                    list.innerHTML = ''; // Listeyi temizle
+
+                    // Eğer kimse beğenmemişse (veya liste boşsa)
+                    if (!data.likes || data.likes.length === 0) {
+                        list.innerHTML = '<li style="text-align:center; color:var(--text-muted, #888); padding:20px 0;">Henüz kimse beğenmemiş. İlk beğenen sen ol!</li>';
+                        return;
                     }
+
+                    // İsimleri listeye şık bir şekilde bas
+                    data.likes.forEach(user => {
+                        list.innerHTML += `
+                <li style="padding:12px 0; border-bottom:1px solid var(--line, #333); color:var(--ink, #fff); font-weight:600; display:flex; align-items:center; gap:10px;">
+                    <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#111; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
+                        ${user.charAt(0).toUpperCase()} </div>
+                    ${user}
+                </li>`;
+                    });
                 }
-            } catch (e) { console.error(e); }
+            } catch (err) {
+                list.innerHTML = '<li style="text-align:center; color:#e91e63; padding:20px 0;">Bağlantı hatası!</li>';
+            }
+        }
+
+        function closeLikersModal() {
+            const modal = document.getElementById('likersModal');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.style.display = 'none', 300);
         }
 
         async function shareContent() {

@@ -87,4 +87,42 @@ router.put("/:id", async (req, res) => {
     }
 });
 
+// 🔥 BLOG BEĞENİ MOTORU (BALYOZ VERSİYONU) 🔥
+router.post("/:id/like", async (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) return res.status(400).json({ message: "Kullanıcı adı gerekli!" });
+
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: "Yazı bulunamadı" });
+
+        // Eski verileri temizleyen sistem
+        let currentLikes = Array.isArray(post.likes) ? post.likes : [];
+        const hasLiked = currentLikes.includes(username);
+
+        if (hasLiked) {
+            currentLikes = currentLikes.filter(user => user !== username);
+        } else {
+            currentLikes.push(username);
+        }
+
+        // Balyoz vuruşu ile güncelliyoruz
+        await Post.findByIdAndUpdate(
+            req.params.id,
+            { $set: { likes: currentLikes } },
+            { new: true }
+        );
+
+        res.json({
+            message: hasLiked ? "Beğeni geri alındı" : "Yazı beğenildi",
+            likesCount: currentLikes.length,
+            hasLiked: !hasLiked
+        });
+
+    } catch (err) {
+        console.error("❌ BLOG BEĞENİ HATASI:", err);
+        res.status(500).json({ message: "Beğeni işlemi başarısız oldu." });
+    }
+});
+
 module.exports = router;
