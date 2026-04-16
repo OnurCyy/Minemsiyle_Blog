@@ -37,6 +37,14 @@ const BookSchema = new mongoose.Schema({
         type: [String],
         default: []
     },
+    views: {
+        type: Number,
+        default: 0
+    },
+    addedBy: {
+        type: String,
+        default: "Anonim"
+    },
     title: {
         type: String
     },

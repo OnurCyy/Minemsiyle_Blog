@@ -23,11 +23,20 @@ router.get("/:id", async (req, res) => {
 // 3. KİTAP EKLE (İŞTE BURASI DEĞİŞTİ 🛠️)
 router.post("/", async (req, res) => {
     try {
-        // 👇 Eskiden burada parantez içinde tek tek seçiyorduk.
-        // Artık "req.body" diyerek hepsini direkt modele atıyoruz.
-        // Böylece "desc" (açıklama) arada kaynamıyor.
-        const newBook = new Book(req.body);
+        const { title, author, publisher, pageCount, desc, cover, tag, year, addedBy } = req.body;
 
+        // Yeni kitabı oluştururken ekleyeni de içine atıyoruz
+        const newBook = new Book({
+            title,
+            author,
+            publisher,
+            pageCount,
+            desc,
+            cover,
+            tag,
+            year,
+            addedBy: addedBy || "Anonim"
+        });
         const savedBook = await newBook.save();
         res.status(200).json(savedBook);
     } catch (err) { res.status(500).json(err); }
@@ -119,6 +128,25 @@ router.post("/:id/like", async (req, res) => {
     } catch (err) {
         console.error("❌ BEĞENİ MOTORU HATASI:", err);
         res.status(500).json({ message: "Beğeni işlemi başarısız oldu." });
+    }
+});
+
+// 🔥 V4.0 GÖRÜNTÜLENME SAYACI ROTASI 🔥
+router.post("/:id/view", async (req, res) => {
+    try {
+        // $inc komutu MongoDB'nin sihirli değneğidir. Sayıyı anında 1 artırır!
+        const item = await Book.findByIdAndUpdate(
+            req.params.id,
+            { $inc: { views: 1 } },
+            { new: true }
+        );
+
+        if (!item) return res.status(404).json({ message: "Bulunamadı" });
+
+        res.json({ views: item.views });
+    } catch (err) {
+        console.error("Görüntülenme sayacı hatası:", err);
+        res.status(500).json({ message: "Sayaç artırılamadı" });
     }
 });
 

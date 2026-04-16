@@ -327,17 +327,17 @@
         </div>
 
         <div id="audio-container">
-            <audio id="audio-rain" loop src="assets/sounds/Yagmur.mp3"></audio>
+            <audio id="audio-rain" loop src="/assets/sounds/Yagmur.mp3"></audio>
 
-            <audio id="audio-cafe" loop src="assets/sounds/Cafe.mp3"></audio>
+            <audio id="audio-cafe" loop src="/assets/sounds/Cafe.mp3"></audio>
 
-            <audio id="audio-fire" loop src="assets/sounds/KampAtesi.mp3"></audio>
+            <audio id="audio-fire" loop src="/assets/sounds/KampAtesi.mp3"></audio>
 
-            <audio id="audio-forest" loop src="assets/sounds/Doga.mp3"></audio>
+            <audio id="audio-forest" loop src="/assets/sounds/Doga.mp3"></audio>
 
-            <audio id="audio-night" loop src="assets/sounds/Gece.mp3"></audio>
+            <audio id="audio-night" loop src="/assets/sounds/Gece.mp3"></audio>
 
-            <audio id="audio-snow" loop src="assets/sounds/Kar.mp3"></audio>
+            <audio id="audio-snow" loop src="/assets/sounds/Kar.mp3"></audio>
         </div>
     </div>
 
@@ -349,6 +349,7 @@
     <script>
         const API_URL = "/api/posts";
         let allPostsData = [];
+        let discoveredSeries = new Set();
 
         // 1. TEMA AYARI
         const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
@@ -360,13 +361,24 @@
             localStorage.setItem('theme', theme);
         });
 
-        // 2. YAZILARI ÇEK
+        // 1. YAZILARI ÇEK VE SERİLERİ KEŞFET
         async function loadPosts() {
             const grid = document.getElementById("blogGrid");
             try {
                 const res = await fetch(API_URL);
                 const posts = await res.json();
                 allPostsData = posts.reverse();
+
+                // Siber Ajan İş Başında: Gelen yazılardaki serileri keşfet!
+                allPostsData.forEach(post => {
+                    if (post.seriesName && post.seriesName.trim() !== "") {
+                        discoveredSeries.add(post.seriesName.trim());
+                    }
+                });
+
+                // Bulunan serileri üstteki kategori çubuğuna buton olarak ekle
+                injectSeriesButtons();
+
                 renderPosts(allPostsData);
             } catch (err) {
                 console.error(err);
@@ -374,7 +386,28 @@
             }
         }
 
-        // 3. EKRANA BAS
+        // 2. OTOMATİK BUTON EKLEYİCİ
+        function injectSeriesButtons() {
+            const filterBar = document.querySelector('.filter-bar');
+            if (!filterBar) return;
+
+            // Bulunan her bir seri için yeni bir buton oluştur
+            discoveredSeries.forEach(seriesName => {
+                // Eğer bu isimde bir buton zaten varsa ekleme
+                const existingBtns = Array.from(filterBar.children).map(btn => btn.innerText.trim());
+                if (existingBtns.includes(seriesName)) return;
+
+                const newBtn = document.createElement('button');
+                newBtn.className = 'filter-btn';
+                // Butona tıklandığında hem kategori hem seri araması yapacak fonksiyona yönlendir
+                newBtn.onclick = function () { filterPosts(seriesName, this, true); };
+                newBtn.innerHTML = `📚 ${seriesName}`; // Başına kitap ikonu koyduk ki seri olduğu anlaşılsın
+
+                filterBar.appendChild(newBtn);
+            });
+        }
+
+        // 3. EKRANA BAS (Aynı kaldı)
         function renderPosts(posts) {
             const grid = document.getElementById("blogGrid");
 
@@ -392,6 +425,12 @@
                     excerpt = post.content ? post.content.substring(0, 110) + "..." : "";
                 }
 
+                // Eğer serisi varsa, kategorinin yanına seri adını da yazalım
+                let catText = post.category || 'Genel';
+                if (post.seriesName) {
+                    catText = `📚 ${post.seriesName} (Bölüm ${post.seriesOrder || 1})`;
+                }
+
                 return `
                 <article class="blog-card">
                     <a href="post.html?id=${post._id}" style="text-decoration:none; color:inherit; height:100%; display:flex; flex-direction:column;">
@@ -402,7 +441,7 @@
 
                         <div class="blog-content">
                             <div style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">
-                                ${post.category || 'Genel'} • ${date}
+                                ${catText} • ${date}
                             </div>
                             
                             <h3 style="font-size:1.4rem; margin-bottom:12px; line-height:1.3; color:var(--ink); font-weight:700;">${post.title}</h3>
@@ -421,17 +460,30 @@
             }).join('');
         }
 
-        // 4. FİLTRELE
-        function filterPosts(category, btn) {
+        // 4. GÜÇLENDİRİLMİŞ FİLTRELEME (Hem Kategori Hem Seri Arar)
+        function filterPosts(keyword, btn, isSeries = false) {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            if (category === 'all') {
+            if (keyword === 'all') {
                 renderPosts(allPostsData);
             } else {
-                const filtered = allPostsData.filter(post =>
-                    (post.category || "").toLowerCase() === category.toLowerCase()
-                );
+                const filtered = allPostsData.filter(post => {
+                    // Eğer seri butonuna tıklandıysa, sadece o serideki yazıları getir
+                    if (isSeries) {
+                        return (post.seriesName || "").toLowerCase() === keyword.toLowerCase();
+                    }
+                    // Normal kategori butonuna tıklandıysa, kategoride ara
+                    else {
+                        return (post.category || "").toLowerCase() === keyword.toLowerCase();
+                    }
+                });
+
+                // Bölümleri sıraya diz (Sadece seri filtrelemesi yapıldığında)
+                if (isSeries) {
+                    filtered.sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0));
+                }
+
                 renderPosts(filtered);
             }
         }

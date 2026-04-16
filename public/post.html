@@ -53,6 +53,34 @@
                 <p style="color:var(--muted);">Sayfa yükleniyor...</p>
             </div>
         </div>
+
+        <div id="seriesNavContainer"
+            style="display:none; margin: 40px 0 20px 0; padding: 25px; background: rgba(192, 125, 86, 0.05); border: 1px solid var(--accent); border-radius: 12px; text-align: center;">
+
+            <h4 id="seriesTitle"
+                style="margin-top: 0; color: var(--accent); font-family: Merriweather, serif; margin-bottom: 20px; font-size: 1.2rem;">
+                📚 Seri Adı Gelecek
+            </h4>
+
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+
+                <a id="prevSeriesBtn" href="#"
+                    style="display:none; flex: 1; text-align: center; text-decoration: none; padding: 12px 20px; border-radius: 50px; background: var(--bg-card); border: 1px solid var(--line); color: var(--ink); font-weight: 600; transition: all 0.3s;"
+                    onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'; this.style.transform='translateX(-5px)';"
+                    onmouseout="this.style.borderColor='var(--line)'; this.style.color='var(--ink)'; this.style.transform='translateX(0)';">
+                    <i class="ph-bold ph-arrow-left"></i> Önceki Bölüm
+                </a>
+
+                <a id="nextSeriesBtn" href="#"
+                    style="display:none; flex: 1; text-align: center; text-decoration: none; padding: 12px 20px; border-radius: 50px; background: var(--bg-card); border: 1px solid var(--line); color: var(--ink); font-weight: 600; transition: all 0.3s;"
+                    onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'; this.style.transform='translateX(5px)';"
+                    onmouseout="this.style.borderColor='var(--line)'; this.style.color='var(--ink)'; this.style.transform='translateX(0)';">
+                    Sonraki Bölüm <i class="ph-bold ph-arrow-right"></i>
+                </a>
+
+            </div>
+        </div>
         <div class="blog-footer">
             <div class="action-buttons" style="display: flex; flex-wrap: wrap; gap: 15px; margin: 20px 0;">
 
@@ -103,6 +131,12 @@
                     <i class="ph-bold ph-pencil-simple"></i>
                     <span>Yazıyı Düzenle</span>
                 </button>
+
+                <div
+                    style="display:flex; align-items:center; gap:6px; color:var(--text-muted, #888); font-size:0.95rem; font-weight:600; margin-left:auto;">
+                    <i class="ph-bold ph-eye" style="font-size: 1.2rem;"></i>
+                    <span id="viewCountText">0 Okunma</span>
+                </div>
 
             </div>
         </div>
@@ -228,6 +262,11 @@
                 <input type="text" id="editTitle" placeholder="Yazı Başlığı"
                     style="width:100%; padding:14px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:10px; font-family: Merriweather, serif;">
             </div>
+
+            <input type="text" id="editSeriesName" placeholder="Seri Adı (Örn: Avrupa Turu Anıları)"
+                style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--bg); border: 1px solid var(--line); color: var(--ink); border-radius: 8px;">
+            <input type="number" id="editSeriesOrder" placeholder="Bu serinin kaçıncı bölümü? (Örn: 1)"
+                style="width: 100%; padding: 10px; margin-bottom: 15px; background: var(--bg); border: 1px solid var(--line); color: var(--ink); border-radius: 8px;">
 
             <div style="margin-bottom:25px;">
                 <label for="editContent"
@@ -775,6 +814,8 @@
         async function submitEdit() {
             const newTitle = document.getElementById('editTitle').value.trim();
             const newContent = document.getElementById('editContent').value.trim();
+            const newSeriesName = document.getElementById('editSeriesName').value.trim();
+            const newSeriesOrder = parseInt(document.getElementById('editSeriesOrder').value) || 0;
 
             if (!newTitle || !newContent) return alert("Boş alan bırakma komutanım!");
 
@@ -782,7 +823,14 @@
                 const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: newTitle, content: newContent })
+                    body: JSON.stringify({
+                        title: newTitle,
+                        content: newContent,
+                        category: newCategory,
+                        image: currentModalImageBase64,
+                        seriesName: newSeriesName,
+                        seriesOrder: newSeriesOrder
+                    })
                 });
 
                 if (res.ok) {
@@ -944,6 +992,62 @@
             }
         }
 
+        // ==========================================
+        // 🔥 GÖRÜNTÜLENME SAYACI TETİKLEYİCİSİ 🔥
+        // ==========================================
+        async function incrementView() {
+            try {
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}/view`, { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    const viewText = document.getElementById('viewCountText');
+                    if (viewText) viewText.innerText = `${data.views} Okunma`;
+                }
+            } catch (e) {
+                console.error("Görüntülenme kaydedilemedi:", e);
+            }
+        }
+
+        // Sayfa yüklenir yüklenmez sayacı 1 artır!
+        incrementView();
+
+        // ==========================================
+        // 🔥 V5.0 BLOG SERİSİ RADARI 🔥
+        // ==========================================
+        async function loadSeriesNavigation() {
+            try {
+                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`);
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // Eğer yazının bir serisi varsa ve numarası 0'dan büyükse vitrini aç!
+                    if (data.seriesName && data.seriesOrder > 0) {
+                        const container = document.getElementById('seriesNavContainer');
+                        const title = document.getElementById('seriesTitle');
+                        const prevBtn = document.getElementById('prevSeriesBtn');
+                        const nextBtn = document.getElementById('nextSeriesBtn');
+
+                        container.style.display = 'block';
+                        title.innerText = `📚 ${data.seriesName} (Bölüm ${data.seriesOrder})`;
+
+                        // Önceki bölüm bulunduysa butonu göster ve linkini ver
+                        if (data.prevPost) {
+                            prevBtn.style.display = 'inline-block';
+                            prevBtn.href = `post.html?id=${data.prevPost._id}`; // Sayfa ismin post.html değilse burayı düzelt
+                        }
+
+                        // Sonraki bölüm bulunduysa butonu göster ve linkini ver
+                        if (data.nextPost) {
+                            nextBtn.style.display = 'inline-block';
+                            nextBtn.href = `post.html?id=${data.nextPost._id}`;
+                        }
+                    }
+                }
+            } catch (e) { console.error("Seri navigasyonu yüklenemedi:", e); }
+        }
+
+        // Sayfa yüklendiğinde radarı çalıştır
+        document.addEventListener("DOMContentLoaded", loadSeriesNavigation);
     </script>
 </body>
 

@@ -69,6 +69,12 @@
                 <span>Kitabı Düzenle</span>
             </button>
 
+            <div
+                style="display:flex; align-items:center; gap:6px; color:var(--text-muted, #888); font-size:0.95rem; font-weight:600; margin-left:auto;">
+                <i class="ph-bold ph-eye" style="font-size: 1.2rem;"></i>
+                <span id="viewCountText">0 Okunma</span>
+            </div>
+
         </div>
 
         <div onclick="showLikers()"
@@ -997,6 +1003,25 @@
                 btn.innerHTML = oldBtnHTML; btn.disabled = false;
             }
         }
+
+        // ==========================================
+        // 🔥 GÖRÜNTÜLENME SAYACI TETİKLEYİCİSİ 🔥
+        // ==========================================
+        async function incrementView() {
+            try {
+                const res = await fetch(`${API_BASE}/books/${currentRelatedId}/view`, { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    const viewText = document.getElementById('viewCountText');
+                    if (viewText) viewText.innerText = `${data.views} Okunma`;
+                }
+            } catch (e) {
+                console.error("Görüntülenme kaydedilemedi:", e);
+            }
+        }
+
+        // Sayfa yüklenir yüklenmez sayacı 1 artır!
+        incrementView();
     </script>
 </body>
 

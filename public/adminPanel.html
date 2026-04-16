@@ -930,6 +930,11 @@
             border-left-color: #84fab0;
         }
 
+        .act-book {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border-left-color: #f6d365;
+        }
+
         .activity-details {
             flex: 1;
         }
@@ -1112,7 +1117,7 @@
         <div id="page-dashboard" class="tab-content" style="display: block;">
             <header>
                 <div>
-                    <h1>Hoş geldin, Yönetici 👋</h1>
+                    <h1 id="adminWelcomeText">Hoş geldin, Yönetici 👋</h1>
                     <div class="breadcrumb">Panel Özeti ve İstatistikler</div>
                 </div>
             </header>
@@ -1183,6 +1188,14 @@
                         <label class="form-label">Kapak Resmi URL</label>
                         <input type="text" id="postImage" class="form-control"
                             placeholder="Resim Linkini Yapıştır (https://...)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Seri Adı (Opsiyonel)</label>
+                        <input type="text" id="seriesName" class="form-control" placeholder="Örn: Avrupa Turu">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bölüm No</label>
+                        <input type="number" id="seriesOrder" class="form-control" placeholder="Örn: 1">
                     </div>
                     <div class=" form-group form-grid full">
                         <label class="form-label">Kısa Özet</label>
@@ -1528,14 +1541,19 @@
             }, 3000);
         }
 
-        // GİRİŞ KONTROLLERİ
+        // GİRİŞ KONTROLLERİ VE İSİM YAZDIRMA
         window.onload = () => {
             const token = localStorage.getItem('userToken');
             const role = localStorage.getItem('userRole');
             if (token && role === 'admin') {
                 document.getElementById('login-screen').style.display = 'none';
-                // Dashboard açılınca kullanıcı sayısını güncelle
                 loadUsersForStat();
+
+                // 🔥 KİMLİK DOĞRULAMA (İSMİNİ YAZDIR) 🔥
+                const userObj = JSON.parse(localStorage.getItem('user'));
+                if (userObj && userObj.username) {
+                    document.getElementById('adminWelcomeText').innerText = `Hoş geldin, ${userObj.username} 👋`;
+                }
             } else {
                 document.getElementById('login-screen').style.display = 'flex';
             }
@@ -1551,74 +1569,84 @@
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
+
                 if (res.ok && (data.user?.role === 'admin' || data.role === 'admin')) {
                     localStorage.setItem('userToken', data.token);
                     localStorage.setItem('userRole', 'admin');
+
+                    // 🔥 ZIRHLI KİMLİK KAYDI: Backend isim yollamasa bile emaili isme çevirip kaydet!
+                    const userData = data.user || data || {};
+                    if (!userData.username) userData.username = email.split('@')[0]; // onur@mail.com -> onur
+                    localStorage.setItem('user', JSON.stringify(userData));
+
                     showToast("Giriş Başarılı! Yönlendiriliyorsunuz...");
                     setTimeout(() => location.reload(), 1000);
                 } else { showToast("Yetkisiz giriş veya hatalı şifre!", "error"); }
             } catch (err) { showToast("Sunucu hatası oluştu.", "error"); }
-        });
 
-        // SEKME GEÇİŞLERİ
-        window.switchTab = (id, btn) => {
-            document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.menu-item').forEach(e => e.classList.remove('active'));
-            btn.classList.add('active');
-            if (id === 'users-section') loadUsers();
-        };
-
-        // --- BLOG YAYINLA BUTONU (TAM MANUEL KONTROL 🛠️) ---
-        document.getElementById('savePostBtn').addEventListener('click', async () => {
-            console.log("🚀 Yayınlama işlemi başladı...");
-
-            // 1. KUTULARI AL
-            // (Buradaki ID'lerin senin HTML'deki ID'lerle AYNI olduğundan emin ol)
-            const titleVal = document.getElementById('postTitle').value;
-            const categoryVal = document.getElementById('postCategory').value;
-            const contentVal = document.getElementById('postContent').value; // İçerik
-            const excerptVal = document.getElementById('postExcerpt').value; // Özet
-            const imageVal = document.getElementById('postImage').value;     // Resim URL
-
-            // 2. KONTROL ET (Konsola yazdırıyoruz ki boş mu gidiyor görelim)
-            console.log("📝 Başlık:", titleVal);
-            console.log("📝 İçerik (Uzunluk):", contentVal.length);
-            console.log("📝 Özet:", excerptVal);
-            console.log("📸 Resim:", imageVal);
-
-            // 3. PAKETLE (Hem 'image' hem 'cover' olarak gönderiyoruz, işi sağlama alıyoruz)
-            const postData = {
-                title: titleVal,
-                category: categoryVal || "Genel",
-                content: contentVal,  // Yazının kendisi (Burada veri olduğundan emin ol)
-                excerpt: excerptVal,  // Sen ne yazdıysan o. (Otomatik kısaltma YOK)
-                image: imageVal,
-                cover: imageVal,      // Backend bazen bunu istiyor
-                author: JSON.parse(localStorage.getItem('user'))?.name || "Anonim",
-                date: new Date()
+            // SEKME GEÇİŞLERİ
+            window.switchTab = (id, btn) => {
+                document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+                document.querySelectorAll('.menu-item').forEach(e => e.classList.remove('active'));
+                btn.classList.add('active');
+                if (id === 'users-section') loadUsers();
             };
+        },
+            // --- BLOG YAYINLA BUTONU (TAM MANUEL KONTROL 🛠️) ---
+            document.getElementById('savePostBtn').addEventListener('click', async () => {
+                console.log("🚀 Yayınlama işlemi başladı...");
 
-            // 4. GÖNDER
-            try {
-                const response = await fetch('/api/posts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(postData)
-                });
+                // 1. KUTULARI AL
+                const titleVal = document.getElementById('postTitle').value;
+                const categoryVal = document.getElementById('postCategory').value;
+                const contentVal = document.getElementById('postContent').value; // İçerik
+                const excerptVal = document.getElementById('postExcerpt').value; // Özet
+                const imageVal = document.getElementById('postImage').value;     // Resim URL
 
-                if (response.ok) {
-                    alert("✅ Yazı olduğu gibi kaydedildi!");
-                    // Yeni yazı denemen için sayfayı yeniliyorum
-                    location.reload();
-                } else {
-                    const err = await response.json();
-                    alert("Hata: " + err.error);
+                // 🔥 YENİ EKLENEN SERİ KUTULARI:
+                const seriesNameVal = document.getElementById('seriesName').value.trim();
+                const seriesOrderVal = parseInt(document.getElementById('seriesOrder').value) || 0;
+
+                // 🔥 KİMLİĞİ GARANTİYE AL
+                const localUser = JSON.parse(localStorage.getItem('user') || "{}");
+                const finalAuthor = localUser.username || localUser.name || "Yönetici";
+
+                // 2. PAKETLE (Seri bilgileri dahil edildi!)
+                const postData = {
+                    title: titleVal,
+                    category: categoryVal || "Genel",
+                    content: contentVal,
+                    excerpt: excerptVal,
+                    image: imageVal,
+                    cover: imageVal,
+                    seriesName: seriesNameVal,
+                    seriesOrder: seriesOrderVal,
+                    author: finalAuthor,
+                    date: new Date()
+                };
+
+                console.log("📤 Gönderilen Veri:", postData);
+
+                // 3. GÖNDER
+                try {
+                    const response = await fetch('/api/posts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(postData)
+                    });
+
+                    if (response.ok) {
+                        alert("✅ Yazı serisiyle birlikte kaydedildi!");
+                        location.reload();
+                    } else {
+                        const err = await response.json();
+                        alert("Hata: " + err.error);
+                    }
+                } catch (error) {
+                    alert("Sunucuya ulaşılamadı (Server kapalı olabilir).");
                 }
-            } catch (error) {
-                alert("Sunucuya ulaşılamadı (Server kapalı olabilir).");
-            }
-        });
+            }));
 
         // ===============================================
         // 📚 KİTAP YAYINLA BUTONU (SENİN MODELİNE UYUMLU ✅)
@@ -1651,22 +1679,21 @@
                 const tag = tagEl ? tagEl.value : "Roman";
                 const cover = imageURL !== "" ? imageURL : "https://via.placeholder.com/300x450?text=Kitap";
 
+
+                const localUser = JSON.parse(localStorage.getItem('user') || "{}");
+                const finalAuthor = localUser.username || localUser.name || "Yönetici";
+
                 // 3. PAKETLE (SENİN SCHEMA'NA GÖRE 🎯)
                 const bookData = {
                     title: title,
                     author: author,
                     publisher: publisher,
                     pageCount: pageCount,
-
-                    // 👇 KRİTİK NOKTA: Senin modelinde 'desc' yazıyor, 'review' değil!
                     desc: content,
-
-                    // 👇 Senin modelinde 'cover' yazıyor, 'image' değil!
                     cover: cover,
-
                     tag: tag,
-                    year: new Date().getFullYear(), // Otomatik bu yılı ekle
-                    addedBy: JSON.parse(localStorage.getItem('user'))?.name || "Admin"
+                    year: new Date().getFullYear(),
+                    addedBy: finalAuthor
                 };
 
                 console.log("📤 Gönderilen Kitap Verisi:", bookData);
@@ -1915,9 +1942,6 @@
                     }
                     badgesHTML += '</div>';
 
-                    // Durum HTML
-
-
                     const userId = user._id || user.id;
 
                     tr.innerHTML = `
@@ -2121,12 +2145,12 @@
         // 3. GENEL SİLME FONKSİYONU
         // --- SİLME İŞLEMLERİ (BAĞLANTILAR) ---
 
-        // HTML'deki buton buna tıklıyor: onclick="deletePost('...')"
+
         window.deletePost = function (id) {
             icerigiSil('posts', id);
         };
 
-        // Eğer kitap silme butonu ayrıysa: onclick="deleteBook('...')"
+
         window.deleteBook = function (id) {
             icerigiSil('books', id);
         };
@@ -2472,25 +2496,25 @@
 
         // 🕵️‍♂️ DEBUG MODLU SON HAREKETLER
         // --- GELİŞMİŞ HAREKET GEÇMİŞİ YÜKLEYİCİ ---
+        // 🕵️‍♂️ DEBUG MODLU SON HAREKETLER (KİTAPLAR EKLENDİ)
         async function loadRecentActivities() {
             const listContainer = document.querySelector('.recent-activities-list');
-            // HTML'deki listenin sınıfı 'recent-activities-list' olmalı (div veya ul)
-
             if (!listContainer) return;
 
             listContainer.innerHTML = '<div style="text-align:center; padding:20px;">Veriler analiz ediliyor... ⏳</div>';
 
             try {
-                // 1. Paralel İstek At (Hem Blogları Hem Kullanıcıları Çek)
-                const [postsRes, usersRes] = await Promise.all([
+                // 1. Paralel İstek At (Blog, Kullanıcı ve 🔥 KİTAPLARI Çek)
+                const [postsRes, usersRes, booksRes] = await Promise.all([
                     fetch('/api/posts'),
-                    fetch('/api/users')
+                    fetch('/api/users'),
+                    fetch('/api/books') // 🔥 KİTAPLAR RADARA GİRDİ
                 ]);
 
                 const posts = await postsRes.json();
                 const users = await usersRes.json();
+                const books = await booksRes.json(); // 🔥 KİTAP VERİSİ ALINDI
 
-                // 2. Verileri Ortak Bir Formata Çevir
                 let activities = [];
 
                 // Blogları Ekle
@@ -2499,9 +2523,21 @@
                         type: 'blog',
                         title: post.title,
                         author: post.author || 'Anonim',
-                        date: new Date(post.date),
-                        icon: '<i class="ph ph-article"></i>', // Phosphor Icons
+                        date: new Date(post.date || post.createdAt || Date.now()),
+                        icon: '<i class="ph ph-article"></i>',
                         desc: 'Yeni bir yazı yayınladı'
+                    });
+                });
+
+                // 🔥 Kitapları Ekle
+                books.forEach(book => {
+                    activities.push({
+                        type: 'book',
+                        title: book.title,
+                        author: book.addedBy || 'Yönetici',
+                        date: new Date(book.createdAt || Date.now()),
+                        icon: '<i class="ph ph-books"></i>',
+                        desc: 'Kütüphaneye kitap eklendi'
                     });
                 });
 
@@ -2511,7 +2547,7 @@
                         type: 'user',
                         title: user.username,
                         author: 'Sistem',
-                        date: new Date(user.createdAt || Date.now()), // createdAt yoksa şimdiyi al
+                        date: new Date(user.createdAt || Date.now()),
                         icon: '<i class="ph ph-user-plus"></i>',
                         desc: 'Aramıza katıldı'
                     });
@@ -2527,13 +2563,14 @@
                 let html = '<div class="activity-list">';
 
                 recentActivities.forEach(act => {
-                    // Tarihi güzelleştir (Örn: "Az önce" veya "2 saat önce")
                     const timeAgo = new Date(act.date).toLocaleString('tr-TR', {
                         hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short'
                     });
 
-                    // Renk sınıfını belirle
-                    const colorClass = act.type === 'blog' ? 'act-blog' : 'act-user';
+                    // 🔥 Renk sınıfını belirle (Kitap eklendi)
+                    let colorClass = 'act-user';
+                    if (act.type === 'blog') colorClass = 'act-blog';
+                    if (act.type === 'book') colorClass = 'act-book';
 
                     html += `
             <div class="activity-item">
@@ -2544,7 +2581,7 @@
                     <span class="activity-title">${act.title}</span>
                     <div class="activity-meta">
                         <span>${act.desc}</span>
-                        ${act.type === 'blog' ? `<span>• ✍️ ${act.author}</span>` : ''}
+                        ${(act.type === 'blog' || act.type === 'book') ? `<span>• ✍️ ${act.author}</span>` : ''}
                     </div>
                 </div>
                 <span class="activity-time">${timeAgo}</span>

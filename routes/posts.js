@@ -1,27 +1,36 @@
 const router = require("express").Router();
 const Post = require("../models/Post");
 
-// 1. TEK KİTAP GETİR (GET /:id)
+// 🔥 TEK BİR YAZIYI GETİRME ROTASI (SERİ RADARI EKLENDİ) 🔥
 router.get("/:id", async (req, res) => {
     try {
-        console.log("👉 İSTEK GELDİ! Aranan ID:", req.params.id);
-
-        // Veritabanında bu ID var mı diye bakıyoruz
         const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: "Yazı bulunamadı" });
 
-        // Eğer BULAMAZSA
-        if (!post) {
-            console.log("❌ Veritabanı 'Böyle bir kayıt YOK' dedi.");
-            return res.status(404).json("Kitap bulunamadı!");
+        // Veritabanı objesini saf JavaScript objesine çeviriyoruz ki içine yeni şeyler ekleyebilelim
+        const postData = post.toObject();
+
+        // 🕵️‍♂️ SERİ RADARI DEVREDE
+        if (postData.seriesName && postData.seriesOrder > 0) {
+            // Bir önceki bölümü bul (Aynı seri adı, 1 numara eksiği)
+            postData.prevPost = await Post.findOne(
+                { seriesName: postData.seriesName, seriesOrder: postData.seriesOrder - 1 },
+                '_id title' // Sadece ID ve Başlığını al (boşuna veriyi şişirme)
+            );
+
+            // Bir sonraki bölümü bul (Aynı seri adı, 1 numara fazlası)
+            postData.nextPost = await Post.findOne(
+                { seriesName: postData.seriesName, seriesOrder: postData.seriesOrder + 1 },
+                '_id title'
+            );
         }
 
-        // Eğer BULURSA
-        console.log("✅ KİTAP BULUNDU:", post.title);
-        res.status(200).json(post);
+        // Ön cepheye yazıyı (varsa önceki/sonraki bölüm bilgileriyle) yolla
+        res.json(postData);
 
     } catch (err) {
-        console.log("💥 SUNUCU HATASI:", err.message);
-        res.status(500).json(err);
+        console.error("Yazı getirme hatası:", err);
+        res.status(500).json({ message: "Sunucu hatası" });
     }
 });
 
@@ -38,9 +47,22 @@ router.get("/", async (req, res) => {
 // 3. YAZI EKLE (Admin Paneli İçin)
 router.post("/", async (req, res) => {
     try {
-        const newPost = new Post(req.body);
+
+        const { title, content, image, category, seriesName, seriesOrder, author } = req.body;
+
+
+        const newPost = new Post({
+            title,
+            content,
+            image,
+            category,
+            seriesName: seriesName || "",
+            seriesOrder: seriesOrder || 0,
+            author: author || "Anonim"
+        });
+
         const savedPost = await newPost.save();
-        res.status(200).json(savedPost);
+        res.status(201).json(savedPost);
     } catch (err) {
         res.status(500).json(err);
     }
@@ -70,14 +92,12 @@ router.delete("/:id", async (req, res) => {
 // DÜZENLEME
 router.put("/:id", async (req, res) => {
     try {
-        const { title, content, image, category } = req.body;
-        // Sadece giriş yapmış olan OnurCy (yani admin) düzenleyebilsin
-
+        const { title, content, image, category, seriesName, seriesOrder } = req.body;
 
         const updatedPost = await Post.findByIdAndUpdate(
             req.params.id,
-            { title, content, image, category },
-            { new: true } // Güncellenmiş halini geri döndür
+            { title, content, image, category, seriesName, seriesOrder },
+            { new: true }
         );
 
         if (!updatedPost) return res.status(404).json({ message: "Yazı bulunamadı" });
@@ -120,9 +140,30 @@ router.post("/:id/like", async (req, res) => {
             hasLiked: !hasLiked
         });
 
+
+
     } catch (err) {
         console.error("❌ BLOG BEĞENİ HATASI:", err);
         res.status(500).json({ message: "Beğeni işlemi başarısız oldu." });
+    }
+});
+
+// 🔥 V4.0 GÖRÜNTÜLENME SAYACI ROTASI 🔥
+router.post("/:id/view", async (req, res) => {
+    try {
+        // $inc komutu MongoDB'nin sihirli değneğidir. Sayıyı anında 1 artırır!
+        const item = await Post.findByIdAndUpdate(
+            req.params.id,
+            { $inc: { views: 1 } }, // Görüntülenmeyi 1 artır
+            { new: true }
+        );
+
+        if (!item) return res.status(404).json({ message: "Bulunamadı" });
+
+        res.json({ views: item.views });
+    } catch (err) {
+        console.error("Görüntülenme sayacı hatası:", err);
+        res.status(500).json({ message: "Sayaç artırılamadı" });
     }
 });
 

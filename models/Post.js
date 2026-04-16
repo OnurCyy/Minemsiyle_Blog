@@ -44,8 +44,20 @@ const PostSchema = new mongoose.Schema({
         type: [String],
         default: []
     },
+    views: {
+        type: Number,
+        default: 0
+    },
     title: {
         type: String
+    },
+    seriesName: {
+        type: String,
+        default: ""
+    },
+    seriesOrder: {
+        type: Number,
+        default: 0
     },
     createdAt: {
         type: Date,
