@@ -28,6 +28,8 @@
         href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/main.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body id="top">
@@ -345,22 +347,25 @@
         </div>
 
         <div id="audio-container">
-            <audio id="audio-rain" loop src="assets/sounds/yağmur.mp3"></audio>
+            <audio id="audio-rain" loop src="/assets/sounds/Yagmur.mp3"></audio>
 
-            <audio id="audio-cafe" loop src="assets/sounds/Cafe.mp3"></audio>
+            <audio id="audio-cafe" loop src="/assets/sounds/Cafe.mp3"></audio>
 
-            <audio id="audio-fire" loop src="assets/sounds/Kamp ateşi.mp3"></audio>
+            <audio id="audio-fire" loop src="/assets/sounds/KampAtesi.mp3"></audio>
 
-            <audio id="audio-forest" loop src="assets/sounds/Doğa.mp3"></audio>
+            <audio id="audio-forest" loop src="/assets/sounds/Doga.mp3"></audio>
 
-            <audio id="audio-night" loop src="assets/sounds/Gece.mp3"></audio>
+            <audio id="audio-night" loop src="/assets/sounds/Gece.mp3"></audio>
 
-            <audio id="audio-snow" loop src="assets/sounds/Kar.mp3"></audio>
+            <audio id="audio-snow" loop src="/assets/sounds/Kar.mp3"></audio>
         </div>
     </div>
 
-    <script src="js/main.js"></script>
-    <script src="js/thema.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/thema.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/chat-component.js"></script>
+
 </body>
 
 

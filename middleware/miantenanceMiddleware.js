@@ -5,6 +5,7 @@ const maintenanceMiddleware = async (req, res, next) => {
 
     if (!settings || !settings.maintenanceMode) {
         return next();
+        sendToDiscord('SYSTEM', `🛠️ Site şu an **Bakım Moduna** alındı!`, "Admin");
     }
 
     if (req.user && req.user.role === "admin") {

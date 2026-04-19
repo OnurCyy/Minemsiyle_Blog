@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const bcrypt = require("bcryptjs");
+const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 
 // TEST ROTASI
@@ -38,7 +38,7 @@ router.post("/register", async (req, res) => {
         });
 
         await newUser.save();
-
+        // sendToDiscord('AUTH', `🌟 Yeni bir maceracı kütüphaneye katıldı! Hoş geldin **${user.username}**`, user.username);
         res.status(201).json({
             message: "Kullanıcı başarıyla oluşturuldu.",
         });
@@ -119,17 +119,22 @@ router.post("/reset-password", async (req, res) => {
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ message: "Bu e-posta adresiyle kayıtlı kullanıcı yok." });
+            return res.status(404).json({ message: "Kullanıcı bulunamadı." });
         }
 
-        // Yeni şifreyi şifrele (Hash)
+        // 🛡️ Eğer modelde (User.js) hasleme yapıyorsan buradaki hash kısmını SİL.
+        // Ama modelde yoksa bu kalsın:
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
 
+        // Kodu temizle (Eğer resetCode kullanıyorsan)
+        user.resetCode = undefined;
+
         await user.save();
 
-        res.json({ message: "Şifren başarıyla yenilendi! Yeni şifrenle giriş yapabilirsin. 🔑" });
+        res.json({ message: "Şifren başarıyla yenilendi! 🔑" });
     } catch (error) {
+        console.error("Reset Hatası:", error);
         res.status(500).json({ message: "Şifre sıfırlama hatası." });
     }
 });

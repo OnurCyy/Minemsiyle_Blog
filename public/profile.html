@@ -6,12 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Okur Kimliğim | Mümine'msi</title>
 
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-
-    <link rel="stylesheet" href="/css/profile.css">
-    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
-
+    <!-- ========= Tema: Sayfa yüklenmeden önce темаyı uygula ========= -->
     <script>
         (function () {
             var savedTheme = localStorage.getItem('theme') || 'dark';
@@ -19,16 +14,26 @@
             if (savedTheme === 'light') document.documentElement.classList.add('light-mode');
         })();
     </script>
+
+    <!-- ========= Harici Kütüphaneler ========= -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+
+    <!-- ========= Stil Dosyaları ========= -->
+    <link rel="stylesheet" href="/css/profile.css">
+    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
 </head>
 
 <body>
+
+    <!-- ========= HEADER: Logo, Navigasyon, Tema Butonu ========= -->
     <header>
         <div class="container">
             <a class="brand" href="/" aria-label="Ana Sayfa">
                 <img src="/assets/images/Logo.png" alt="Minemsiyle.com">
             </a>
             <nav class="nav-links">
-                <a href="/blog.html">Kütüphane</a>
+                <a href="/">Kütüphane</a>
             </nav>
             <div class="switch-container">
                 <label class="theme-switch">
@@ -42,12 +47,15 @@
         </div>
     </header>
 
+    <!-- ========= ANA LAYOUT: Sol Sidebar + Sağ İçerik ========= -->
     <div class="profile-layout">
 
+        <!-- ========= SOL PANEL: Profil Kartı ========= -->
         <aside class="profile-sidebar">
             <div class="profile-card">
-                <div class="card-header"></div>
 
+                <!-- ========= Avatar Alanı ========= -->
+                <div class="card-header"></div>
                 <div class="avatar-container">
                     <img id="avatarDisplay" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar">
                     <input type="file" id="avatarInput" accept="image/*" style="display: none;">
@@ -56,15 +64,15 @@
                     </label>
                 </div>
 
+                <!-- ========= Kullanıcı Bilgileri ========= -->
                 <h3 id="displayName">Kullanıcı Aranıyor...</h3>
                 <p class="user-handle" id="displayEmail">@...</p>
-
                 <div class="user-tags" id="userTagsContainer" style="margin-top: 10px;"></div>
-
                 <div class="bio-quote">
                     <p id="displayBio">"Henüz bir dize yazılmamış..."</p>
                 </div>
 
+                <!-- ========= İstatistikler ========= -->
                 <div class="profile-stats">
                     <div class="stat-box">
                         <span class="stat-num" id="statSaved">0</span>
@@ -76,16 +84,21 @@
                     </div>
                 </div>
 
+                <!-- ========= Admin Panel Butonu (JS ile doldurulur) ========= -->
                 <div id="adminPanelBtnArea" style="padding: 10px;"></div>
 
-                <div class="actions" style="display: none; padding: 15px; color: aliceblue;">
+                <!-- ========= Çıkış Butonu (JS ile görünür yapılır) ========= -->
+                <div class="actions" id="logoutArea" style="display: none; padding: 15px;">
                     <button class="btn-full logout-btn" onclick="logout()">Güvenli Çıkış 🚪</button>
                 </div>
+
             </div>
         </aside>
 
+        <!-- ========= SAĞ PANEL: Sekmeler ve İçerik ========= -->
         <main class="profile-main">
 
+            <!-- ========= Sekme Butonları ========= -->
             <div class="content-tabs">
                 <button class="content-tab active" onclick="switchProfileTab('saved', this)">
                     <i class="ph-fill ph-bookmark-simple"></i> Kaydettiklerim
@@ -98,6 +111,7 @@
                 </button>
             </div>
 
+            <!-- ========= Kaydettiklerim Sekmesi ========= -->
             <div id="saved-tab" class="tab-pane active-pane">
                 <div class="empty-state">
                     <i class="ph-fill ph-books"></i>
@@ -105,6 +119,7 @@
                 </div>
             </div>
 
+            <!-- ========= Yorumlarım Sekmesi ========= -->
             <div id="comments-tab" class="tab-pane">
                 <div class="empty-state">
                     <i class="ph-fill ph-chat-teardrop-text"></i>
@@ -112,25 +127,33 @@
                 </div>
             </div>
 
+            <!-- ========= Ayarlar Sekmesi ========= -->
             <div id="settings-tab" class="tab-pane">
                 <h3 class="pane-title">Profili Düzenle</h3>
                 <form id="profileSettingsForm" onsubmit="event.preventDefault(); saveSettings();">
+
+                    <!-- Kullanıcı Adı -->
                     <div class="input-group">
                         <label>Kullanıcı Adı</label>
                         <input type="text" id="editUsername" placeholder="Yeni kullanıcı adın">
                     </div>
+
+                    <!-- Biyografi -->
                     <div class="input-group">
                         <label>Biyografi</label>
                         <textarea id="editBio" placeholder="Kendinden bahset..." rows="3"></textarea>
                     </div>
+
+                    <!-- Şifre Değiştir Butonu -->
                     <div class="input-group">
                         <button type="button" class="btn-outline" onclick="togglePasswordSection()">
                             <i class="ph-fill ph-lock-key"></i> Şifremi Değiştir
                         </button>
                     </div>
 
+                    <!-- Şifre Alanı (Gizli, butona basınca açılır) -->
                     <div id="passwordSection"
-                        style="display: none; background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px dashed var(--border); margin-bottom: 15px;">
+                        style="display: none; background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px dashed var(--line); margin-bottom: 15px;">
                         <div class="input-group">
                             <label>Yeni Şifre</label>
                             <input type="password" id="newPass" placeholder="Yeni şifreni gir">
@@ -140,16 +163,19 @@
                             <input type="password" id="confirmPass" placeholder="Yeni şifreni tekrar gir">
                         </div>
                     </div>
+
+                    <!-- Kaydet Butonu -->
                     <button type="submit" class="btn-full" style="margin-top: 15px;">Değişiklikleri Kaydet</button>
                 </form>
             </div>
+
         </main>
     </div>
 
+    <!-- ========= MODAL: Avatar Kırpma (Cropper) ========= -->
     <div class="modal-overlay" id="cropperModal">
         <div class="modal-box" style="max-width: 500px;">
             <h2 style="margin-bottom: 15px; color: var(--accent);">Fotoğrafı Ayarla</h2>
-            <div class="preview-box"></div>
             <div class="cropper-container-box">
                 <img id="imageToCrop" src="" alt="Resim" style="max-width: 100%;">
             </div>
@@ -160,8 +186,14 @@
         </div>
     </div>
 
+    <!-- ========= Harici JS Kütüphaneleri ========= -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="js/profile.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- ========= Sayfa JS Dosyaları ========= -->
+    <script src="/js/profile.js"></script>
+    <script src="/js/chat-component.js"></script>
+
 </body>
 
 </html>

@@ -1,3 +1,6 @@
+/* ============================================================
+   0. GENEL SIFIRLAMA VE TEMEL AYARLAR
+   ============================================================ */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -13,11 +16,12 @@ body {
     min-height: 100vh;
 }
 
-/* Ana Kapsayıcıyı Sabitleyelim */
+/* ============================================================
+   1. ANA KAPSAYICI (AUTH CONTAINER)
+   ============================================================ */
 .auth-container {
     background: #1e1e1e;
     padding: 80px 30px 40px 30px;
-    /* Üstten boşluğu artırdık */
     border-radius: 12px;
     width: 100%;
     max-width: 400px;
@@ -25,14 +29,14 @@ body {
     border: 1px solid #333;
     border-left: 5px solid #d4a373;
     position: relative;
-    /* Ayraçlar buna göre hizalanacak */
     display: flex;
     flex-direction: column;
     min-height: 550px;
-    /* Formlar değiştikçe kutu boyu oynamasın */
 }
 
-/* Ayraçların Konumunu Netleştirelim */
+/* ============================================================
+   2. SEKME NAVİGASYONU (TABS)
+   ============================================================ */
 .auth-tabs {
     display: flex;
     gap: 10px;
@@ -40,13 +44,11 @@ body {
     top: 0;
     left: 30px;
     z-index: 10;
-    /* En üstte görünsünler */
 }
 
 .auth-tab {
     padding: 10px 15px;
     height: 45px;
-    /* Sabit yükseklik */
     background: #2a2a2a;
     color: #888;
     border: none;
@@ -59,41 +61,22 @@ body {
     background: #d4a373;
     color: #1a1a1a;
     height: 60px;
-    /* Aktif olan aşağı sarksın */
+    font-weight: bold;
 }
 
-/* Formların Birbirini Ezmesini Engelleyelim */
+/* ============================================================
+   3. FORM YAPILANDIRMASI
+   ============================================================ */
 form {
     width: 100%;
     display: none;
-    /* Başlangıçta gizli */
 }
 
 form.active-form {
     display: block;
-    /* Sadece aktif olan görünsün */
 }
 
-/* "Ana Sayfaya Dön" Linkini En Alta Sabitleyelim */
-.back-link-container {
-    margin-top: auto;
-    /* Kutunun en altına iter */
-    padding-top: 20px;
-    text-align: center;
-}
-
-.link {
-    color: #666;
-    text-decoration: none;
-    font-size: 13px;
-    transition: 0.3s;
-}
-
-.link:hover {
-    color: #d4a373;
-}
-
-/* FORM ELEMANLARI */
+/* Başlık ve Alt Başlık Stilleri */
 h2 {
     font-family: 'Poppins', sans-serif;
     color: #d4a373;
@@ -108,6 +91,9 @@ h2 {
     font-size: 14px;
 }
 
+/* ============================================================
+   4. INPUT VE FORM ELEMANLARI
+   ============================================================ */
 .input-group {
     margin-bottom: 20px;
     text-align: left;
@@ -130,12 +116,13 @@ h2 {
     border-bottom: 1px solid #d4a373;
 }
 
-/* Tarayıcı Beyazlığını Silme */
+/* Tarayıcı Otomatik Doldurma (Autofill) Temizliği */
 input:-webkit-autofill {
     -webkit-text-fill-color: white !important;
     -webkit-box-shadow: 0 0 0px 1000px #1e1e1e inset !important;
 }
 
+/* Ana Aksiyon Butonu */
 .btn-full {
     width: 100%;
     padding: 14px;
@@ -154,7 +141,9 @@ input:-webkit-autofill {
     transform: scale(1.02);
 }
 
-/* SOSYAL BUTONLAR - JİLET GİBİ YAN YANA */
+/* ============================================================
+   5. SOSYAL MEDYA GİRİŞ ALANI
+   ============================================================ */
 .social-section {
     margin-top: 30px;
 }
@@ -177,7 +166,6 @@ input:-webkit-autofill {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    /* Yuvarlak daha şık durur */
     background: #252525;
     border: 1px solid #333;
     color: #d4a373;
@@ -195,29 +183,191 @@ input:-webkit-autofill {
     transform: translateY(-5px);
 }
 
-/* =========================================
-   📱 MOBİL EKRANLAR İÇİN SİHİRLİ DOKUNUŞLAR
-   ========================================= */
+/* ============================================================
+   6. ALT NAVİGASYON VE LİNKLER
+   ============================================================ */
+.back-link-container {
+    margin-top: auto;
+    padding-top: 20px;
+    text-align: center;
+}
+
+.link {
+    color: #666;
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.link:hover {
+    color: #d4a373;
+}
+
+/* ============================================================
+8. ŞİFRE SIFIRLAMA MODALI (RESET MODAL)
+============================================================ */
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 35px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    width: 90%;
+    max-width: 400px;
+    text-align: left;
+    box-shadow: 0 0 50px rgba(212, 163, 115, 0.1);
+    position: relative;
+}
+
+.modal-close-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: #888;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: 0.3s;
+}
+
+.modal-close-icon:hover {
+    color: #d4a373;
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.modal-icon-wrapper {
+    background: rgba(212, 163, 115, 0.1);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px auto;
+}
+
+.modal-icon-wrapper i {
+    font-size: 30px;
+    color: #d4a373;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modal-input-wrapper label {
+    color: #d4a373;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+/* Ana formdan farklı olması için kutu tasarımlı inputlar */
+.modal-input-wrapper input {
+    width: 100%;
+    background: #121212 !important;
+    border: 1px solid #333 !important;
+    color: white !important;
+    padding: 12px !important;
+    border-radius: 8px;
+    outline: none;
+    box-sizing: border-box;
+    font-family: 'Lora', serif;
+}
+
+.modal-input-wrapper input:focus {
+    border-color: #d4a373 !important;
+}
+
+.flex-row {
+    display: flex;
+    gap: 10px;
+}
+
+/* Mailin yanındaki küçük buton */
+.modal-inline-btn {
+    background: #2a2a2a;
+    color: #fff;
+    border: 1px solid #333;
+    padding: 0 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    transition: 0.3s;
+}
+
+.modal-inline-btn:hover {
+    background: #d4a373;
+    color: #1a1a1a;
+}
+
+/* 6 Haneli Kod inputu için özel görünüm */
+.code-input {
+    text-align: center;
+    letter-spacing: 5px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.relative {
+    position: relative;
+}
+
+/* Göz ikonu konumu */
+.toggle-pass-icon {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    color: #888;
+    cursor: pointer;
+    font-size: 1.3rem;
+    z-index: 10;
+}
+
+.modal-submit-btn {
+    margin-top: 25px;
+    background: #d4a373;
+    color: #1a1a1a;
+}
+
+/* ============================================================
+   7. MOBİL UYUMLULUK (RESPONSIVE)
+   ============================================================ */
 @media screen and (max-width: 480px) {
 
-    /* 1. Kutuyu Ekranı Kaplayacak Şekilde Küçültelim */
+    /* Konteyner Küçültme */
     .auth-container {
         width: 90%;
-        /* Kenarlardan çok az boşluk kalsın */
         padding: 70px 20px 30px 20px;
-        /* Yan paddingleri 30'dan 20'ye düşürdük */
         min-height: auto;
-        /* Telefonda gereksiz uzun durmasını engeller */
         border-left: 3px solid #d4a373;
-        /* Kitap sırtını biraz incelttik */
     }
 
-    /* 2. Ayraçları Yeni Hizaya Göre Ayarlayalım */
+    /* Tab Hizalaması */
     .auth-tabs {
         left: 20px;
-        /* Kutunun yeni padding'ine hizaladık */
         gap: 5px;
-        /* Ayraçların arasını biraz daralttık */
     }
 
     .auth-tab {
@@ -228,17 +378,15 @@ input:-webkit-autofill {
 
     .auth-tab.active {
         height: 50px;
-        /* Sarkma animasyonu telefonda daha kibar olsun */
     }
 
-    /* 3. İOS Zoom Krizini Çözelim (Hacker Dokunuşu 🕵️‍♂️) */
+    /* Input ve Tipografi Ayarları */
     .input-group input {
         font-size: 16px !important;
-        /* iPhone'lar 16px altı inputlarda otomatik zoom yapar, bunu engelledik! */
+        /* iOS Zoom Engelleme */
         padding: 10px 5px;
     }
 
-    /* 4. Metinleri ve Butonları Ekran Oranına Uyduralım */
     h2 {
         font-size: 22px;
     }
@@ -248,19 +396,26 @@ input:-webkit-autofill {
         margin-bottom: 20px;
     }
 
-    .social-section {
-        margin-top: 20px;
-    }
-
+    /* Sosyal Buton Boyutları */
     .social-btn {
         width: 45px;
-        /* Parmakla basmaya uygun ama devasa olmayan boyut */
         height: 45px;
         font-size: 20px;
     }
 
-    /* 5. Geri Dön Linkini Düzenleyelim */
     .back-link-container {
         padding-top: 15px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
     }
 }

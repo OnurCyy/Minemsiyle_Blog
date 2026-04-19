@@ -21,26 +21,29 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
+
 
 <body id="top">
     <header class="header" id="header">
         <div class="container header__inner">
             <div class="brand">
                 <div class="brand__kicker">KİTAP & YAZI</div>
-                <a class="brand__logo" href="index.html" aria-label="Ana Sayfa">
-                    <img src="assets/images/Logo.png" alt="Minemsiyle.com">
+                <a class="brand__logo" href="/" aria-label="Ana Sayfa">
+                    <img src="/assets/images/Logo.png" alt="Minemsiyle.com">
                 </a>
                 <div class="brand__sub">Kelimelerin dünyasında, <b>Mümine'msi</b> bir mola.</div>
             </div>
 
             <nav class="nav" aria-label="Ana menü">
 
-                <a href="index.html" class="nav__link">Öne Çıkan</a>
-                <a href="index.html#books" class="nav__link">Kitaplar</a>
-                <a href="index.html#blog" class="nav__link">Blog</a>
+                <a href="/index.html" class="nav__link">Öne Çıkan</a>
+                <a href="/index.html#books" class="nav__link">Kitaplar</a>
+                <a href="/index.html#blog" class="nav__link">Blog</a>
 
-                <a href="about.html" class="nav__link is-active">Hakkında</a>
+                <a href="/about.html" class="nav__link is-active">Hakkında</a>
 
             </nav>
 
@@ -70,7 +73,7 @@
 
             <aside class="about-sidebar">
                 <div class="profile-frame">
-                    <img src="assets/images/Mimiii.jpeg" alt="Mümine" class="profile-img">
+                    <img src="/assets/images/Mimiii.jpeg" alt="Mümine" class="profile-img">
                 </div>
 
                 <div class="profile-info">
@@ -201,9 +204,10 @@
         })();
     </script>
 
-    <script src="js/about.js"></script>
-    <script src="js/thema.js"></script>
-    <script src="js/main.js"></script>
+    <script src="/js/about.js"></script>
+    <script src="/js/thema.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="js/chat-component.js"></script>
 </body>
 
 </html>

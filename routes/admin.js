@@ -6,6 +6,7 @@ const adminMiddleware = require("../middleware/adminMiddleware");
 const User = require("../models/User");
 const Post = require("../models/Post");
 const Book = require("../models/Book");
+const Message = require('../models/Message');
 
 // ==========================================
 // 👤 KULLANICI YÖNETİMİ (Ban, Rozet vs.)
@@ -92,6 +93,22 @@ router.post("/remove-badge/:id", authMiddleware, adminMiddleware, async (req, re
     } catch (error) {
         res.status(500).json({ message: "Rozet silinemedi." });
     }
+});
+
+// 6. Tüm mesaj loglarını görme (Admin paneli için)
+router.get('/chat-logs', async (req, res) => {
+    try {
+        const logs = await Message.find().sort({ date: -1 }).limit(100);
+        res.json(logs);
+    } catch (err) { res.status(500).json({ error: "Loglar çekilemedi" }); }
+});
+
+// 7. Mesaj silme (Küfür vs. durumunda admin silsin)
+router.delete('/delete-message/:id', async (req, res) => {
+    try {
+        await Message.findByIdAndDelete(req.params.id);
+        res.json({ message: "Mesaj imha edildi! 💣" });
+    } catch (err) { res.status(500).json({ error: "Silme işlemi başarısız" }); }
 });
 
 // ==========================================

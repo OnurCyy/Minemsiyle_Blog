@@ -1,0 +1,159 @@
+/* --------- Genel Sayfa Düzeni --------- */
+body {
+    background-color: #1b1815;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* --------- Bakım Ekranı İçerik Stilleri --------- */
+#maintenance-content {
+    transition: opacity 0.5s ease;
+}
+
+h1 {
+    font-size: 3rem;
+    color: #ffffff;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+p {
+    font-size: 1.1rem;
+    color: #dddddd;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.icon {
+    font-size: 5rem;
+    margin-bottom: 20px;
+    display: inline-block;
+    animation: float 3s infinite ease-in-out;
+}
+
+/* --------- Giriş Formu ve Alanları --------- */
+#login-form {
+    display: none;
+    background: #111;
+    padding: 40px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    width: 300px;
+    text-align: left;
+    animation: slideUp 0.5s ease;
+}
+
+.form-title {
+    margin-top: 0;
+    color: #d4a373;
+    text-align: center;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 4px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    border-color: #d4a373;
+}
+
+/* --------- Buton Stilleri --------- */
+.admin-trigger {
+    margin-top: 60px;
+    background: transparent;
+    border: 1px solid #333;
+    color: #555;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    transition: 0.3s;
+}
+
+.admin-trigger:hover {
+    border-color: #fff;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 10px;
+    background: #d4a373;
+    color: black;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+.login-btn:hover {
+    background: #b58b61;
+}
+
+.back-btn {
+    margin-top: 10px;
+    width: 100%;
+    background: transparent;
+    color: #666;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.back-btn:hover {
+    color: #fff;
+}
+
+/* --------- Animasyonlar --------- */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

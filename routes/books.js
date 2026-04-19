@@ -38,6 +38,7 @@ router.post("/", async (req, res) => {
             addedBy: addedBy || "Anonim"
         });
         const savedBook = await newBook.save();
+        sendToDiscord('BOOK', `📚 Arşive yeni bir eser eklendi: **${savedBook.title}**`, req.user.username);
         res.status(200).json(savedBook);
     } catch (err) { res.status(500).json(err); }
 });
