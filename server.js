@@ -226,7 +226,7 @@ io.on('connection', async (socket) => {
 //---- DISCORD'A LOG GÖNDERME -------------------------------
 
 async function sendToDiscord(type, message, user = "Sistem") {
-    const webhookURL = 'https://discordapp.com/api/webhooks/1494733947437973575/TE-nVk3lDcDRZ3mBpTJWCaOeq8SjYNaZCvzn40GriFaU0gXufknI4Z-lJ1FmzO7B3g_R';
+    const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
 
     // Log tipine göre renk belirleyelim (Hex code)
     const colors = {
@@ -247,7 +247,7 @@ async function sendToDiscord(type, message, user = "Sistem") {
     };
 
     try {
-        await axios.post(webhookURL, {
+        await axios.post(DISCORD_WEBHOOK_URL, {
             embeds: [embed]
         });
     } catch (error) {

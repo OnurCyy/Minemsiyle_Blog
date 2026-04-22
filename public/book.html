@@ -5,17 +5,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kitap Yükleniyor... | Minemsiyle</title>
+
+    <!-- ========= Tema: Sayfa yüklenmeden önce temayı uygula ========= -->
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <!-- ========= Harici Kütüphaneler ========= -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap"
+        rel="stylesheet">
+
+    <!-- ========= Stil Dosyaları ========= -->
     <link rel="icon" href="/assets/images/Logo.png" type="image/png">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/book.css">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap"
-        rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body>
 
+    <!-- ========= HEADER: Logo, Navigasyon, Tema Butonu ========= -->
     <header class="header">
         <div class="header__inner">
             <div class="brand">
@@ -25,7 +37,6 @@
             </div>
             <nav class="nav">
                 <a href="/" class="nav__link">Ana Sayfa</a>
-
                 <div class="theme-switch-wrapper">
                     <label class="theme-switch" for="checkbox">
                         <input type="checkbox" id="checkbox" />
@@ -36,8 +47,10 @@
         </div>
     </header>
 
+    <!-- ========= ANA İÇERİK ALANI ========= -->
     <main class="container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
 
+        <!-- ========= Kitap İçeriği (JS ile doldurulur) ========= -->
         <div id="articleArea" class="book-content-wrapper">
             <div style="text-align:center; padding:50px;">
                 <div class="loading-spinner"></div>
@@ -45,13 +58,14 @@
             </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 20px; margin: 30px 0; flex-wrap: wrap;">
+        <!-- ========= Aksiyon Butonları: Beğen, Admin Düzenle, Okunma ========= -->
+        <div id="actionBar" style="display: flex; align-items: center; gap: 20px; margin: 30px 0; flex-wrap: wrap;">
 
+            <!-- Beğen Butonu -->
             <button id="likeBtn" onclick="toggleLike()"
                 style="display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line); cursor:pointer; border-radius: 50px; padding: 10px 24px; background: transparent; color: var(--ink); font-weight: 600; font-family: inherit; font-size: 0.95rem; transition: all 0.3s;"
                 onmouseover="this.style.background='rgba(233, 30, 99, 0.08)'; this.style.borderColor='#e91e63'; this.style.color='#e91e63'; this.style.transform='translateY(-2px)';"
                 onmouseout="this.style.transform='translateY(0)'; if(document.getElementById('likeIcon').style.fill === 'none' || document.getElementById('likeIcon').style.fill === '') { this.style.background='transparent'; this.style.borderColor='var(--line)'; this.style.color='var(--ink)'; }">
-
                 <svg id="likeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.3s;">
                     <path
@@ -61,6 +75,7 @@
                 <span id="likeText">Kitabı Beğen</span>
             </button>
 
+            <!-- Admin: Kitabı Düzenle Butonu (JS ile gösterilir) -->
             <button id="adminEditBtn" onclick="openEditModal()"
                 style="display:none; align-items:center; justify-content:center; gap:8px; border:1px solid var(--accent); cursor:pointer; border-radius: 50px; padding: 10px 24px; background: rgba(192, 125, 86, 0.1); color: var(--accent); font-weight: 600; font-family: inherit; font-size: 0.95rem; transition: all 0.3s;"
                 onmouseover="this.style.background='var(--accent)'; this.style.color='#111'; this.style.transform='translateY(-2px)';"
@@ -69,106 +84,82 @@
                 <span>Kitabı Düzenle</span>
             </button>
 
+            <!-- Okunma Sayacı -->
             <div
-                style="display:flex; align-items:center; gap:6px; color:var(--text-muted, #888); font-size:0.95rem; font-weight:600; margin-left:auto;">
+                style="display:flex; align-items:center; gap:6px; color:var(--muted); font-size:0.95rem; font-weight:600; margin-left:auto;">
                 <i class="ph-bold ph-eye" style="font-size: 1.2rem;"></i>
                 <span id="viewCountText">0 Okunma</span>
             </div>
 
         </div>
 
+        <!-- ========= Beğenenleri Gör Linki ========= -->
         <div onclick="showLikers()"
-            style="display:inline-flex; align-items:center; gap:6px; margin-top:-5px; margin-bottom:20px; font-size:0.9rem; color:var(--text-muted, #888); cursor:pointer; transition:all 0.3s; font-weight:600;"
-            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted, #888)'">
+            style="display:inline-flex; align-items:center; gap:6px; margin-top:-5px; margin-bottom:20px; font-size:0.9rem; color:var(--muted); cursor:pointer; transition:all 0.3s; font-weight:600;"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
             <i class="ph-bold ph-users"></i> Beğenenleri Gör
         </div>
 
-
+        <!-- ========= Yorum Bölümü ========= -->
         <div class="blog-comments-section">
             <div class="blog-comment-header">
                 <i class="ph-duotone ph-chats-teardrop"></i> Okur Köşesi (<span id="commentCount">0</span>)
             </div>
-
             <div class="blog-comment-box">
                 <textarea id="commentText" placeholder="Kitap hakkındaki düşüncelerin neler?"></textarea>
                 <div class="blog-comment-footer">
                     <button class="blog-send-btn" onclick="postComment()">Yorumu Yayınla 🚀</button>
                 </div>
             </div>
-
             <div class="comments-list" id="commentsList" style="margin-top: 30px;"></div>
-        </div>
         </div>
 
     </main>
 
+    <!-- ========= AMBİYANS MÜZİK WİDGETI ========= -->
     <div class="ambiance-widget" id="ambianceWidget">
         <button class="ambiance-toggle" onclick="toggleAmbiancePanel()" title="Odak Modu">
             <span class="music-note">🎵</span>
         </button>
-
         <div class="ambiance-panel" id="ambiancePanel">
             <div class="ambiance-header">
                 <span>Odak Modu</span>
                 <button onclick="toggleAmbiancePanel()"
                     style="background:none; border:none; color:var(--muted); cursor:pointer;">✕</button>
             </div>
-
             <div class="sound-options">
-                <div class="sound-item" onclick="playAmbiance('rain', this)">
-                    <span>🌧️</span>
-                    <small>Yağmur</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('cafe', this)">
-                    <span>☕</span>
-                    <small>Kafe</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('fire', this)">
-                    <span>🔥</span>
-                    <small>Şömine</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('forest', this)">
-                    <span>🌲</span>
-                    <small>Orman</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('night', this)">
-                    <span>🌙</span>
-                    <small>Gece</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('snow', this)">
-                    <span>❄️</span>
-                    <small>Kar</small>
-                </div>
+                <div class="sound-item" onclick="playAmbiance('rain', this)"><span>🌧️</span><small>Yağmur</small></div>
+                <div class="sound-item" onclick="playAmbiance('cafe', this)"><span>☕</span><small>Kafe</small></div>
+                <div class="sound-item" onclick="playAmbiance('fire', this)"><span>🔥</span><small>Şömine</small></div>
+                <div class="sound-item" onclick="playAmbiance('forest', this)"><span>🌲</span><small>Orman</small></div>
+                <div class="sound-item" onclick="playAmbiance('night', this)"><span>🌙</span><small>Gece</small></div>
+                <div class="sound-item" onclick="playAmbiance('snow', this)"><span>❄️</span><small>Kar</small></div>
             </div>
-
             <div class="volume-container">
                 <span style="font-size:12px; color:var(--muted);">Ses:</span>
                 <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
             </div>
         </div>
-
+        <!-- Ses Dosyaları -->
         <div id="audio-container">
             <audio id="audio-rain" loop src="/assets/sounds/Yagmur.mp3"></audio>
-
             <audio id="audio-cafe" loop src="/assets/sounds/Cafe.mp3"></audio>
-
             <audio id="audio-fire" loop src="/assets/sounds/KampAtesi.mp3"></audio>
-
             <audio id="audio-forest" loop src="/assets/sounds/Doga.mp3"></audio>
-
             <audio id="audio-night" loop src="/assets/sounds/Gece.mp3"></audio>
-
             <audio id="audio-snow" loop src="/assets/sounds/Kar.mp3"></audio>
         </div>
     </div>
 
+    <!-- ========= MODAL: Admin Kitap Düzenleme ========= -->
     <div id="editModal" class="modal-overlay"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(10px); transition: 0.3s opacity;">
         <div class="modal-content"
-            style="background:#111; padding:35px; border-radius:24px; width:90%; max-width:700px; max-height: 90vh; overflow-y: auto; border:1px solid #333; box-shadow:0 15px 50px rgba(0,0,0,0.6);">
+            style="background:var(--panel); padding:35px; border-radius:24px; width:90%; max-width:700px; max-height: 90vh; overflow-y: auto; border:1px solid var(--line); box-shadow:0 15px 50px rgba(0,0,0,0.6);">
 
+            <!-- Modal Başlık -->
             <div class="modal-header"
-                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; position:sticky; top:0; background:#111; padding-bottom:10px; border-bottom:1px solid #222; z-index:10;">
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; position:sticky; top:0; background:var(--panel); padding-bottom:10px; border-bottom:1px solid var(--line); z-index:10;">
                 <h2 style="margin:0; font-family: Merriweather, serif; color:var(--accent);">Kitabı Düzenle <span
                         style="font-weight:300; font-size:1rem; color:var(--muted);">[OnurCy Panel]</span></h2>
                 <button onclick="closeEditModal()"
@@ -176,16 +167,20 @@
                     onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--muted)'">✕</button>
             </div>
 
+            <!-- Kapak ve Temel Bilgiler -->
             <div style="display:flex; gap:20px; flex-wrap:wrap;">
+
+                <!-- Kapak Resmi -->
                 <div style="flex:1; min-width: 200px;">
-                    <label style="display:block; color:#888; font-size:0.85rem; margin-bottom:8px;">Kitap Kapağı (Tıkla
-                        Değiştir)</label>
+                    <label style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:8px;">Kitap Kapağı
+                        (Tıkla Değiştir)</label>
                     <div id="editImagePreviewArea"
-                        style="width:100%; height:250px; background:#222; border-radius:12px; border:2px dashed #444; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; transition: 0.3s;"
-                        onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='#444'">
+                        style="width:100%; height:250px; background:var(--bg); border-radius:12px; border:2px dashed var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; transition: 0.3s;"
+                        onmouseover="this.style.borderColor='var(--accent)'"
+                        onmouseout="this.style.borderColor='var(--line)'">
                         <img id="editImagePreview" src="" alt="Önizleme"
                             style="width:100%; height:100%; object-fit:cover; display:none;">
-                        <div id="editImagePlaceholder" style="text-align:center; color:#555;">
+                        <div id="editImagePlaceholder" style="text-align:center; color:var(--muted);">
                             <i class="ph-bold ph-image-square"
                                 style="font-size:3rem; margin-bottom:5px; display:block;"></i>
                             <span style="font-size:0.9rem;">Kapak Yükle</span>
@@ -194,59 +189,68 @@
                     <input type="file" id="editImageInput" accept="image/*" style="display:none;">
                 </div>
 
+                <!-- Metin Inputları -->
                 <div style="flex:2; min-width: 280px; display:flex; flex-direction:column; gap:12px;">
+
+                    <!-- Kitap Adı -->
                     <div>
                         <label for="editTitle"
-                            style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">Kitap Adı</label>
+                            style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:5px;">Kitap
+                            Adı</label>
                         <input type="text" id="editTitle" placeholder="Kitap Adı"
-                            style="width:100%; padding:12px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px; font-family: Merriweather, serif;">
+                            style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px; font-family: Merriweather, serif;">
                     </div>
 
+                    <!-- Yazar ve Kategori -->
                     <div style="display:flex; gap:10px;">
                         <div style="flex:1;">
                             <label for="editAuthor"
-                                style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">Yazar</label>
+                                style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:5px;">Yazar</label>
                             <input type="text" id="editAuthor" placeholder="Yazar Adı"
-                                style="width:100%; padding:12px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                                style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px;">
                         </div>
                         <div style="flex:1;">
                             <label for="editCategory"
-                                style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">Kategori</label>
+                                style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:5px;">Kategori</label>
                             <input type="text" id="editCategory" placeholder="Kategori"
-                                style="width:100%; padding:12px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                                style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px;">
                         </div>
                     </div>
 
+                    <!-- Yayınevi ve Sayfa Sayısı -->
                     <div style="display:flex; gap:10px;">
                         <div style="flex:2;">
                             <label for="editPublisher"
-                                style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">Yayınevi</label>
+                                style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:5px;">Yayınevi</label>
                             <input type="text" id="editPublisher" placeholder="Yayınevi"
-                                style="width:100%; padding:12px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                                style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px;">
                         </div>
                         <div style="flex:1;">
                             <label for="editPages"
-                                style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">Sayfa
+                                style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:5px;">Sayfa
                                 Sayısı</label>
                             <input type="number" id="editPages" placeholder="Örn: 350"
-                                style="width:100%; padding:12px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                                style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px;">
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Açıklama / İnceleme -->
             <div style="margin-top:20px; margin-bottom:25px;">
                 <label for="editContent"
-                    style="display:block; color:#888; font-size:0.85rem; margin-bottom:5px;">Açıklama / İnceleme</label>
+                    style="display:block; color:var(--muted); font-size:0.85rem; margin-bottom:5px;">Açıklama /
+                    İnceleme</label>
                 <textarea id="editContent" rows="8" placeholder="Kitap incelemesi veya konusu..."
-                    style="width:100%; padding:14px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:10px; resize:vertical; line-height:1.6; font-size:0.95rem;"></textarea>
+                    style="width:100%; padding:14px; background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:10px; resize:vertical; line-height:1.6; font-size:0.95rem;"></textarea>
             </div>
 
-            <div style="display:flex; gap:15px; position:sticky; bottom:0; background:#111; padding-top:10px;">
+            <!-- Modal Butonları -->
+            <div style="display:flex; gap:15px; position:sticky; bottom:0; background:var(--panel); padding-top:10px;">
                 <button onclick="closeEditModal()"
-                    style="flex:1; padding:15px; border-radius:12px; border:1px solid #444; background:none; color:#aaa; font-weight:bold; cursor:pointer; transition:0.3s;"
+                    style="flex:1; padding:15px; border-radius:12px; border:1px solid var(--line); background:none; color:var(--muted); font-weight:bold; cursor:pointer; transition:0.3s;"
                     onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444'"
-                    onmouseout="this.style.borderColor='#444'; this.style.color='#aaa'">Vazgeç</button>
+                    onmouseout="this.style.borderColor='var(--line)'; this.style.color='var(--muted)'">Vazgeç</button>
                 <button id="editSubmitBtn" onclick="submitEdit()"
                     style="flex:2; padding:15px; border-radius:12px; border:none; background:var(--accent); color:black; font-weight:bold; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.3s; box-shadow:0 5px 15px rgba(192,125,86,0.3);"
                     onmouseover="this.style.transform='translateY(-3px)'"
@@ -254,777 +258,39 @@
                     <i class="ph-bold ph-floppy-disk"></i> Güncellemeyi Kaydet
                 </button>
             </div>
+
         </div>
     </div>
 
+    <!-- ========= MODAL: Beğenenler Listesi ========= -->
     <div id="likersModal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s; backdrop-filter: blur(4px);">
         <div
-            style="background: var(--bg-card, #1a1a1a); width:90%; max-width:350px; border-radius:16px; padding:24px; border:1px solid var(--line, #333); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-
+            style="background: var(--panel); width:90%; max-width:350px; border-radius:16px; padding:24px; border:1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
             <div
-                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--line, #333); padding-bottom:12px;">
-                <h3 style="margin:0; font-size:1.2rem; color:var(--ink, #fff); font-family: Merriweather, serif;">❤️
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:12px;">
+                <h3 style="margin:0; font-size:1.2rem; color:var(--ink); font-family: Merriweather, serif;">❤️
                     Beğenenler</h3>
                 <button onclick="closeLikersModal()"
-                    style="background:none; border:none; color:var(--text-muted, #888); font-size:1.5rem; cursor:pointer; transition:0.3s;"
+                    style="background:none; border:none; color:var(--muted); font-size:1.5rem; cursor:pointer; transition:0.3s;"
                     onmouseover="this.style.color='#e91e63'"
-                    onmouseout="this.style.color='var(--text-muted, #888)'">&times;</button>
+                    onmouseout="this.style.color='var(--muted)'">&times;</button>
             </div>
-
-            <ul id="likersList" style="list-style:none; padding:0; margin:0; max-height:250px; overflow-y:auto;">
-            </ul>
-
+            <ul id="likersList" style="list-style:none; padding:0; margin:0; max-height:250px; overflow-y:auto;"></ul>
         </div>
     </div>
 
-
+    <!-- ========= FOOTER ========= -->
     <footer
         style="text-align:center; padding:40px 0; color:var(--muted); font-size:12px; border-top:1px solid var(--line); margin-top:50px;">
         &copy; 2026 Minemsiyle • Keyifli Okumalar
     </footer>
 
+    <!-- ========= Harici JS Kütüphaneleri ========= -->
     <script src="/socket.io/socket.io.js"></script>
-    <script src="js/chat-component.js"></script>
-    <script>
-        // ==========================================
-        // 🌍 GLOBAL AYARLAR VE URL PARÇALAMA
-        // ==========================================
-        const API_BASE = "/api";
-        const API_URL_POST = "/api"; // Eski kodlarla uyumlu olsun diye bıraktım
-        let contentId = null;
-        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-        const currentType = 'book'; // Bu sayfa sadece kitaplar içindir
-        const pathArray = window.location.pathname.split('/');
-        // 🔥 YENİ SİSTEM: URL'DEN ID/SLUG OKUMA (UNIVERSAL)
-        let currentRelatedId = null;
-        const urlParams = new URLSearchParams(window.location.search);
+    <script src="/js/chat-component.js"></script>
+    <script src="/js/book.js"></script>
 
-        if (urlParams.has('id')) {
-            // Eğer link "...book.html?id=123" şeklindeyse buradan alır (Profil'den gelenler)
-            currentRelatedId = urlParams.get('id');
-        } else {
-            // Eğer link ".../kitap/123" şeklindeyse buradan alır (Ana sayfadan gelenler)
-            const pathArray = window.location.pathname.split('/');
-            currentRelatedId = pathArray[pathArray.length - 1];
-        }
-
-        // Güvenlik: Eğer yanlışlıkla sayfa adını aldıysa null yap
-        if (currentRelatedId === "book" || currentRelatedId === "book.html") {
-            currentRelatedId = null;
-        }
-
-
-        // ==========================================
-        // 1. SAYFA YÜKLENİNCE KİTABI GETİR
-        // ==========================================
-        document.addEventListener("DOMContentLoaded", async () => {
-
-            // Tema ve Kullanıcı Kontrolü
-            checkUserLoginForComments();
-            const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-            if (toggleSwitch) {
-                const currentTheme = localStorage.getItem('theme');
-                if (currentTheme === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    document.body.classList.add('dark', 'dark-theme');
-                    toggleSwitch.checked = true;
-                }
-
-                toggleSwitch.addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        document.documentElement.setAttribute('data-theme', 'dark');
-                        document.body.classList.add('dark', 'dark-theme');
-                        localStorage.setItem('theme', 'dark');
-                    } else {
-                        document.documentElement.setAttribute('data-theme', 'light');
-                        document.body.classList.remove('dark', 'dark-theme');
-                        localStorage.setItem('theme', 'light');
-                    }
-                });
-            }
-
-            // ID Kontrolü (Hatalı linkle geldiyse)
-            if (!currentRelatedId || currentRelatedId === "kitap") {
-                showError("Linkte ID bulunamadı. Lütfen ana sayfadan tekrar deneyin.");
-                return;
-            }
-
-            console.log("İstek atılan Kitap ID/Slug:", currentRelatedId);
-            window.currentRelatedId = currentRelatedId;
-
-            // Backend'den Kitabı Çek
-            try {
-                const res = await fetch(`${API_BASE}/books/${currentRelatedId}`);
-
-                if (!res.ok) {
-                    console.error("Backend Hatası:", res.status);
-                    showError(`Kitap bulunamadı! (Hata Kodu: ${res.status}) <br> Aranan: ${currentRelatedId}`);
-                    return;
-                }
-
-                const post = await res.json();
-                console.log("Gelen Veri:", post);
-
-                contentId = post._id || currentRelatedId;
-
-                // Sayfayı Doldur
-                renderBook(post);
-
-                // Etkileşimleri Başlat
-                updateHeaderProfile();
-                checkLikeStatus();
-                loadComments();
-
-                const user = JSON.parse(localStorage.getItem('user'));
-                if (user && (user.username === 'OnurCy' || user.role === 'admin')) {
-                    const editBtn = document.getElementById('adminEditBtn');
-                    if (editBtn) editBtn.style.display = 'block';
-                }
-
-            } catch (err) {
-                console.error("Fetch Hatası:", err);
-                showError("Sunucuya bağlanılamadı. Backend kapalı olabilir.");
-            }
-        });
-
-        // KİTABI EKRANA ÇİZME FONKSİYONU
-        function renderBook(post) {
-            const date = new Date(post.createdAt || post.date || Date.now()).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-            const contentArea = document.getElementById("articleArea");
-            const interactionArea = document.getElementById("interactionArea");
-
-            document.title = `${post.title} | Minemsiyle`;
-
-            const imageSrc = post.cover || "https://via.placeholder.com/300x450?text=Kapak+Yok";
-
-            contentArea.innerHTML = `
-            <div class="book-hero">
-                <div class="book-cover-wrapper">
-                    <img src="${imageSrc}" class="book-cover-img" alt="${post.title}">
-                </div>
-
-                <div class="book-info">
-                    <span class="book-tag">${post.tag || "Kitap"}</span>
-                    <h1 class="book-title">${post.title}</h1>
-                    
-                    <div class="book-meta">
-                        <span>✍️ ${post.author || "Bilinmiyor"}</span>
-                        <span>📅 ${date}</span>
-                        ${post.pageCount ? `<span style="margin:0 8px; opacity:0.5">|</span> <span>📄 ${post.pageCount} Sayfa</span>` : ''}
-                    </div>
-
-                    <div class="book-desc">
-                        ${formatContent(post.desc || post.content)}
-                    </div>
-                    
-                    ${post.publisher ? `<p style="margin-top:20px; font-size:0.9rem; color:var(--muted);"><em>Yayınevi: ${post.publisher}</em></p>` : ''}
-                </div>
-            </div>
-            `;
-
-            if (interactionArea) interactionArea.style.display = "block";
-        }
-
-        function showError(message) {
-            const area = document.getElementById("articleArea");
-            area.innerHTML = `
-            <div style="text-align:center; padding:50px; background:var(--bg-card); border-radius:12px; border:1px solid var(--border);">
-                <h2 style="color:#ef4444;">😔 Ops!</h2>
-                <p>${message}</p>
-                <a href="/" style="display:inline-block; margin-top:20px; color:var(--accent); text-decoration:underline;">Ana Sayfaya Dön</a>
-            </div>
-            `;
-        }
-
-        function formatContent(text) {
-            if (!text) return "İçerik yok.";
-            return text.split('\n').map(p => p.trim() ? `<p>${p}</p>` : "").join('');
-        }
-
-        // ==========================================
-        // 2. YARDIMCI FONKSİYONLAR & PROFİL
-        // ==========================================
-        function updateHeaderProfile() {
-            const user = JSON.parse(localStorage.getItem('user'));
-            const profileLink = document.getElementById('headerProfileLink');
-            if (user && user.avatar && profileLink) {
-                profileLink.innerHTML = `<img src="${user.avatar}" class="header-avatar-img" alt="Profil">`;
-                profileLink.href = "/profile.html";
-            }
-        }
-
-        function checkUserLoginForComments() {
-            const user = JSON.parse(localStorage.getItem('user'));
-            const commentBox = document.querySelector('.blog-comment-box');
-            if (!commentBox) return;
-            if (!user) {
-                commentBox.innerHTML = `
-                <div style="padding: 30px; text-align: center; color: var(--text-muted); background: var(--bg-card); border: 1px dashed var(--border); border-radius: 12px;">
-                    <i class="ph-duotone ph-lock-key" style="font-size: 2rem; margin-bottom: 10px; color: var(--accent);"></i>
-                    <p style="margin:0;">Yorum yapmak için <a href="/login.html" style="color: var(--accent); font-weight: bold; text-decoration: underline;">giriş yapmalısın</a>.</p>
-                </div>
-            `;
-            }
-        }
-
-        // ==========================================
-        // 3. YORUM SİSTEMİ (ZIRHLI)
-        // ==========================================
-        async function postComment() {
-            const input = document.getElementById('commentText');
-            const rawUser = localStorage.getItem('user');
-
-            if (!rawUser) {
-                alert("Giriş yapmamışsın Kral! Login sayfasına yönlendiriyorum.");
-                window.location.href = "/login.html";
-                return;
-            }
-
-            const user = JSON.parse(rawUser);
-            const userId = user._id || user.id;
-
-            if (!userId) {
-                alert("Kimlik bilgisi bozulmuş (Eski veri). Güvenlik için seni çıkışa atıyorum, tekrar girince düzelecek! 🔄");
-                localStorage.clear();
-                window.location.href = "/login.html";
-                return;
-            }
-
-            let token = localStorage.getItem('token') || localStorage.getItem('userToken');
-            if (!token) return alert("Anahtarın (Token) eksik. Tekrar giriş yapmalısın.");
-            token = token.replace(/"/g, '').trim();
-
-            const text = input.value.trim();
-            if (!text) return alert("Boş yorum olmaz! ✍️");
-
-            const btn = document.querySelector('.blog-send-btn');
-            if (btn) { btn.innerText = "⏳..."; btn.disabled = true; }
-
-            try {
-                // Kitabın başlığını HTML'den alıyoruz (Yorum profilinde gözükmesi için)
-                const pageTitle = document.querySelector('.book-title') ? document.querySelector('.book-title').innerText : document.title;
-
-                const payload = {
-                    userId: userId,
-                    username: user.username,
-                    avatar: user.avatar,
-                    content: text,
-                    contentType: currentType, // 'book'
-                    relatedId: currentRelatedId,
-                    title: pageTitle // 🔥 İSİM BURADA GÖNDERİLİYOR
-                };
-
-                const res = await fetch("/api/comments", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    input.value = "";
-                    loadComments();
-                    alert("Yorumun yapıştırıldı! 🚀");
-                } else {
-                    const err = await res.json();
-                    alert("Hata: " + (err.message || "Sunucu reddetti"));
-                }
-            } catch (err) {
-                console.error("Bağlantı Hatası:", err);
-                alert("Sunucuya ulaşılamadı!");
-            } finally {
-                if (btn) { btn.innerText = "Yorumu Yayınla 🚀"; btn.disabled = false; }
-            }
-        }
-
-        async function loadComments() {
-            const list = document.getElementById('commentsList');
-            const countSpan = document.getElementById('commentCount');
-            const currentUser = JSON.parse(localStorage.getItem('user'));
-
-            if (!currentRelatedId) return;
-
-            try {
-                const res = await fetch(`${API_BASE}/comments?type=${currentType}&id=${currentRelatedId}`);
-                const comments = await res.json();
-
-                if (list) list.innerHTML = "";
-                if (countSpan) countSpan.innerText = comments.length;
-
-                if (comments.length === 0 && list) {
-                    list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center; padding: 20px;'>Henüz yorum yok. İlk yorumu sen yap! 👇</p>";
-                    return;
-                }
-
-                for (const c of comments) {
-                    const displayDate = new Date(c.date).toLocaleDateString('tr-TR') + ' • ' + new Date(c.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-                    let badgeHTML = (c.username === "Minemsi" || c.username === "OnurCy") ? `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>` : "";
-
-                    let deleteBtnHTML = "";
-                    const isOwner = currentUser && (currentUser.username === c.username);
-                    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
-
-                    if (isOwner || isAdmin) {
-                        deleteBtnHTML = `<button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; font-size:0.8rem; cursor:pointer; margin-top:8px; padding:0; display:flex; align-items:center; gap:4px; opacity:0.8; transition:0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"><i class="ph-bold ph-trash"></i> Sil</button>`;
-                    }
-
-                    const profileLink = `/profile.html?u=${c.username}`;
-
-                    const html = `
-                    <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
-                        <a href="${profileLink}" style="text-decoration:none;">
-                            <img src="${c.avatar || defaultAvatar}" style="width:40px; height:40px; border-radius:50%; border:2px solid #d4a373; object-fit:cover;">
-                        </a>
-                        <div style="flex:1;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <a href="${profileLink}" style="text-decoration:none;">
-                                    <h4 style="color:#d4a373; font-size:0.95rem; margin:0; display:flex; align-items:center; flex-wrap:wrap; gap:5px;">
-                                        ${c.username} ${badgeHTML}
-                                    </h4>
-                                </a>
-                                <small style="color:#888; font-size:0.7rem;">${displayDate}</small>
-                            </div>
-                            <p style="color:#ddd; font-size:0.95rem; margin:5px 0 0 0; line-height:1.5; word-break: break-word;">${c.content}</p>
-                            ${deleteBtnHTML}
-                        </div>
-                    </div>`;
-
-                    if (list) list.innerHTML += html;
-                }
-
-            } catch (err) { console.error(err); }
-        }
-
-        async function deleteComment(commentId) {
-            if (!confirm("Bu yorumu gerçekten silmek istiyor musun?")) return;
-            let token = localStorage.getItem('token') || localStorage.getItem('userToken');
-            if (!token) return alert("Yetkin yok.");
-            token = token.replace(/"/g, '').trim();
-
-            try {
-                const res = await fetch(`${API_BASE}/comments/${commentId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    alert("Yorum silindi! 🗑️");
-                    loadComments();
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        // ==========================================
-        // 🔥 V3.0 PREMIUM BEĞENİ (LIKE) SİSTEMİ 🔥
-        // ==========================================
-
-        // 1. Sayfa Açıldığında Sayacı ve Durumu Yükle
-        async function checkLikeStatus() {
-            const userString = localStorage.getItem('user');
-            let currentUser = null;
-            if (userString) currentUser = JSON.parse(userString);
-
-            const icon = document.getElementById('likeIcon');
-            const text = document.getElementById('likeText');
-            const btn = document.getElementById('likeBtn');
-
-            try {
-                // Kitabın güncel verisini sunucudan çekiyoruz
-                const res = await fetch(`${API_BASE}/books/${currentRelatedId}`);
-                if (res.ok) {
-                    const book = await res.json();
-                    const likeCount = book.likes ? book.likes.length : 0;
-
-                    // Beğeni sayısını ekrana bas (Giriş yapmayanlar da görebilsin)
-                    if (text) text.innerText = `${likeCount} Beğeni`;
-
-                    // Eğer kullanıcı giriş yapmışsa ve adını listede (şeref tablosunda) bulursak butonu yak!
-                    if (currentUser && book.likes && book.likes.includes(currentUser.username)) {
-                        if (icon) { icon.style.fill = "#e91e63"; icon.style.stroke = "#e91e63"; }
-                        if (btn) { btn.style.borderColor = "#e91e63"; btn.style.color = "#e91e63"; btn.style.background = "rgba(233, 30, 99, 0.08)"; }
-                    }
-                }
-            } catch (e) { console.error("Durum kontrol hatası:", e); }
-        }
-
-        // 2. Butona Tıklandığında Çalışacak Motor
-        async function toggleLike() {
-            const userString = localStorage.getItem('user');
-            if (!userString) return alert("Beğenmek için giriş yapmalısın komutanım!");
-            const user = JSON.parse(userString);
-
-            const icon = document.getElementById('likeIcon');
-            const text = document.getElementById('likeText');
-            const btn = document.getElementById('likeBtn');
-
-            // Tıklama anında ufak bir nabız animasyonu (Premium Hissiyat)
-            if (icon) icon.style.transform = 'scale(0.8)';
-
-            try {
-                // Arka plana "Ben tıkladım, durumu ayarla" emri gönderiyoruz
-                const res = await fetch(`${API_BASE}/books/${currentRelatedId}/like`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: user.username })
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-
-                    // Animasyonu bitir ve büyüt
-                    if (icon) {
-                        icon.style.transform = 'scale(1.2)';
-                        setTimeout(() => icon.style.transform = 'scale(1)', 200);
-                    }
-
-                    // Gelen cevaba göre butonu boya veya rengini al
-                    if (data.hasLiked) {
-                        icon.style.fill = "#e91e63";
-                        icon.style.stroke = "#e91e63";
-                        btn.style.borderColor = "#e91e63";
-                        btn.style.color = "#e91e63";
-                        btn.style.background = "rgba(233, 30, 99, 0.08)";
-                    } else {
-                        icon.style.fill = "none";
-                        icon.style.stroke = "currentColor";
-                        btn.style.borderColor = "var(--line)";
-                        btn.style.color = "var(--ink)";
-                        btn.style.background = "transparent";
-                    }
-
-                    // Sayacı anında jilet gibi güncelle
-                    text.innerText = ` ${data.likesCount} Beğeni`;
-                }
-            } catch (e) {
-                console.error("Beğeni gönderme hatası:", e);
-            }
-        }
-
-        // ==========================================
-        // 🔥 KİMLER BEĞENDİ SİSTEMİ 🔥
-        // ==========================================
-        async function showLikers() {
-            const modal = document.getElementById('likersModal');
-            const list = document.getElementById('likersList');
-
-            // Yükleniyor animasyonu
-            list.innerHTML = '<li style="text-align:center; color:var(--text-muted, #888); padding:20px 0;"><i class="ph-bold ph-spiral"></i> Yükleniyor...</li>';
-
-            // Modalı ekranda göster
-            modal.style.display = 'flex';
-            setTimeout(() => modal.style.opacity = '1', 10);
-
-            try {
-                // 🔥 DİKKAT: Eğer book.html'deysen burayı /books/ yapmayı unutma! (Şu an posts için)
-                const res = await fetch(`${API_BASE}/books/${currentRelatedId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    list.innerHTML = ''; // Listeyi temizle
-
-                    // Eğer kimse beğenmemişse (veya liste boşsa)
-                    if (!data.likes || data.likes.length === 0) {
-                        list.innerHTML = '<li style="text-align:center; color:var(--text-muted, #888); padding:20px 0;">Henüz kimse beğenmemiş. İlk beğenen sen ol!</li>';
-                        return;
-                    }
-
-                    // İsimleri listeye şık bir şekilde bas
-                    data.likes.forEach(user => {
-
-                        // 🔥 HAYALET SAVAR: Eğer gelen isim '0' ise veya boşluksa bunu görmezden gel ve atla!
-                        if (user == '0' || !user || String(user).trim() === '') return;
-
-                        list.innerHTML += `
-                <li style="padding:12px 0; border-bottom:1px solid var(--line, #333); color:var(--ink, #fff); font-weight:600; display:flex; align-items:center; gap:10px;">
-                    <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#111; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
-                        ${String(user).charAt(0).toUpperCase()} 
-                    </div>
-                    ${user}
-                </li>`;
-                    });
-                }
-            } catch (err) {
-                list.innerHTML = '<li style="text-align:center; color:#e91e63; padding:20px 0;">Bağlantı hatası!</li>';
-            }
-        }
-
-        function closeLikersModal() {
-            const modal = document.getElementById('likersModal');
-            modal.style.opacity = '0';
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
-
-        // ==========================================
-        // 5. AMBİYANS SES SİSTEMİ
-        // ==========================================
-        let currentAudio = null;
-        function toggleAmbiancePanel() { document.getElementById('ambiancePanel').classList.toggle('active'); }
-
-        function playAmbiance(type, element) {
-            const audioId = `audio-${type}`;
-            const audioElement = document.getElementById(audioId);
-            const volumeControl = document.getElementById('volumeControl');
-            const toggleBtn = document.querySelector('.ambiance-toggle');
-
-            if (currentAudio === audioElement && !audioElement.paused) {
-                audioElement.pause();
-                element.classList.remove('active');
-                toggleBtn.classList.remove('playing');
-                currentAudio = null;
-                return;
-            }
-
-            stopAllSounds();
-
-            if (audioElement) {
-                audioElement.volume = volumeControl.value;
-                audioElement.play().catch(e => console.log("Oynatma hatası:", e));
-                currentAudio = audioElement;
-                element.classList.add('active');
-                toggleBtn.classList.add('playing');
-            }
-        }
-
-        function stopAllSounds() {
-            document.querySelectorAll('audio').forEach(audio => {
-                audio.pause();
-                audio.currentTime = 0;
-            });
-            document.querySelectorAll('.sound-item').forEach(item => {
-                item.classList.remove('active');
-            });
-        }
-
-        const volSlider = document.getElementById('volumeControl');
-        if (volSlider) {
-            volSlider.addEventListener('input', (e) => {
-                if (currentAudio) currentAudio.volume = e.target.value;
-            });
-        }
-
-        // 1. Modalı Aç ve mevcut verileri içine doldur
-        function openEditModal() {
-            // Mevcut ekrandaki başlık ve içeriği çekelim
-            const currentTitle = document.querySelector('.article-title').innerText;
-            const currentContent = document.querySelector('.article-content').innerText;
-
-            document.getElementById('editTitle').value = currentTitle;
-            document.getElementById('editContent').value = currentContent;
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // 2. Güncellemeyi Backend'e Gönder
-        async function submitEdit() {
-            const newTitle = document.getElementById('editTitle').value.trim();
-            const newContent = document.getElementById('editContent').value.trim();
-
-            if (!newTitle || !newContent) return alert("Boş alan bırakma komutanım!");
-
-            try {
-                const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: newTitle, content: newContent })
-                });
-
-                if (res.ok) {
-                    alert("✅ Yengemizin yazısı başarıyla güncellendi!");
-                    location.reload(); // Sayfayı yenileyip yeni hali görelim
-                } else {
-                    alert("❌ Güncellenemedi.");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Bağlantı hatası!");
-            }
-        }
-
-
-        // ==========================================
-        // 🔥 V2.5 PREMIUM KİTAP DÜZENLEME & SIKIŞTIRMA MOTORU 🔥
-        // ==========================================
-        let currentModalImageBase64 = null;
-
-        // 1. Akıllı Önizleme Yöneticisi
-        function setModalImagePreview(imageSrc) {
-            const previewImg = document.getElementById('editImagePreview');
-            const placeholder = document.getElementById('editImagePlaceholder');
-            const previewArea = document.getElementById('editImagePreviewArea');
-
-            if (!previewImg || !placeholder) return;
-
-            if (imageSrc && imageSrc.length > 20 && imageSrc !== "null" && imageSrc !== "undefined") {
-                previewImg.src = imageSrc;
-                previewImg.style.display = 'block';
-                placeholder.style.display = 'none';
-                if (previewArea) previewArea.style.borderColor = "var(--accent)";
-            } else {
-                previewImg.src = "";
-                previewImg.style.display = 'none';
-                placeholder.style.display = 'block';
-                if (previewArea) previewArea.style.borderColor = "#444";
-            }
-        }
-
-        // 2. Sıkıştırma Motorlu Dosya Okuyucu (500 Hatası Çözücü)
-        document.addEventListener("DOMContentLoaded", () => {
-            const inputContainer = document.getElementById('editImagePreviewArea');
-            const fileInput = document.getElementById('editImageInput');
-
-            if (inputContainer && fileInput) {
-                inputContainer.addEventListener('click', () => fileInput.click());
-
-                fileInput.addEventListener('change', function (e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function (event) {
-
-                            // 🔥 SIKIŞTIRMA MOTORU DEVREDE 🔥
-                            const img = new Image();
-                            img.src = event.target.result;
-
-                            img.onload = function () {
-                                const canvas = document.createElement('canvas');
-                                const MAX_WIDTH = 600; // Kitap kapağı için ideal genişlik
-                                let width = img.width;
-                                let height = img.height;
-
-                                if (width > MAX_WIDTH) {
-                                    height = Math.round((height *= MAX_WIDTH / width));
-                                    width = MAX_WIDTH;
-                                }
-
-                                canvas.width = width;
-                                canvas.height = height;
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(img, 0, 0, width, height);
-
-                                // %75 kalite ile jilet gibi JPEG'e çevir
-                                currentModalImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
-                                console.log("🚀 [Sıkıştırma Motoru] Kitap kapağı başarıyla hafifletildi!");
-                                setModalImagePreview(currentModalImageBase64);
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-        });
-
-        // 3. Modalı Aç ve Mevcut Kitap Verilerini Çek
-        function openEditModal() {
-            const title = document.querySelector('.book-info h1')?.innerText || '';
-            const author = document.querySelector('.book-info h2')?.innerText || '';
-            const content = document.querySelector('.book-desc p')?.innerText || '';
-
-            // HTML yapından detayları cımbızla çekiyoruz
-            const categoryInfo = Array.from(document.querySelectorAll('.book-meta li')).find(li => li.innerText.includes('Kategori'))?.innerText.split(':')[1]?.trim() || '';
-            const publisherInfo = Array.from(document.querySelectorAll('.book-meta li')).find(li => li.innerText.includes('Yayınevi'))?.innerText.split(':')[1]?.trim() || '';
-            const pagesInfo = Array.from(document.querySelectorAll('.book-meta li')).find(li => li.innerText.includes('Sayfa'))?.innerText.split(':')[1]?.replace(/[^0-9]/g, '') || '';
-
-            // Mevcut kapağı çek
-            const coverImg = document.querySelector('.book-cover img');
-            currentModalImageBase64 = coverImg ? coverImg.src : null;
-
-            // İnputlara doldur
-            document.getElementById('editTitle').value = title;
-            document.getElementById('editAuthor').value = author;
-            document.getElementById('editCategory').value = categoryInfo;
-            document.getElementById('editPublisher').value = publisherInfo;
-            document.getElementById('editPages').value = pagesInfo;
-            document.getElementById('editContent').value = content;
-
-            setModalImagePreview(currentModalImageBase64);
-
-            const modal = document.getElementById('editModal');
-            modal.style.display = 'flex';
-            setTimeout(() => { modal.style.opacity = '1'; }, 10);
-        }
-
-        function closeEditModal() {
-            const modal = document.getElementById('editModal');
-            modal.style.opacity = '0';
-            setTimeout(() => {
-                modal.style.display = 'none';
-                const fileInput = document.getElementById('editImageInput');
-                if (fileInput) fileInput.value = "";
-            }, 300);
-        }
-
-        // 4. Güncellemeyi Sunucuya Yolla
-        async function submitEdit() {
-            const newTitle = document.getElementById('editTitle').value.trim();
-            const newAuthor = document.getElementById('editAuthor').value.trim();
-            const newCategory = document.getElementById('editCategory').value.trim();
-            const newPublisher = document.getElementById('editPublisher').value.trim();
-            const newPages = document.getElementById('editPages').value.trim();
-            const newContent = document.getElementById('editContent').value.trim();
-
-            const btn = document.getElementById('editSubmitBtn');
-
-            if (!newTitle) return alert("En azından kitap adını gir hayatım benim :D");
-
-            const oldBtnHTML = btn.innerHTML;
-            btn.innerHTML = `<i class="ph-bold ph-spiral"></i>⏳...`;
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_BASE}/books/${currentRelatedId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: newTitle,
-                        author: newAuthor,
-                        tag: newCategory, //  category yerine tag yolluyoruz!
-                        publisher: newPublisher,
-                        pages: parseInt(newPages) || 0, //  Metni zorla Sayıya (Number) çeviriyoruz!
-                        desc: newContent,
-                        cover: currentModalImageBase64
-                    })
-                });
-
-                if (res.ok) {
-                    btn.innerHTML = `<i class="ph-bold ph-check-circle"></i> TAMAMLANDI!`;
-                    setTimeout(() => { location.reload(); }, 1000);
-                } else {
-                    // Eğer sunucu hala hata verirse ne olduğunu konsola yazdır
-                    const errData = await res.text();
-                    console.error("Sunucu Cevabı:", errData);
-                    alert("❌ Hata: Güncellenemedi. Lütfen konsola bak.");
-                    btn.innerHTML = oldBtnHTML; btn.disabled = false;
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Bağlantı hatası!");
-                btn.innerHTML = oldBtnHTML; btn.disabled = false;
-            }
-        }
-
-        // ==========================================
-        // 🔥 GÖRÜNTÜLENME SAYACI TETİKLEYİCİSİ 🔥
-        // ==========================================
-        async function incrementView() {
-            try {
-                const res = await fetch(`${API_BASE}/books/${currentRelatedId}/view`, { method: 'POST' });
-                if (res.ok) {
-                    const data = await res.json();
-                    const viewText = document.getElementById('viewCountText');
-                    if (viewText) viewText.innerText = `${data.views} Okunma`;
-                }
-            } catch (e) {
-                console.error("Görüntülenme kaydedilemedi:", e);
-            }
-        }
-
-        // Sayfa yüklenir yüklenmez sayacı 1 artır!
-        incrementView();
-    </script>
 </body>
 
 </html>

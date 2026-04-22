@@ -1,57 +1,65 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
     <title>Minemsiyle - Kişisel Blog ve Kitap İncelemeleri</title>
-    <meta name="description"
-        content="Kişisel gelişim, kitap incelemeleri, gece okumaları ve hayata dair notlarımın yer aldığı kişisel blog sayfam.">
+
+    <!-- ========= SEO Meta Etiketleri ========= -->
+    <meta name="description" content="Kitap tanıtımları, notlar ve yazılar. Sakin, dergi gibi bir okuma deneyimi.">
     <meta name="keywords" content="minemsiyle, kitap bloğu, kişisel gelişim, roman inceleme, blog">
     <meta name="author" content="Minemsiyle">
-    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
-    <meta name="description" content="Kitap tanıtımları, notlar ve yazılar. Sakin, dergi gibi bir okuma deneyimi." />
-    <meta name="google-site-verification" content="xFBZiNuQ2d3EFkO1ukt6EIfDGjrHmqe2eAaIkinKx8U" />
+    <meta name="google-site-verification" content="xFBZiNuQ2d3EFkO1ukt6EIfDGjrHmqe2eAaIkinKx8U">
+
+    <!-- ========= Tema: Sayfa yüklenmeden önce temayı uygula ========= -->
     <script>
         (function () {
-            // Hafızaya bak, yoksa 'light' yap
             var savedTheme = localStorage.getItem('theme') || 'light';
-            // Sayfa yüklenmeden HTML'e rengi bas
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
 
+    <!-- ========= Fontlar ========= -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/main.css" />
+
+    <!-- ========= Stil Dosyaları ve İkon Kütüphanesi ========= -->
+    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/main.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="/socket.io/socket.io.js"></script>
 </head>
 
 <body id="top">
+
+    <!-- ========= HEADER: Logo, Navigasyon, Arama, Tema, Profil ========= -->
     <header class="header" id="header">
         <div class="container header__inner">
+
+            <!-- Logo ve Marka -->
             <div class="brand">
                 <div class="brand__kicker">KİTAP & YAZI</div>
-                <a class="brand__logo" href="index.html" aria-label="Ana Sayfa">
-                    <img src="assets/images/Logo.png" alt="Minemsiyle.com">
+                <a class="brand__logo" href="/" aria-label="Ana Sayfa">
+                    <img src="/assets/images/Logo.png" alt="Minemsiyle.com">
                 </a>
                 <div class="brand__sub">Kelimelerin dünyasında, <b>Mümine'msi</b> bir mola.</div>
             </div>
 
+            <!-- Masaüstü Navigasyon -->
             <div class="desktop-links">
                 <nav class="nav" aria-label="Ana menü">
                     <a href="#featured" class="nav__link">Öne Çıkan</a>
                     <a href="#books" class="nav__link">Kitaplar</a>
                     <a href="#blog" class="nav__link">Blog</a>
-                    <a href="about.html" class="nav__link">Hakkında</a>
+                    <a href="/about.html" class="nav__link">Hakkında</a>
                 </nav>
             </div>
 
+            <!-- Arama, Tema Butonu, Hamburger Menü -->
             <div class="header__actions">
                 <div class="search-wrapper" style="position: relative;">
                     <label class="search" aria-label="Kitap ara">
@@ -77,50 +85,50 @@
 
             <div style="flex-grow: 1;"></div>
 
-            <a id="headerProfileLink" href="login.html" class="icon-btn" aria-label="Giriş Yap"
+            <!-- Profil / Giriş Yap Butonu -->
+            <a id="headerProfileLink" href="/login.html" class="icon-btn" aria-label="Giriş Yap"
                 style="color:var(--ink); display:flex; align-items:center; border-left: 1px solid rgba(255, 255, 255, 0.15); padding-left: 20px; margin-left: 20px;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
             </a>
+
         </div>
     </header>
 
-
+    <!-- ========= ANA İÇERİK ALANI ========= -->
     <main id="main" class="container main">
-
         <section class="grid">
+
+            <!-- ========= SOL SÜTUN: Öne Çıkan, Kitaplar, Blog ========= -->
             <section class="col col--main">
+
+                <!-- ========= Öne Çıkan Yazı / Editörün Notu ========= -->
                 <article id="featured" class="featured card">
                     <div class="featured__meta">
                         <span class="tag tag--accent">Editörün Notu</span>
                         <span class="muted">• Başlangıç</span>
                     </div>
-
                     <h1 class="headline">Suskun satırların sığınağına hoş geldin.</h1>
                     <p class="dek">
                         Burası sadece bir kitap arşivi değil; okuduklarımın, hissettiklerimin ve altını çizdiğim o özel
-                        cümlelerin evi. Gösteriş yok, gürültü yok. Sadece sen, ben ve hikâyeler var. Çayını
-                        aldıysan başlayalım mı?
+                        cümlelerin evi. Gösteriş yok, gürültü yok. Sadece sen, ben ve hikâyeler var. Çayını aldıysan
+                        başlayalım mı?
                     </p>
-
                     <div class="featured__cta">
                         <a class="btn btn--link" href="#books">Kütüphaneye İn →</a>
                     </div>
-
-                    <hr class="rule" />
+                    <hr class="rule">
                     <div class="mini-row">
                         <div class="mini">
                             <div class="mini__k">Şu anki Mod</div>
                             <div class="mini__v">Dingin & Huzurlu 🍂</div>
                         </div>
-
                         <div class="mini">
                             <div class="mini__k">Eşlikçim</div>
                             <div class="mini__v">Bir Şekerli Demli Çay 🫖</div>
                         </div>
-
                         <div class="mini">
                             <div class="mini__k">Fonda Çalan</div>
                             <div class="mini__v">Yağmur Sesi 🌧️</div>
@@ -128,12 +136,14 @@
                     </div>
                 </article>
 
+                <!-- ========= Kitaplar Bölümü ========= -->
                 <section id="books" class="section">
                     <div class="section__head">
                         <h2 class="section__title">Kitaplar</h2>
                         <div class="section__sub muted">Rafların arasında sessiz bir yolculuk.</div>
                     </div>
 
+                    <!-- Kategori Filtre Butonları -->
                     <div class="filter-container">
                         <button class="filter-btn active" onclick="filterBooks('all')">Tümü</button>
                         <button class="filter-btn" onclick="filterBooks('Roman')">Roman</button>
@@ -143,10 +153,9 @@
                         <button class="filter-btn" onclick="filterBooks('Diğer')">Diğer</button>
                     </div>
 
+                    <!-- Etiket Chipleri ve Sıralama -->
                     <div class="books-toolbar">
-                        <div class="chips" id="chipRow" aria-label="Etikete göre filtrele">
-                        </div>
-
+                        <div class="chips" id="chipRow" aria-label="Etikete göre filtrele"></div>
                         <div class="sort">
                             <label class="muted" for="sortSelect">Sırala:</label>
                             <select id="sortSelect">
@@ -156,12 +165,11 @@
                         </div>
                     </div>
 
-                    <div id="booksGrid" class="books">
-
-                    </div>
-
+                    <!-- Kitap Kartları (JS ile doldurulur) -->
+                    <div id="booksGrid" class="books"></div>
                 </section>
 
+                <!-- ========= Blog Bölümü ========= -->
                 <section id="blog" class="section">
                     <div class="section__head"
                         style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
@@ -170,13 +178,13 @@
                             <div class="section__sub muted" style="margin-top: 4px;">Zihnimin dağınık köşelerinden
                                 dökülenler.</div>
                         </div>
-
-                        <a href="blog.html"
+                        <a href="/blog.html"
                             style="color: var(--accent); text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap; margin-bottom: 4px;">
                             Tümünü Gör →
                         </a>
                     </div>
 
+                    <!-- Blog Kartları (JS ile doldurulur) -->
                     <div class="blog-grid" id="blogGrid">
                         <p style="color:#888;">Yazılar yükleniyor...</p>
                     </div>
@@ -184,8 +192,10 @@
 
             </section>
 
+            <!-- ========= SAĞ SÜTUN: Günün Sözü, Şu An Masamda, 2026 Hedefi ========= -->
             <aside class="col col--side">
 
+                <!-- Günün Sözü -->
                 <section class="aside card">
                     <div class="aside__head">
                         <h3 class="aside__title">Günün Sözü</h3>
@@ -195,6 +205,7 @@
                     </div>
                 </section>
 
+                <!-- Şu An Masamda -->
                 <section class="aside card">
                     <h3 class="aside__title">Şu An Masamda</h3>
                     <div id="readingNow">
@@ -202,6 +213,7 @@
                     </div>
                 </section>
 
+                <!-- 2026 Okuma Hedefi -->
                 <section class="aside card">
                     <h3 class="aside__title">2026 Hedefi</h3>
                     <div id="readingChallenge">
@@ -210,16 +222,17 @@
                 </section>
 
             </aside>
+
         </section>
     </main>
 
+    <!-- ========= FOOTER ========= -->
     <footer class="footer">
         <div class="container footer__inner">
             <div class="footer__left">
-                <div class="footer__brand">Mümine’nin Kütüphanesi</div>
+                <div class="footer__brand">Mümine'nin Kütüphanesi</div>
                 <div class="muted">© <span id="year"></span> • Created By Onur C.</div>
             </div>
-
             <div class="footer__right">
                 <a class="footer__link" href="#featured">Yukarı</a>
                 <a class="footer__link" href="#books">Kitaplar</a>
@@ -228,43 +241,46 @@
         </div>
     </footer>
 
+    <!-- ========= MODAL: Kitap Detay Penceresi ========= -->
     <dialog class="modal" id="bookModal" aria-label="Kitap detayı">
         <div class="modal__inner">
             <button class="modal__close icon-btn" id="closeModal" aria-label="Kapat">✕</button>
             <div class="modal__body">
+
+                <!-- Kapak Resmi -->
                 <div class="modal__left">
                     <img id="mCover" src="" alt="Kitap Kapağı" class="modal__img">
                 </div>
 
+                <!-- Kitap Bilgileri -->
                 <div class="modal__content">
                     <div class="modal__meta">
                         <span class="tag tag--accent" id="mTag">Etiket</span>
                         <span class="muted" id="mInfo">• Yıl</span>
                     </div>
-
                     <h3 class="modal__h" id="mHeading">Kitap Adı</h3>
-
                     <p class="modal__author" id="mAuthorModal"
                         style="color:var(--accent); font-weight:600; margin-bottom:12px;"></p>
-
                     <p class="modal__p" id="mDesc"></p>
-
                     <div class="rating" aria-label="Puan" style="margin-top: auto;">
                         <span class="rating__stars" id="mStars" aria-hidden="true"></span>
                         <span class="rating__num" id="mRating"></span>
                     </div>
 
+                    <!-- Modal Butonları -->
                     <div class="modal__actions">
                         <button class="btn btn--primary" id="editBtn">✎ Düzenle</button>
                         <button class="btn btn--ghost" id="copyBtn">Bağlantıyı Paylaş</button>
                     </div>
                 </div>
+
             </div>
         </div>
     </dialog>
 
+    <!-- ========= MOBİL ALT NAVİGASYON ========= -->
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item active">
+        <a href="/" class="nav-item active">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -272,7 +288,6 @@
             </svg>
             <span>Ana Sayfa</span>
         </a>
-
         <a href="#books" class="nav-item">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -281,7 +296,6 @@
             </svg>
             <span>Kitaplar</span>
         </a>
-
         <a href="#blog" class="nav-item">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -290,8 +304,7 @@
             </svg>
             <span>Blog</span>
         </a>
-
-        <a href="profile.html" class="nav-item">
+        <a href="/profile.html" class="nav-item">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -301,73 +314,47 @@
         </a>
     </nav>
 
+    <!-- ========= AMBİYANS MÜZİK WİDGETI ========= -->
     <div class="ambiance-widget" id="ambianceWidget">
         <button class="ambiance-toggle" onclick="toggleAmbiancePanel()" title="Odak Modu">
             <span class="music-note">🎵</span>
         </button>
-
         <div class="ambiance-panel" id="ambiancePanel">
             <div class="ambiance-header">
                 <span>Odak Modu</span>
                 <button onclick="toggleAmbiancePanel()"
                     style="background:none; border:none; color:var(--muted); cursor:pointer;">✕</button>
             </div>
-
             <div class="sound-options">
-                <div class="sound-item" onclick="playAmbiance('rain', this)">
-                    <span>🌧️</span>
-                    <small>Yağmur</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('cafe', this)">
-                    <span>☕</span>
-                    <small>Kafe</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('fire', this)">
-                    <span>🔥</span>
-                    <small>Şömine</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('forest', this)">
-                    <span>🌲</span>
-                    <small>Orman</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('night', this)">
-                    <span>🌙</span>
-                    <small>Gece</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('snow', this)">
-                    <span>❄️</span>
-                    <small>Kar</small>
-                </div>
+                <div class="sound-item" onclick="playAmbiance('rain', this)"><span>🌧️</span><small>Yağmur</small></div>
+                <div class="sound-item" onclick="playAmbiance('cafe', this)"><span>☕</span><small>Kafe</small></div>
+                <div class="sound-item" onclick="playAmbiance('fire', this)"><span>🔥</span><small>Şömine</small></div>
+                <div class="sound-item" onclick="playAmbiance('forest', this)"><span>🌲</span><small>Orman</small></div>
+                <div class="sound-item" onclick="playAmbiance('night', this)"><span>🌙</span><small>Gece</small></div>
+                <div class="sound-item" onclick="playAmbiance('snow', this)"><span>❄️</span><small>Kar</small></div>
             </div>
-
             <div class="volume-container">
                 <span style="font-size:12px; color:var(--muted);">Ses:</span>
                 <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
             </div>
         </div>
-
+        <!-- Ses Dosyaları -->
         <div id="audio-container">
             <audio id="audio-rain" loop src="/assets/sounds/Yagmur.mp3"></audio>
-
             <audio id="audio-cafe" loop src="/assets/sounds/Cafe.mp3"></audio>
-
             <audio id="audio-fire" loop src="/assets/sounds/KampAtesi.mp3"></audio>
-
             <audio id="audio-forest" loop src="/assets/sounds/Doga.mp3"></audio>
-
             <audio id="audio-night" loop src="/assets/sounds/Gece.mp3"></audio>
-
             <audio id="audio-snow" loop src="/assets/sounds/Kar.mp3"></audio>
         </div>
     </div>
 
+    <!-- ========= JS Dosyaları ========= -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/thema.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/chat-component.js"></script>
+    <script src="/js/chat-component.js"></script>
 
 </body>
-
-
 
 </html>

@@ -1,0 +1,237 @@
+/* =========================================
+   HEADER STİLLERİ
+   ========================================= */
+
+/* Yapışkan header, bulanık cam efekti */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--bg);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    transition: background 0.3s ease;
+}
+
+/* Header iç yerleşim */
+.header__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo boyutu ve hover efekti */
+.brand__logo img {
+    height: 40px;
+    width: auto;
+    display: block;
+    transition: transform 0.2s;
+}
+
+.brand__logo:hover img {
+    transform: scale(1.05);
+}
+
+/* =========================================
+   NAVİGASYON STİLLERİ
+   ========================================= */
+
+/* Nav linkleri yan yana */
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+/* Nav link genel görünümü */
+.nav__link {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.nav__link:hover {
+    color: var(--accent);
+}
+
+/* Link altına kayan çizgi efekti */
+.nav__link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--accent);
+    transition: width 0.3s;
+}
+
+.nav__link:hover::after {
+    width: 100%;
+}
+
+/* =========================================
+   TEMA BUTONU (TOGGLE SWITCH)
+   ========================================= */
+
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 26px;
+    position: relative;
+    width: 50px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+/* Kaydırıcı zemin */
+.slider {
+    background-color: #ccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+/* Kaydırıcı top */
+.slider:before {
+    background-color: white;
+    bottom: 3px;
+    content: "☀️";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+/* Dark mod aktifken */
+input:checked+.slider {
+    background-color: var(--accent);
+}
+
+input:checked+.slider:before {
+    transform: translateX(24px);
+    content: "🌙";
+}
+
+/* =========================================
+   SAYFA GENEL LAYOUT
+   ========================================= */
+
+/* Ana içerik alanı */
+.blog-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: 80vh;
+}
+
+/* =========================================
+   FİLTRE BUTONU ÇUBUĞU
+   ========================================= */
+
+/* Filtre butonları satırı */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    justify-content: center;
+}
+
+/* Tekil filtre butonu */
+.filter-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 8px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 500;
+    transition: 0.3s;
+    white-space: nowrap;
+}
+
+/* Hover ve aktif hali */
+.filter-btn:hover,
+.filter-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+/* =========================================
+   BLOG KARTI
+   ========================================= */
+
+/* Kart genel kutu */
+.blog-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hover efekti */
+.blog-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent);
+}
+
+/* Kapak resmi sarmalayıcı */
+.blog-img-wrapper {
+    height: 220px;
+    overflow: hidden;
+    background: var(--line);
+    position: relative;
+}
+
+/* Kapak resmi */
+.blog-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+/* Hover'da resmi hafif büyüt */
+.blog-card:hover .blog-img {
+    transform: scale(1.08);
+}
+
+/* Kart metin içeriği */
+.blog-content {
+    padding: 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}

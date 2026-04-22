@@ -6,14 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog | Minemsiyle</title>
 
-    <link rel="stylesheet" href="css/main.css">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap"
-        rel="stylesheet">
-
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <link rel="icon" href="./assets/images/Logo.png" type="image/png">
-
+    <!-- ========= Tema: Sayfa yüklenmeden önce temayı uygula ========= -->
     <script>
         (function () {
             var savedTheme = localStorage.getItem('theme') || 'light';
@@ -21,235 +14,30 @@
         })();
     </script>
 
-    <style>
-        /* --- MODERN HEADER STİLLERİ 💎 --- */
-        .header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: #f4efe3;
-            /* Hafif şeffaf beyaz */
-            backdrop-filter: blur(12px);
-            /* Arkasını buzlu cam yap */
-            border-bottom: 1px solid var(--line);
-            transition: background 0.3s ease;
-        }
+    <!-- ========= Harici Kütüphaneler ========= -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap"
+        rel="stylesheet">
 
-        /* Karanlık modda header rengi */
-        [data-theme="dark"] .header {
-            background: #171412;
-            /* Hafif şeffaf siyah */
-        }
-
-        .header__inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            height: 70px;
-            /* Sabit yükseklik */
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            /* Dikeyde tam ortala */
-        }
-
-        .brand__logo img {
-            height: 40px;
-            /* Logo boyutu sabit */
-            width: auto;
-            display: block;
-            transition: transform 0.2s;
-        }
-
-        .brand__logo:hover img {
-            transform: scale(1.05);
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-            /* Linkler arası boşluk */
-        }
-
-        .nav__link {
-            color: var(--ink);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            position: relative;
-            transition: color 0.2s;
-        }
-
-        .nav__link:hover {
-            color: var(--accent);
-        }
-
-        /* Linkin altına kayan çizgi efekti */
-        .nav__link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -4px;
-            left: 0;
-            background-color: var(--accent);
-            transition: width 0.3s;
-        }
-
-        .nav__link:hover::after {
-            width: 100%;
-        }
-
-        /* --- TEMA BUTONU --- */
-        .theme-switch-wrapper {
-            display: flex;
-            align-items: center;
-        }
-
-        .theme-switch {
-            display: inline-block;
-            height: 26px;
-            position: relative;
-            width: 50px;
-        }
-
-        .theme-switch input {
-            display: none;
-        }
-
-        .slider {
-            background-color: #ccc;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            background-color: white;
-            bottom: 3px;
-            content: "☀️";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            position: absolute;
-            transition: .4s;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        input:checked+.slider {
-            background-color: var(--accent);
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(24px);
-            content: "🌙";
-        }
-
-        /* --- SAYFA GENEL STİLİ --- */
-        .blog-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            min-height: 80vh;
-        }
-
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            justify-content: center;
-            /* Filtreleri ortala */
-        }
-
-        .filter-btn {
-            background: transparent;
-            border: 1px solid var(--line);
-            padding: 8px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            color: var(--muted);
-            font-weight: 500;
-            transition: 0.3s;
-            white-space: nowrap;
-        }
-
-        .filter-btn:hover,
-        .filter-btn.active {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .blog-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .blog-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent);
-        }
-
-        .blog-img-wrapper {
-            height: 220px;
-            overflow: hidden;
-            background: #eee;
-            position: relative;
-        }
-
-        .blog-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s;
-        }
-
-        .blog-card:hover .blog-img {
-            transform: scale(1.08);
-        }
-
-        .blog-content {
-            padding: 25px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-    </style>
+    <!-- ========= Stil Dosyaları ========= -->
+    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/blog.css">
 </head>
 
 <body>
 
+    <!-- ========= HEADER: Logo, Navigasyon, Tema Butonu ========= -->
     <header class="header">
         <div class="header__inner">
             <div class="brand">
-                <a class="brand__logo" href="index.html">
-                    <img src="assets/images/Logo.png" alt="Minemsiyle">
+                <a class="brand__logo" href="/">
+                    <img src="/assets/images/Logo.png" alt="Minemsiyle">
                 </a>
             </div>
-
             <nav class="nav">
-                <a href="index.html" class="nav__link">Ana Sayfa</a>
-                <a href="index.html#books" class="nav__link">Kitaplar</a>
-
+                <a href="/" class="nav__link">Ana Sayfa</a>
+                <a href="/#books" class="nav__link">Kitaplar</a>
                 <div class="theme-switch-wrapper">
                     <label class="theme-switch" for="checkbox">
                         <input type="checkbox" id="checkbox" />
@@ -259,13 +47,17 @@
             </nav>
         </div>
     </header>
+
+    <!-- ========= ANA İÇERİK ALANI ========= -->
     <main class="blog-container">
 
+        <!-- ========= Sayfa Başlığı ========= -->
         <div style="text-align: center; margin-bottom: 50px; margin-top: 20px;">
             <h1 style="font-size: 3rem; margin-bottom: 10px; font-weight: 800; letter-spacing: -1px;">Tüm Yazılar</h1>
             <p style="color: var(--muted); font-size: 1.1rem;">Zihnimin dağınık köşelerinden dökülenlerin tamamı.</p>
         </div>
 
+        <!-- ========= Kategori Filtre Butonları (Seriler JS ile eklenir) ========= -->
         <div class="filter-bar">
             <button class="filter-btn active" onclick="filterPosts('all', this)">Tümü</button>
             <button class="filter-btn" onclick="filterPosts('Deneme', this)">Deneme</button>
@@ -275,6 +67,7 @@
             <button class="filter-btn" onclick="filterPosts('İnceleme', this)">İnceleme</button>
         </div>
 
+        <!-- ========= Blog Kartları (JS ile doldurulur) ========= -->
         <div id="blogGrid"
             style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px;">
             <p style="text-align:center; color:#888; grid-column:1/-1;">Yazılar yükleniyor... ⏳</p>
@@ -282,275 +75,52 @@
 
     </main>
 
+    <!-- ========= AMBİYANS MÜZİK WİDGETI ========= -->
     <div class="ambiance-widget" id="ambianceWidget">
         <button class="ambiance-toggle" onclick="toggleAmbiancePanel()" title="Odak Modu">
             <span class="music-note">🎵</span>
         </button>
-
         <div class="ambiance-panel" id="ambiancePanel">
             <div class="ambiance-header">
                 <span>Odak Modu</span>
                 <button onclick="toggleAmbiancePanel()"
                     style="background:none; border:none; color:var(--muted); cursor:pointer;">✕</button>
             </div>
-
             <div class="sound-options">
-                <div class="sound-item" onclick="playAmbiance('rain', this)">
-                    <span>🌧️</span>
-                    <small>Yağmur</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('cafe', this)">
-                    <span>☕</span>
-                    <small>Kafe</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('fire', this)">
-                    <span>🔥</span>
-                    <small>Şömine</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('forest', this)">
-                    <span>🌲</span>
-                    <small>Orman</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('night', this)">
-                    <span>🌙</span>
-                    <small>Gece</small>
-                </div>
-                <div class="sound-item" onclick="playAmbiance('snow', this)">
-                    <span>❄️</span>
-                    <small>Kar</small>
-                </div>
+                <div class="sound-item" onclick="playAmbiance('rain', this)"><span>🌧️</span><small>Yağmur</small></div>
+                <div class="sound-item" onclick="playAmbiance('cafe', this)"><span>☕</span><small>Kafe</small></div>
+                <div class="sound-item" onclick="playAmbiance('fire', this)"><span>🔥</span><small>Şömine</small></div>
+                <div class="sound-item" onclick="playAmbiance('forest', this)"><span>🌲</span><small>Orman</small></div>
+                <div class="sound-item" onclick="playAmbiance('night', this)"><span>🌙</span><small>Gece</small></div>
+                <div class="sound-item" onclick="playAmbiance('snow', this)"><span>❄️</span><small>Kar</small></div>
             </div>
-
             <div class="volume-container">
                 <span style="font-size:12px; color:var(--muted);">Ses:</span>
                 <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
             </div>
         </div>
-
+        <!-- Ses Dosyaları -->
         <div id="audio-container">
             <audio id="audio-rain" loop src="/assets/sounds/Yagmur.mp3"></audio>
-
             <audio id="audio-cafe" loop src="/assets/sounds/Cafe.mp3"></audio>
-
             <audio id="audio-fire" loop src="/assets/sounds/KampAtesi.mp3"></audio>
-
             <audio id="audio-forest" loop src="/assets/sounds/Doga.mp3"></audio>
-
             <audio id="audio-night" loop src="/assets/sounds/Gece.mp3"></audio>
-
             <audio id="audio-snow" loop src="/assets/sounds/Kar.mp3"></audio>
         </div>
     </div>
 
+    <!-- ========= FOOTER ========= -->
     <footer
         style="text-align:center; padding:40px 0; color:var(--muted); font-size:13px; border-top:1px solid var(--line); margin-top:60px;">
         &copy; 2026 Minemsiyle • Sevgiyle Tasarlandı
     </footer>
 
+    <!-- ========= Harici JS Kütüphaneleri ========= -->
     <script src="/socket.io/socket.io.js"></script>
-    <script src="js/chat-component.js"></script>
-    <script>
-        const API_URL = "/api/posts";
-        let allPostsData = [];
-        let discoveredSeries = new Set();
+    <script src="/js/chat-component.js"></script>
+    <script src="/js/blog.js"></script>
 
-        // 1. TEMA AYARI
-        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark') toggleSwitch.checked = true;
-        toggleSwitch.addEventListener('change', (e) => {
-            const theme = e.target.checked ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-        });
-
-        // 1. YAZILARI ÇEK VE SERİLERİ KEŞFET
-        async function loadPosts() {
-            const grid = document.getElementById("blogGrid");
-            try {
-                const res = await fetch(API_URL);
-                const posts = await res.json();
-                allPostsData = posts.reverse();
-
-                // Siber Ajan İş Başında: Gelen yazılardaki serileri keşfet!
-                allPostsData.forEach(post => {
-                    if (post.seriesName && post.seriesName.trim() !== "") {
-                        discoveredSeries.add(post.seriesName.trim());
-                    }
-                });
-
-                // Bulunan serileri üstteki kategori çubuğuna buton olarak ekle
-                injectSeriesButtons();
-
-                renderPosts(allPostsData);
-            } catch (err) {
-                console.error(err);
-                grid.innerHTML = '<p style="text-align:center; color:red; grid-column:1/-1;">Sunucuya bağlanılamadı. (Server Kapalı)</p>';
-            }
-        }
-
-        // 2. OTOMATİK BUTON EKLEYİCİ
-        function injectSeriesButtons() {
-            const filterBar = document.querySelector('.filter-bar');
-            if (!filterBar) return;
-
-            // Bulunan her bir seri için yeni bir buton oluştur
-            discoveredSeries.forEach(seriesName => {
-                // Eğer bu isimde bir buton zaten varsa ekleme
-                const existingBtns = Array.from(filterBar.children).map(btn => btn.innerText.trim());
-                if (existingBtns.includes(seriesName)) return;
-
-                const newBtn = document.createElement('button');
-                newBtn.className = 'filter-btn';
-                // Butona tıklandığında hem kategori hem seri araması yapacak fonksiyona yönlendir
-                newBtn.onclick = function () { filterPosts(seriesName, this, true); };
-                newBtn.innerHTML = `📚 ${seriesName}`; // Başına kitap ikonu koyduk ki seri olduğu anlaşılsın
-
-                filterBar.appendChild(newBtn);
-            });
-        }
-
-        // 3. EKRANA BAS (Aynı kaldı)
-        function renderPosts(posts) {
-            const grid = document.getElementById("blogGrid");
-
-            if (posts.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; color:#888; grid-column:1/-1;">Bu kategoride yazı bulunamadı.</p>';
-                return;
-            }
-
-            grid.innerHTML = posts.map(post => {
-                const date = new Date(post.createdAt || post.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-                const imgUrl = post.cover || post.image || "https://via.placeholder.com/600x400?text=Minemsiyle";
-
-                let excerpt = post.excerpt;
-                if (!excerpt || excerpt === "...") {
-                    excerpt = post.content ? post.content.substring(0, 110) + "..." : "";
-                }
-
-                // Eğer serisi varsa, kategorinin yanına seri adını da yazalım
-                let catText = post.category || 'Genel';
-                if (post.seriesName) {
-                    catText = `📚 ${post.seriesName} (Bölüm ${post.seriesOrder || 1})`;
-                }
-
-                return `
-                <article class="blog-card">
-                    <a href="post.html?id=${post._id}" style="text-decoration:none; color:inherit; height:100%; display:flex; flex-direction:column;">
-                        
-                        <div class="blog-img-wrapper">
-                            <img src="${imgUrl}" alt="${post.title}" class="blog-img" onerror="this.src='https://via.placeholder.com/600x400?text=Resim+Yok'">
-                        </div>
-
-                        <div class="blog-content">
-                            <div style="font-size:0.75rem; color:var(--accent); font-weight:bold; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">
-                                ${catText} • ${date}
-                            </div>
-                            
-                            <h3 style="font-size:1.4rem; margin-bottom:12px; line-height:1.3; color:var(--ink); font-weight:700;">${post.title}</h3>
-                            
-                            <p style="font-size:0.95rem; color:var(--text-muted); line-height:1.6; margin-bottom:20px; flex:1;">
-                                ${excerpt}
-                            </p>
-                            
-                            <span style="font-weight:bold; font-size:0.9rem; color:var(--accent); display:flex; align-items:center; gap:6px;">
-                                Okumaya Başla <i class="ph-bold ph-arrow-right"></i>
-                            </span>
-                        </div>
-                    </a>
-                </article>
-                `;
-            }).join('');
-        }
-
-        // 4. GÜÇLENDİRİLMİŞ FİLTRELEME (Hem Kategori Hem Seri Arar)
-        function filterPosts(keyword, btn, isSeries = false) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            if (keyword === 'all') {
-                renderPosts(allPostsData);
-            } else {
-                const filtered = allPostsData.filter(post => {
-                    // Eğer seri butonuna tıklandıysa, sadece o serideki yazıları getir
-                    if (isSeries) {
-                        return (post.seriesName || "").toLowerCase() === keyword.toLowerCase();
-                    }
-                    // Normal kategori butonuna tıklandıysa, kategoride ara
-                    else {
-                        return (post.category || "").toLowerCase() === keyword.toLowerCase();
-                    }
-                });
-
-                // Bölümleri sıraya diz (Sadece seri filtrelemesi yapıldığında)
-                if (isSeries) {
-                    filtered.sort((a, b) => (a.seriesOrder || 0) - (b.seriesOrder || 0));
-                }
-
-                renderPosts(filtered);
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", loadPosts);
-
-        // ==========================================
-        // 🎵 AMBİYANS SES SİSTEMİ
-        // ==========================================
-
-        let currentAudio = null; // Şu an çalan ses
-
-        function toggleAmbiancePanel() {
-            const panel = document.getElementById('ambiancePanel');
-            panel.classList.toggle('active');
-        }
-
-        function playAmbiance(type, element) {
-            const audioId = `audio-${type}`;
-            const audioElement = document.getElementById(audioId);
-            const volumeControl = document.getElementById('volumeControl');
-            const toggleBtn = document.querySelector('.ambiance-toggle');
-
-            // 1. Eğer zaten bu ses çalıyorsa DURDUR
-            if (currentAudio === audioElement && !audioElement.paused) {
-                audioElement.pause();
-                element.classList.remove('active');
-                toggleBtn.classList.remove('playing');
-                currentAudio = null;
-                return;
-            }
-
-            // 2. Başka bir ses çalıyorsa önce onu sustur
-            stopAllSounds();
-
-            // 3. Yeni sesi ÇAL
-            if (audioElement) {
-                audioElement.volume = volumeControl.value; // Ses seviyesini ayarla
-                audioElement.play().catch(e => console.log("Oynatma hatası:", e));
-
-                currentAudio = audioElement;
-                element.classList.add('active'); // Kutuyu boya
-                toggleBtn.classList.add('playing'); // Ana butonu hareketlendir
-            }
-        }
-
-        function stopAllSounds() {
-            // Tüm sesleri durdur ve kutuların boyasını sil
-            document.querySelectorAll('audio').forEach(audio => {
-                audio.pause();
-                audio.currentTime = 0; // Başa sar
-            });
-            document.querySelectorAll('.sound-item').forEach(item => {
-                item.classList.remove('active');
-            });
-        }
-
-        // Ses Seviyesi Ayarı (Canlı)
-        document.getElementById('volumeControl').addEventListener('input', (e) => {
-            if (currentAudio) {
-                currentAudio.volume = e.target.value;
-            }
-        });
-    </script>
 </body>
 
 </html>
