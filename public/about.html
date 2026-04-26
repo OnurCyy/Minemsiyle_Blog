@@ -5,30 +5,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hakkında | Minemsiyle</title>
-    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
+
+    <!-- ========= Tema: Sayfa yüklenmeden önce temayı uygula ========= -->
     <script>
         (function () {
-            // Hafızaya bak, yoksa 'light' yap
             var savedTheme = localStorage.getItem('theme') || 'light';
-            // Sayfa yüklenmeden HTML'e rengi bas
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
 
-    <link rel="stylesheet" href="/css/about.css">
-    <link rel="preconnect" href="/https://fonts.googleapis.com">
-    <link rel="preconnect" href="/https://fonts.gstatic.com" crossorigin>
+    <!-- ========= Harici Kütüphaneler ========= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- ========= Stil Dosyaları ========= -->
+    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/about.css">
+
+    <!-- ========= Socket.io ========= -->
     <script src="/socket.io/socket.io.js"></script>
 </head>
 
-
 <body id="top">
+
+    <!-- ========= HEADER: Logo, Navigasyon, Tema, Hamburger ========= -->
     <header class="header" id="header">
         <div class="container header__inner">
+
+            <!-- Logo ve Marka -->
             <div class="brand">
                 <div class="brand__kicker">KİTAP & YAZI</div>
                 <a class="brand__logo" href="/" aria-label="Ana Sayfa">
@@ -37,16 +45,15 @@
                 <div class="brand__sub">Kelimelerin dünyasında, <b>Mümine'msi</b> bir mola.</div>
             </div>
 
+            <!-- Masaüstü Navigasyon -->
             <nav class="nav" aria-label="Ana menü">
-
-                <a href="/index.html" class="nav__link">Öne Çıkan</a>
-                <a href="/index.html#books" class="nav__link">Kitaplar</a>
-                <a href="/index.html#blog" class="nav__link">Blog</a>
-
+                <a href="/" class="nav__link">Öne Çıkan</a>
+                <a href="/#books" class="nav__link">Kitaplar</a>
+                <a href="/#blog" class="nav__link">Blog</a>
                 <a href="/about.html" class="nav__link is-active">Hakkında</a>
-
             </nav>
 
+            <!-- Tema Butonu ve Hamburger -->
             <div class="header__actions">
                 <button id="themeToggle" class="theme-toggle" aria-label="Tema değiştir">
                     <span class="theme-icon moon">☀️</span>
@@ -54,7 +61,7 @@
                     <span class="theme-icon sun">🌙</span>
                 </button>
 
-                <button class="icon-btn mobile-toggle" id="menuToggle" aria-label="Menüyü Aç" style="display: none;">
+                <button class="icon-btn mobile-toggle" id="menuToggle" aria-label="Menüyü Aç" style="display:none;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -62,20 +69,24 @@
                         <line x1="3" y1="18" x2="21" y2="18"></line>
                     </svg>
                 </button>
-
             </div>
+
         </div>
     </header>
 
+    <!-- ========= ANA İÇERİK: Sol Sidebar + Sağ Yazı ========= -->
     <main class="layout section">
-
         <div class="about-grid">
 
+            <!-- ========= SOL: Profil Bilgileri ve İletişim ========= -->
             <aside class="about-sidebar">
+
+                <!-- Profil Fotoğrafı -->
                 <div class="profile-frame">
                     <img src="/assets/images/Mimiii.jpeg" alt="Mümine" class="profile-img">
                 </div>
 
+                <!-- İsim ve Unvan -->
                 <div class="profile-info">
                     <h1 class="profile-name">Mümine</h1>
                     <p class="profile-title">Okur, Yazar & Hayalperest</p>
@@ -83,6 +94,7 @@
 
                 <hr class="rule" style="margin: 20px 0;">
 
+                <!-- İletişim Linkleri -->
                 <div class="contact-list">
                     <a href="mailto:mumine.erdogann@gmail.com" class="contact-item">
                         <span class="contact-icon">✉️</span>
@@ -91,7 +103,6 @@
                             <span class="value">mumine.erdogann@gmail.com</span>
                         </div>
                     </a>
-
                     <a href="https://www.instagram.com/minemsiyle/" class="contact-item">
                         <span class="contact-icon">📷</span>
                         <div class="contact-text">
@@ -99,7 +110,6 @@
                             <span class="value">@minemsiyle</span>
                         </div>
                     </a>
-
                     <a href="https://1000kitap.com/yazar/mumine-erdogan-1" class="contact-item">
                         <span class="contact-icon">📚</span>
                         <div class="contact-text">
@@ -108,24 +118,25 @@
                         </div>
                     </a>
                 </div>
+
             </aside>
 
+            <!-- ========= SAĞ: Hakkında Yazısı ========= -->
             <article class="about-content">
                 <h2 class="headline">Suskun satırlarda sustuğum kadar ben.</h2>
                 <p class="dek" style="margin-bottom: 30px;">
-                    “Bir kitabı okumak, başkasının yalnızlığına sahip çıkmaktır.”
+                    "Bir kitabı okumak, başkasının yalnızlığına sahip çıkmaktır."
                 </p>
 
                 <div class="prose">
                     <p>
                         Merhaba, ben Mümine. Burası dinlenip nefes alacağım ve saklanmadan yazılarımı dökeceğim yer.
                         Yaklaşık 11 yaşımda, fazlaca küçükken yazmaya başladım. Ruha ne iyi gelir deselerdi, hep
-                        “yazmak” derdim.
-                        Ben, içimde dolup taşan filizleri mürekkepleyip kâğıda döktüm. Ve bu kâğıdın sadece bana değil,
-                        bir başkasına da iyi geleceğini, iyileştireceğini hissettim; hatta gördüm.
+                        "yazmak" derdim. Ben, içimde dolup taşan filizleri mürekkepleyip kâğıda döktüm. Ve bu kâğıdın
+                        sadece bana değil, bir başkasına da iyi geleceğini, iyileştireceğini hissettim; hatta gördüm.
                     </p>
                     <p>
-                        Minemsiyle.com’u kurarken amacım sadece okuduğum kitapları listelemek değildi; o kitapların
+                        Minemsiyle.com'u kurarken amacım sadece okuduğum kitapları listelemek değildi; o kitapların
                         bende bıraktığı izleri, altını çizdiğim cümleleri saklamak istedim. Ve tabii ki yazılarımla
                         buraya sığınmak, bir defter kadar buranın da bana ev olacağını kendime göstermek istedim.
                     </p>
@@ -144,45 +155,45 @@
             </article>
 
         </div>
-
     </main>
+
+    <!-- ========= MOBİL MENÜ: Overlay ve Panel ========= -->
     <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
-    <aside class="mobile-menu" id="mobileMenu" style="
-    z-index: 99999; 
-    background: var(--panel) !important; 
-    color: var(--ink) !important;
-">
-        <button class="icon-btn close-menu" id="closeMenu" style="
-        align-self: flex-end; 
-        margin-bottom: 20px; 
-        background: transparent !important; 
-        border: none !important; 
-        font-size: 24px; 
-        color: var(--ink) !important; 
-        cursor: pointer;
-    ">✕</button>
+    <aside class="mobile-menu" id="mobileMenu"
+        style="z-index: 99999; background: var(--panel) !important; color: var(--ink) !important;">
 
-        <span class="mobile-menu__title" style="
-        font-family: serif; 
-        font-size: 24px; 
-        margin-bottom: 20px; 
-        display:block; 
-        color: var(--ink) !important;
-    ">Menü</span>
+        <!-- Kapatma Butonu -->
+        <button class="icon-btn close-menu" id="closeMenu"
+            style="align-self: flex-end; margin-bottom: 20px; background: transparent !important; border: none !important; font-size: 24px; color: var(--ink) !important; cursor: pointer;">✕</button>
 
+        <span class="mobile-menu__title"
+            style="font-family: serif; font-size: 24px; margin-bottom: 20px; display:block; color: var(--ink) !important;">Menü</span>
+
+        <!-- Mobil Navigasyon Linkleri -->
         <nav class="mobile-nav" style="display: flex; flex-direction: column; gap: 15px;">
-            <a href="index.html" class="mobile-link"
-                style="color: var(--ink); text-decoration: none; font-size: 18px;">Ana Sayfa</a>
-            <a href="index.html#books" class="mobile-link"
+            <a href="/" class="mobile-link" style="color: var(--ink); text-decoration: none; font-size: 18px;">Ana
+                Sayfa</a>
+            <a href="/#books" class="mobile-link"
                 style="color: var(--ink); text-decoration: none; font-size: 18px;">Kitaplar</a>
-            <a href="index.html#blog" class="mobile-link"
-                style="color: var(--ink); text-decoration: none; font-size: 18px;">Blog Yazıları</a>
-            <a href="about.html" class="mobile-link"
+            <a href="/#blog" class="mobile-link" style="color: var(--ink); text-decoration: none; font-size: 18px;">Blog
+                Yazıları</a>
+            <a href="/about.html" class="mobile-link"
                 style="color: #c07d56; font-weight: bold; text-decoration: none; font-size: 18px;">Hakkında</a>
         </nav>
+
     </aside>
 
+    <!-- ========= Harici JS Kütüphaneleri ========= -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/chat-component.js"></script>
+
+    <!-- ========= Sayfa JS Dosyaları ========= -->
+    <script src="/js/about.js"></script>
+    <script src="/js/thema.js"></script>
+    <script src="/js/main.js"></script>
+
+    <!-- ========= Mobil Menü Açma/Kapama (Inline - Küçük ve bağımsız) ========= -->
     <script>
         (function () {
             const btn = document.getElementById('menuToggle');
@@ -195,19 +206,12 @@
                 if (overlay) overlay.classList.toggle('is-active');
             }
 
-            if (btn) btn.onclick = function (e) {
-                e.preventDefault();
-                toggleAboutMenu();
-            };
+            if (btn) btn.onclick = function (e) { e.preventDefault(); toggleAboutMenu(); };
             if (close) close.onclick = toggleAboutMenu;
             if (overlay) overlay.onclick = toggleAboutMenu;
         })();
     </script>
 
-    <script src="/js/about.js"></script>
-    <script src="/js/thema.js"></script>
-    <script src="/js/main.js"></script>
-    <script src="js/chat-component.js"></script>
 </body>
 
 </html>

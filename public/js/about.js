@@ -1,5 +1,3 @@
-/* js/about.js - Sadece Hakkında Sayfası Animasyonları */
-
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Logoya tıklayınca yukarı çıkma
     const logoBtn = document.querySelector('.brand__logo'); // veya .brand
