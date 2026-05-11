@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
-    <title>Minemsiyle - Kişisel Blog ve Kitap İncelemeleri</title>
+    <title>Minemsiyle - Kişisel Yazılar ve Kitap İncelemeleri</title>
 
     <!-- ========= SEO Meta Etiketleri ========= -->
     <meta name="description" content="Kitap tanıtımları, notlar ve yazılar. Sakin, dergi gibi bir okuma deneyimi.">
@@ -54,7 +54,7 @@
                 <nav class="nav" aria-label="Ana menü">
                     <a href="#featured" class="nav__link">Öne Çıkan</a>
                     <a href="#books" class="nav__link">Kitaplar</a>
-                    <a href="#blog" class="nav__link">Blog</a>
+                    <a href="#blog" class="nav__link">Yazılar</a>
                     <a href="/about.html" class="nav__link">Hakkında</a>
                 </nav>
             </div>
@@ -101,7 +101,7 @@
     <main id="main" class="container main">
         <section class="grid">
 
-            <!-- ========= SOL SÜTUN: Öne Çıkan, Kitaplar, Blog ========= -->
+            <!-- ========= SOL SÜTUN: Öne Çıkan, Kitaplar, Yazılar ========= -->
             <section class="col col--main">
 
                 <!-- ========= Öne Çıkan Yazı / Editörün Notu ========= -->
@@ -148,7 +148,6 @@
                         <button class="filter-btn active" onclick="filterBooks('all')">Tümü</button>
                         <button class="filter-btn" onclick="filterBooks('Roman')">Roman</button>
                         <button class="filter-btn" onclick="filterBooks('Şiir')">Şiir</button>
-                        <button class="filter-btn" onclick="filterBooks('Bilim Kurgu')">Bilim Kurgu</button>
                         <button class="filter-btn" onclick="filterBooks('Kişisel Gelişim')">Kişisel Gelişim</button>
                         <button class="filter-btn" onclick="filterBooks('Diğer')">Diğer</button>
                     </div>
@@ -169,12 +168,12 @@
                     <div id="booksGrid" class="books"></div>
                 </section>
 
-                <!-- ========= Blog Bölümü ========= -->
+                <!-- =========  Yazılar Bölümü ========= -->
                 <section id="blog" class="section">
                     <div class="section__head"
                         style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
                         <div>
-                            <h2 class="section__title" style="margin: 0; line-height: 1.2;">Blog</h2>
+                            <h2 class="section__title" style="margin: 0; line-height: 1.2;">Yazılarım</h2>
                             <div class="section__sub muted" style="margin-top: 4px;">Zihnimin dağınık köşelerinden
                                 dökülenler.</div>
                         </div>
@@ -184,7 +183,7 @@
                         </a>
                     </div>
 
-                    <!-- Blog Kartları (JS ile doldurulur) -->
+                    <!-- Yazılar Kartları (JS ile doldurulur) -->
                     <div class="blog-grid" id="blogGrid">
                         <p style="color:#888;">Yazılar yükleniyor...</p>
                     </div>
@@ -236,7 +235,7 @@
             <div class="footer__right">
                 <a class="footer__link" href="#featured">Yukarı</a>
                 <a class="footer__link" href="#books">Kitaplar</a>
-                <a class="footer__link" href="#blog">Blog</a>
+                <a class="footer__link" href="#blog">Yazılar</a>
             </div>
         </div>
     </footer>
@@ -302,7 +301,7 @@
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
-            <span>Blog</span>
+            <span>Yazılar</span>
         </a>
         <a href="/profile.html" class="nav-item">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
