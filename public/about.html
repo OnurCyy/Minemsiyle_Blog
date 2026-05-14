@@ -192,26 +192,6 @@
     <script src="/js/about.js"></script>
     <script src="/js/thema.js"></script>
     <script src="/js/main.js"></script>
-
-    <!-- ========= Mobil Menü Açma/Kapama (Inline - Küçük ve bağımsız) ========= -->
-    <script>
-        (function () {
-            const btn = document.getElementById('menuToggle');
-            const menu = document.getElementById('mobileMenu');
-            const overlay = document.getElementById('mobileMenuOverlay');
-            const close = document.getElementById('closeMenu');
-
-            function toggleAboutMenu() {
-                if (menu) menu.classList.toggle('is-open');
-                if (overlay) overlay.classList.toggle('is-active');
-            }
-
-            if (btn) btn.onclick = function (e) { e.preventDefault(); toggleAboutMenu(); };
-            if (close) close.onclick = toggleAboutMenu;
-            if (overlay) overlay.onclick = toggleAboutMenu;
-        })();
-    </script>
-
 </body>
 
 </html>
