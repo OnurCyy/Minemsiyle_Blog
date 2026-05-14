@@ -1682,6 +1682,13 @@ input[type=range] {
     }
 }
 
+/* Masaüstünde alt nav gizli */
+@media (min-width: 769px) {
+    .bottom-nav {
+        display: none;
+    }
+}
+
 @media (max-width: 768px) {
 
     /* Mobil alt navigasyon */
@@ -1781,9 +1788,4 @@ input[type=range] {
     .ambiance-widget {
         bottom: 80px;
     }
-}
-
-/* Masaüstünde alt nav gizli */
-.bottom-nav {
-    display: none;
 }
