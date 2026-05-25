@@ -8,8 +8,6 @@ const bcrypt = require('bcrypt');
 const session = require("express-session");
 const passport = require("passport");
 const path = require('path');
-const http = require('http');
-const { Server } = require('socket.io');
 const axios = require('axios');
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const DiscordStrategy = require("passport-discord").Strategy;
@@ -18,7 +16,7 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 // Modeller
 const User = require('./models/User');
 const SavedItem = require('./models/SavedItem');
-const Message = require('./models/Message');
+
 
 // Rotalar
 const authRoutes = require("./routes/auth");
@@ -151,110 +149,6 @@ passport.use(new TwitterStrategy({
     } catch (err) { return done(err, null); }
 }));
 
-//-- CANLI SOHBET -------------------------------------------------------
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
-const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1494733947437973575/TE-nVk3lDcDRZ3mBpTJWCaOeq8SjYNaZCvzn40GriFaU0gXufknI4Z-lJ1FmzO7B3g_R';
-const forbiddenWords = ['aq', 'piç', 'oe'];
-
-io.on('connection', async (socket) => {
-    console.log('📡 Bir kullanıcı bağlandı:', socket.id);
-
-    try {
-        const lastMessages = await Message.find({ isPrivate: false }).sort({ date: 1 }).limit(50);
-        socket.emit('previousMessages', lastMessages);
-    } catch (err) { console.log("Eski mesajlar yüklenemedi:", err); }
-
-    // --- 1. MESAJ SİLME (Bağımsız) ---
-    socket.on('deleteMessage', async (messageId) => {
-        try {
-            await Message.findByIdAndDelete(messageId);
-            sendToDiscord('DELETE', `⚠️ Bir mesaj sistemden silindi.`, "Moderatör/Kullanıcı");
-            io.emit('messageDeleted', messageId);
-        } catch (err) { console.log("Silme hatası:", err); }
-    });
-
-    // --- 2. MESAJ DÜZENLEME (Bağımsız) ---
-    socket.on('editMessage', async (data) => {
-        try {
-            await Message.findByIdAndUpdate(data.id, { text: data.newText });
-            sendToDiscord('SYSTEM', `📝 Bir mesaj düzenlendi.`, data.sender || "Kullanıcı");
-            io.emit('messageEdited', { id: data.id, newText: data.newText });
-        } catch (err) { console.log("Düzenleme hatası:", err); }
-    });
-
-    // --- 3. MESAJ GÖNDERME ---
-    socket.on('sendMessage', async (data) => {
-        const hasBadWord = forbiddenWords.some(word => data.text.toLowerCase().includes(word));
-
-        if (hasBadWord) {
-            axios.post(DISCORD_WEBHOOK_URL, {
-                content: `🚨 **KÜFÜR ENGELLENDİ!**\n**Kullanıcı:** ${data.sender}\n**Yazdığı:** ||${data.text}||`
-            }).catch(e => console.log("Discord log hatası"));
-            socket.emit('error', { message: "⚠️ Mesajın uygunsuz içerik barındırıyor!" });
-            return;
-        }
-
-        try {
-            const newMessage = new Message({
-                sender: data.sender,
-                profilePic: data.profilePic,
-                text: data.text,
-                date: new Date()
-            });
-            const savedMessage = await newMessage.save();
-
-            // Discord logu burada kalabilir
-            axios.post(DISCORD_WEBHOOK_URL, {
-                embeds: [{
-                    title: "💬 Yeni Sohbet Mesajı",
-                    color: 3447003,
-                    fields: [
-                        { name: "👤 Gönderen", value: savedMessage.sender, inline: true },
-                        { name: "📝 Mesaj", value: savedMessage.text }
-                    ]
-                }]
-            }).catch(err => console.log("Discord Hatası:", err.message));
-
-            io.emit('receiveMessage', savedMessage);
-        } catch (err) { console.log("Mesaj operasyonu başarısız:", err); }
-    });
-
-    socket.on('disconnect', () => { console.log('❌ Bir kullanıcı ayrıldı.'); });
-});
-
-//---- DISCORD'A LOG GÖNDERME -------------------------------
-
-async function sendToDiscord(type, message, user = "Sistem") {
-    const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
-
-    // Log tipine göre renk belirleyelim (Hex code)
-    const colors = {
-        'AUTH': 0x00ff00,    // Yeşil (Kayıt)
-        'BOOK': 0x0000ff,    // Mavi (Kitap Ekleme)
-        'LIKE': 0xff00ff,    // Pembe (Beğeni)
-        'SYSTEM': 0xffff00   // Sarı (Genel)
-    };
-
-    const embed = {
-        title: `📢 Site Aktivitesi: ${type}`,
-        description: message,
-        color: colors[type] || 0xcccccc,
-        timestamp: new Date(),
-        footer: {
-            text: `İşlemi Yapan: ${user}`,
-        }
-    };
-
-    try {
-        await axios.post(DISCORD_WEBHOOK_URL, {
-            embeds: [embed]
-        });
-    } catch (error) {
-        console.error('Discord Webhook hatası:', error);
-    }
-}
-
 // --- ROTALAR  -------------------------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -358,7 +252,7 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("MongoDB Bağlandı ✅");
-        server.listen(PORT, () => {
+        app.listen(PORT, () => {
             console.log(`Sunucu ${PORT} portunda çalışıyor 🦅`);
         });
     })
