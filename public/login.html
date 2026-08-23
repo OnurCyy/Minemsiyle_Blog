@@ -117,7 +117,7 @@
         </form>
 
         <!-- REGİSTER FORMU -->
-        <form id="registerForm" class="hidden-form flex flex-col gap-4">
+        <form id="registerForm" class="hidden flex-col gap-4">
             <div>
                 <input type="text" id="regUsername" placeholder="Kullanıcı Adı" required
                     class="w-full bg-orta border border-zinc-700 text-yazi px-4 py-3 rounded-lg focus:outline-none focus:border-mumine focus:ring-1 focus:ring-mumine transition-all">
@@ -218,23 +218,29 @@
     <script src="js/config.js"></script>
     <script src="/js/login.js"></script>
 
-    <!-- Tab değiştirme için ufak bir Tailwind mantığı -->
     <script>
-        // Senin orijinal switchTab fonksiyonun login.js içinde ama 
-        // Tailwind classlarını değiştirmesi için ufak bir ekleme yapıyorum
-        const originalSwitchTab = window.switchTab;
+        // Senin orijinal JS dosyanın içindeki form gösterme/gizleme mantığını
+        // Tailwind ile tam uyumlu hale getiriyoruz.
         window.switchTab = function (tabName) {
-            // Orijinal formu gizleme/gösterme işlemini yap
-            if (typeof originalSwitchTab === 'function') originalSwitchTab(tabName);
-
-            // Tailwind buton stillerini değiştir
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
             const loginBtn = document.getElementById('loginTab');
             const regBtn = document.getElementById('registerTab');
 
             if (tabName === 'login') {
+                // Formları Ayarla
+                loginForm.className = "flex flex-col gap-4";
+                regForm.className = "hidden flex-col gap-4";
+
+                // Butonları Ayarla
                 loginBtn.className = "flex-1 py-2 rounded-md text-sm font-medium transition-all duration-300 bg-acik text-mumine shadow-sm";
                 regBtn.className = "flex-1 py-2 rounded-md text-sm font-medium text-yaziAcik hover:text-yazi transition-all duration-300 bg-transparent shadow-none";
             } else {
+                // Formları Ayarla
+                regForm.className = "flex flex-col gap-4";
+                loginForm.className = "hidden flex-col gap-4";
+
+                // Butonları Ayarla
                 regBtn.className = "flex-1 py-2 rounded-md text-sm font-medium transition-all duration-300 bg-acik text-mumine shadow-sm";
                 loginBtn.className = "flex-1 py-2 rounded-md text-sm font-medium text-yaziAcik hover:text-yazi transition-all duration-300 bg-transparent shadow-none";
             }
