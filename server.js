@@ -203,7 +203,7 @@ app.post('/api/auth/send-reset-code', async (req, res) => {
 
         // Şekilli Şukullu HTML Mail Şablonu - RESEND İLE GÖNDERİM
         const { data, error } = await resend.emails.send({
-            from: 'Minemsiyle <onboarding@resend.dev>', // Test aşamasında sadece senin kendi mailine gider
+            from: 'Minemsiyle <bilgi@minemsiyle.com>',
             to: email,
             subject: '🗝️ Kütüphaneye Giriş Anahtarın',
             html: `
