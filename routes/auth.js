@@ -14,7 +14,9 @@ router.get("/test", (req, res) => {
 // =====================================================
 router.post("/register", async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
+        const username = req.body.username ? req.body.username.trim() : null;
+        const password = req.body.password;
 
         if (!username || !email || !password) {
             return res.status(400).json({ message: "Tüm alanların doldurulması zorunludur" });
@@ -38,7 +40,8 @@ router.post("/register", async (req, res) => {
         });
 
         await newUser.save();
-        // sendToDiscord('AUTH', `🌟 Yeni bir maceracı kütüphaneye katıldı! Hoş geldin **${user.username}**`, user.username);
+
+
         res.status(201).json({
             message: "Kullanıcı başarıyla oluşturuldu.",
         });
@@ -52,7 +55,8 @@ router.post("/register", async (req, res) => {
 // =====================================================
 router.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
+        const password = req.body.password;
 
         if (!email || !password) {
             return res.status(400).json({ message: "Email ve şifre zorunlu" });
@@ -82,8 +86,8 @@ router.post("/login", async (req, res) => {
         // 4️⃣ Token
         const token = jwt.sign(
             { id: user._id, role: user.role, username: user.username },
-            process.env.JWT_SECRET || "gizlisifre", // .env yoksa patlamasın diye
-            { expiresIn: "7d" } // 1 gün az olabilir, 7 gün yapalım rahat etsinler
+            process.env.JWT_SECRET || "gizlisifre",
+            { expiresIn: "7d" }
         );
 
         res.json({
@@ -107,11 +111,12 @@ router.post("/login", async (req, res) => {
 });
 
 // =====================================================
-// 3. ŞİFRE SIFIRLAMA (FORGOT PASSWORD) - YENİ EKLENDİ ✨
+// 3. ŞİFRE SIFIRLAMA (FORGOT PASSWORD)
 // =====================================================
 router.post("/reset-password", async (req, res) => {
     try {
-        const { email, newPassword } = req.body;
+        const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
+        const newPassword = req.body.newPassword;
 
         if (!email || !newPassword) {
             return res.status(400).json({ message: "E-posta ve yeni şifre gerekli!" });
@@ -122,12 +127,9 @@ router.post("/reset-password", async (req, res) => {
             return res.status(404).json({ message: "Kullanıcı bulunamadı." });
         }
 
-        // 🛡️ Eğer modelde (User.js) hasleme yapıyorsan buradaki hash kısmını SİL.
-        // Ama modelde yoksa bu kalsın:
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
 
-        // Kodu temizle (Eğer resetCode kullanıyorsan)
         user.resetCode = undefined;
 
         await user.save();
