@@ -158,10 +158,10 @@
 
     <!-- ŞİFRE SIFIRLAMA MODALI -->
     <div id="reset-modal"
-        class="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-[2px] flex justify-center items-center z-50">
+        class="fixed inset-0 bg-black/80 backdrop-blur-[2px] flex justify-center items-center z-50 transition-all duration-300 opacity-0 invisible">
 
         <div
-            class="modal-content bg-koyu w-[90%] max-w-[420px] p-8 rounded-2xl border border-zinc-800 shadow-2xl relative flex flex-col gap-6">
+            class="modal-content bg-koyu w-[90%] max-w-[420px] p-8 rounded-2xl border border-zinc-800 shadow-2xl relative flex flex-col gap-6 transform transition-all duration-300 translate-y-5 scale-95">
 
             <button onclick="closeResetModal()"
                 class="absolute top-4 right-4 text-yaziAcik hover:text-mumine transition-colors">
@@ -244,6 +244,31 @@
                 regBtn.className = "flex-1 py-2 rounded-md text-sm font-medium transition-all duration-300 bg-acik text-mumine shadow-sm";
                 loginBtn.className = "flex-1 py-2 rounded-md text-sm font-medium text-yaziAcik hover:text-yazi transition-all duration-300 bg-transparent shadow-none";
             }
+        };
+
+        // MODAL BYPASS (Tailwind Uyumu İçin)
+        window.openResetModal = function () {
+            const modal = document.getElementById('reset-modal');
+            // Tailwind class'ları ile modalı görünür ve opak yapıyoruz
+            modal.classList.remove('opacity-0', 'invisible');
+            modal.classList.add('opacity-100', 'visible');
+
+            // Kutunun yukarı kayma efekti için
+            const content = modal.querySelector('.modal-content');
+            content.classList.remove('translate-y-5', 'scale-95');
+            content.classList.add('translate-y-0', 'scale-100');
+        };
+
+        window.closeResetModal = function () {
+            const modal = document.getElementById('reset-modal');
+            // Tailwind class'ları ile modalı gizliyoruz
+            modal.classList.remove('opacity-100', 'visible');
+            modal.classList.add('opacity-0', 'invisible');
+
+            // Kutunun aşağı kayma efekti için
+            const content = modal.querySelector('.modal-content');
+            content.classList.remove('translate-y-0', 'scale-100');
+            content.classList.add('translate-y-5', 'scale-95');
         };
     </script>
 </body>
