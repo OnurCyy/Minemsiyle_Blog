@@ -184,8 +184,11 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html'
 
 // --- MAİL SİSTEMİ ---
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', port: 465, secure: true,
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    service: 'gmail', // Render'da port sorunu yasamamak için en garanti yol
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
 });
 
 app.post('/api/auth/send-reset-code', async (req, res) => {
