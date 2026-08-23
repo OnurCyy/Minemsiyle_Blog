@@ -182,17 +182,12 @@ app.get('/kitap/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/
 app.get('/blog/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/post.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
 
-// --- MAİL SİSTEMİ ---
-const transporter = nodemailer.createTransport({
-    service: 'gmail', // Render'da port sorunu yasamamak için en garanti yol
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+// --- MAİL SİSTEMİ (YENİ RESEND MOTORU) ---
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.post('/api/auth/send-reset-code', async (req, res) => {
-    // 🛡️ SUPRA ZIRHI: E-postayı küçük harfe çevir ve boşlukları temizle
+    // E-postayı küçük harfe çevir ve boşlukları temizle
     const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
 
     if (!email) return res.status(400).json({ message: "E-posta adresi gerekli." });
@@ -206,9 +201,9 @@ app.post('/api/auth/send-reset-code', async (req, res) => {
         user.resetCode = code;
         await user.save();
 
-        // Şekilli Şukullu HTML Mail Şablonu
-        const mailOptions = {
-            from: '"Mümine\'msi Kütüphanesi" <minemsiylebot@gmail.com>',
+        // Şekilli Şukullu HTML Mail Şablonu - RESEND İLE GÖNDERİM
+        const { data, error } = await resend.emails.send({
+            from: 'Minemsiyle <onboarding@resend.dev>', // Test aşamasında sadece senin kendi mailine gider
             to: email,
             subject: '🗝️ Kütüphaneye Giriş Anahtarın',
             html: `
@@ -244,9 +239,13 @@ app.post('/api/auth/send-reset-code', async (req, res) => {
                 </div>
             </div>
             `
-        };
+        });
 
-        await transporter.sendMail(mailOptions);
+        if (error) {
+            console.error("Resend Hatası:", error);
+            return res.status(500).json({ message: "Mail servisi reddetti." });
+        }
+
         res.status(200).json({ message: "Doğrulama kodu gönderildi! 📩 Lütfen mailini kontrol et." });
 
     } catch (error) {
