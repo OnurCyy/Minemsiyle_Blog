@@ -16,22 +16,11 @@ function parseJwt(token) {
 
 // --- SAYFA YÜKLENİNCE ---
 document.addEventListener("DOMContentLoaded", () => {
-    checkTheme();
+    // Tema kontrolü artık HTML'in içindeki script'ten yapılıyor.
     loadUserProfile();
     loadSavedItems();
     loadMyComments();
 });
-
-// --- SEKME DEĞİŞTİRME MANTIĞI (V2) ---
-function switchProfileTab(tabId, btnElement) {
-    // Tüm butonları ve içerikleri pasif yap
-    document.querySelectorAll('.content-tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active-pane'));
-
-    // Tıklananı aktif yap
-    btnElement.classList.add('active');
-    document.getElementById(tabId + '-tab').classList.add('active-pane');
-}
 
 // --- PROFİL YÜKLEME ---
 async function loadUserProfile() {
@@ -85,24 +74,26 @@ async function loadUserProfile() {
 
         // Yetki Kontrolleri (Kendi profilindeyse)
         const isMyProfile = (token && parseJwt(token)?.username === user.username) || (sessionUser && sessionUser.username === user.username);
-        const actionsArea = document.querySelector('.actions');
+        const actionsArea = document.getElementById('logoutArea');
         const avatarBtn = document.getElementById('avatarEditIcon');
         const settingsTab = document.getElementById('settingsTabBtn');
 
         if (isMyProfile) {
-            if (actionsArea) actionsArea.style.display = 'block';
-            if (avatarBtn) avatarBtn.style.display = 'flex';
-            if (settingsTab) settingsTab.style.display = 'flex'; // Ayarlar sekmesi sadece ona görünsün
+            if (actionsArea) actionsArea.classList.remove('hidden');
+            if (avatarBtn) avatarBtn.classList.remove('hidden');
+            if (settingsTab) settingsTab.classList.remove('hidden');
 
             const adminBtn = document.getElementById('adminPanelBtnArea');
-            if (adminBtn) {
-                adminBtn.innerHTML = `
-    <a href="adminPanel.html" class="w-full bg-danger hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-danger/20 mb-3">
-        <i class="ph-fill ph-crown text-lg"></i> Yönetici Paneli
-    </a>`;
+            if (user.role === 'admin' || user.username === 'OnurCy') {
+                if (adminBtn) {
+                    adminBtn.innerHTML = `
+                    <a href="adminPanel.html" class="w-full bg-danger hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-danger/20 mb-3">
+                        <i class="ph-fill ph-crown text-lg"></i> Yönetici Paneli
+                    </a>`;
+                }
             }
         } else {
-            if (settingsTab) settingsTab.style.display = 'none';
+            if (settingsTab) settingsTab.classList.add('hidden');
         }
 
         // Tagları Bas
@@ -119,7 +110,6 @@ function renderUserTags(user) {
     if (typeof tags === 'string') tags = tags.split(',');
 
     if (tags.length > 0) {
-        // Tailwind ile şık hap (pill) tasarımı
         tagsBox.innerHTML = tags.map(tag =>
             `<span class="bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest border border-lineLight dark:border-lineDark shadow-sm">${tag.toUpperCase()}</span>`
         ).join('');
@@ -128,7 +118,7 @@ function renderUserTags(user) {
     }
 }
 
-// --- PROFİL GÜNCELLEME ---
+// --- PROFİL GÜNCELLEME (SweetAlert2 Ekli) ---
 async function saveSettings() {
     const newName = document.getElementById('editUsername').value.trim();
     const newBio = document.getElementById('editBio').value.trim();
@@ -144,7 +134,8 @@ async function saveSettings() {
 
     const btn = document.querySelector('#profileSettingsForm button');
     const oldText = btn.innerText;
-    btn.innerText = "⏳..."; btn.disabled = true;
+    btn.innerText = "Kaydediliyor...";
+    btn.disabled = true;
 
     try {
         const res = await fetch(`${API_BASE}/users/update`, {
@@ -154,19 +145,30 @@ async function saveSettings() {
         });
 
         if (res.ok) {
-            alert("✅ Profilin güncellendi!");
-            let user = JSON.parse(localStorage.getItem('user'));
-            if (user) {
-                if (newName) user.username = newName;
-                if (newBio) user.bio = newBio;
-                localStorage.setItem('user', JSON.stringify(user));
-            }
-            location.reload();
+            // Çirkin alert yerine şık bildirim
+            Swal.fire({
+                title: 'Başarılı!',
+                text: 'Okur kimliğin başarıyla güncellendi.',
+                icon: 'success',
+                confirmButtonColor: '#c07d56', // Temanın Tarçın rengi
+                background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea',
+                color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c'
+            }).then(() => {
+                let user = JSON.parse(localStorage.getItem('user'));
+                if (user) {
+                    if (newName) user.username = newName;
+                    if (newBio) user.bio = newBio;
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+                location.reload();
+            });
         } else {
             const data = await res.json();
-            alert("Hata: " + (data.message || "Güncellenemedi."));
+            Swal.fire('Hata!', data.message || "Güncellenemedi.", 'error');
         }
-    } catch (err) { alert("Sunucuya ulaşılamadı!"); }
+    } catch (err) {
+        Swal.fire('Bağlantı Hatası', 'Sunucuya ulaşılamadı!', 'error');
+    }
     finally { btn.innerText = oldText; btn.disabled = false; }
 }
 
@@ -214,54 +216,53 @@ async function cropAndSave() {
             let user = JSON.parse(localStorage.getItem('user'));
             if (user) { user.avatar = base64Image; localStorage.setItem('user', JSON.stringify(user)); }
             closeCropper();
-        } else { alert("Resim yüklenemedi."); }
-    } catch (e) { alert("Sunucu hatası!"); }
+
+            Swal.fire({
+                title: 'Harika!',
+                text: 'Profil fotoğrafın yenilendi.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea',
+                color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c'
+            });
+        } else { Swal.fire('Hata', 'Resim yüklenemedi.', 'error'); }
+    } catch (e) { Swal.fire('Hata', 'Sunucu hatası!', 'error'); }
 }
 
-// --- DİĞER (TEMA & ÇIKIŞ) ---
-function checkTheme() {
-    if (localStorage.getItem('theme') === 'light') {
-        document.body.classList.add('light-mode');
-        if (document.getElementById('themeCheckbox')) document.getElementById('themeCheckbox').checked = true;
-    }
-}
-function toggleThemeSwitch() {
-    const isLight = document.getElementById('themeCheckbox').checked;
-    document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
-    document.documentElement.classList.toggle('light-mode', isLight);
-    document.body.classList.toggle('light-mode', isLight);
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-}
+// --- GÜVENLİ ÇIKIŞ ---
 function logout() {
-    if (confirm("Kütüphaneden ayrılıyorsun?")) { localStorage.clear(); window.location.href = 'login.html'; }
-}
-
-// --- ŞİFRE ALANINI AÇ/KAPA ---
-function togglePasswordSection() {
-    const sec = document.getElementById('passwordSection');
-    if (sec.style.display === 'none') {
-        sec.style.display = 'block';
-    } else {
-        sec.style.display = 'none';
-        document.getElementById('newPass').value = '';
-        document.getElementById('confirmPass').value = '';
-    }
+    Swal.fire({
+        title: 'Çıkış Yapıyorsun',
+        text: 'Kütüphaneden ayrılmak istediğine emin misin?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#c07d56',
+        confirmButtonText: 'Evet, Ayrıl',
+        cancelButtonText: 'Vazgeç',
+        background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea',
+        color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    });
 }
 
 // ==========================================
 // 📚 KAYDEDİLEN YAZILARI PROFİLE ÇEKME
 // ==========================================
-
 async function loadSavedItems() {
     const container = document.getElementById('saved-tab');
     if (!container) return;
 
     let token = localStorage.getItem('token');
-    if (!token) return; // Giriş yapmamışsa zaten göremez
+    if (!token) return;
     token = token.replace(/"/g, '').trim();
 
     try {
-        // Backend'deki profil/kaydedilenler rotasına istek at
         const res = await fetch(`${API_BASE}/users/profile/saved`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -270,84 +271,94 @@ async function loadSavedItems() {
             const data = await res.json();
             const items = data.savedItems || [];
 
-            // Sol taraftaki "Kaydedilen" sayısını güncelle
             const statSaved = document.getElementById('statSaved');
             if (statSaved) statSaved.innerText = items.length;
 
-            // Eğer hiç kayıt yoksa boş ekran kalsın
             if (items.length === 0) {
                 container.innerHTML = `
-                <div class="empty-state">
-                    <i class="ph-fill ph-books"></i>
+                <div class="text-center py-12 px-5 text-mutedLight dark:text-mutedDark">
+                    <i class="ph-fill ph-books text-5xl text-lineLight dark:text-lineDark mb-4 block"></i>
                     <p>Kütüphanen şu an boş. Hoşuna giden yazıları buraya kaydedebilirsin.</p>
                 </div>`;
                 return;
             }
 
-            // Kayıtlar varsa HTML kartlarını oluştur
-            let html = `<div class="saved-grid">`;
+            let html = `<div class="flex flex-col gap-4">`;
 
-            // Diziyi tersine çeviriyoruz ki (reverse) en son kaydettiği en üstte çıksın
             items.reverse().forEach(item => {
                 const date = new Date(item.savedAt).toLocaleDateString('tr-TR');
-                const icon = item.type === 'blog' ? 'ph-article' : 'ph-book-open'; // Tipe göre ikon
+                const icon = item.type === 'blog' ? 'ph-article' : 'ph-book-open';
 
                 html += `
-<div class="flex items-center gap-4 bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark p-4 rounded-xl hover:border-accent transition-all group">
-    <div class="w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
-        <i class="ph-fill ${icon}"></i>
-    </div>
-    <a href="${item.url || '#'}" class="flex-1 flex flex-col">
-        <h4 class="text-inkLight dark:text-inkDark font-serif font-bold text-base m-0 leading-tight group-hover:text-accent transition-colors">${item.title}</h4>
-        <span class="text-mutedLight dark:text-mutedDark text-[11px] mt-1.5 uppercase tracking-wide">Kaydedilme: ${date}</span>
-    </a>
-    <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${item.itemId}')" title="Raftan Kaldır">
-        <i class="ph-bold ph-trash text-lg"></i>
-    </button>
-</div>
-`;
+                <div class="flex items-center gap-4 bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark p-4 rounded-xl hover:border-accent transition-all group">
+                    <div class="w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ${icon}"></i>
+                    </div>
+                    <a href="${item.url || '#'}" class="flex-1 flex flex-col">
+                        <h4 class="text-inkLight dark:text-inkDark font-serif font-bold text-base m-0 leading-tight group-hover:text-accent transition-colors">${item.title}</h4>
+                        <span class="text-mutedLight dark:text-mutedDark text-[11px] mt-1.5 uppercase tracking-wide">Kaydedilme: ${date}</span>
+                    </a>
+                    <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${item.itemId}')" title="Raftan Kaldır">
+                        <i class="ph-bold ph-trash text-lg"></i>
+                    </button>
+                </div>
+                `;
             });
             html += `</div>`;
             container.innerHTML = html;
         }
-    } catch (e) {
-        console.error("Kaydedilenler çekilemedi:", e);
-    }
+    } catch (e) { console.error("Kaydedilenler çekilemedi:", e); }
 }
 
-// 🗑️ PROFİL İÇİNDEN KAYDEDİLENİ SİLME (Toggle)
+// 🗑️ PROFİL İÇİNDEN KAYDEDİLENİ SİLME
 async function removeFromProfile(itemId) {
-    if (!confirm("Bu yazıyı kütüphanenden kaldırmak istiyor musun?")) return;
+    Swal.fire({
+        title: 'Emin misin?',
+        text: 'Bu yazıyı kütüphanenden kaldırmak istiyor musun?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#c07d56',
+        confirmButtonText: 'Evet, Kaldır',
+        cancelButtonText: 'Vazgeç',
+        background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea',
+        color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let token = localStorage.getItem('token');
+            if (!token) return;
+            token = token.replace(/"/g, '').trim();
 
-    let token = localStorage.getItem('token');
-    if (!token) return;
-    token = token.replace(/"/g, '').trim();
+            try {
+                const res = await fetch(`${API_BASE}/users/save`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ itemId: itemId })
+                });
 
-    try {
-        // Zaten backend'de toggle (varsa sil, yoksa ekle) mantığı kurduğumuz için
-        // aynı rotaya tekrar ID yollarsak o yazıyı silecektir.
-        const res = await fetch(`${API_BASE}/users/save`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ itemId: itemId }) // Sadece ID yeterli
-        });
-
-        if (res.ok) {
-            // Silme başarılıysa listeyi yeniden yükle (ekrandan anında kaybolsun)
-            loadSavedItems();
+                if (res.ok) {
+                    loadSavedItems();
+                    Swal.fire({
+                        title: 'Kaldırıldı!',
+                        text: 'Yazı raftan indirildi.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea',
+                        color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c'
+                    });
+                }
+            } catch (e) { console.error("Silme hatası:", e); }
         }
-    } catch (e) {
-        console.error("Silme hatası:", e);
-    }
+    });
 }
 
 // ==========================================
 // 💬 KULLANICININ YORUMLARINI PROFİLE ÇEKME
 // ==========================================
-
 async function loadMyComments() {
     const container = document.getElementById('comments-tab');
     if (!container) return;
@@ -357,7 +368,6 @@ async function loadMyComments() {
     token = token.replace(/"/g, '').trim();
 
     try {
-        // Backend'e gidip "Benim yorumlarımı getir" diyoruz
         const res = await fetch(`${API_BASE}/users/profile/comments`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -366,56 +376,45 @@ async function loadMyComments() {
             const data = await res.json();
             const comments = data.comments || [];
 
-            // Sol taraftaki "Yorum" sayısını güncelle
             const statComments = document.getElementById('statComments');
             if (statComments) statComments.innerText = comments.length;
 
-            // Eğer hiç yorum yoksa boş ekran kalsın
             if (comments.length === 0) {
                 container.innerHTML = `
-                <div class="empty-state">
-                    <i class="ph-fill ph-chat-teardrop-text"></i>
+                <div class="text-center py-12 px-5 text-mutedLight dark:text-mutedDark">
+                    <i class="ph-fill ph-chat-teardrop-text text-5xl text-lineLight dark:text-lineDark mb-4 block"></i>
                     <p>Henüz hiçbir yazıya yorum yapmadın. Düşüncelerini paylaşmaktan çekinme!</p>
                 </div>`;
                 return;
             }
 
-            // Yorumlar varsa, Kaydettiklerim listesiyle aynı şık tasarımı kullanalım
-            let html = `<div class="saved-grid">`;
+            let html = `<div class="flex flex-col gap-4">`;
 
             comments.forEach(c => {
                 const dateVal = c.createdAt || c.date || Date.now();
                 const date = new Date(dateVal).toLocaleDateString('tr-TR');
-
-                // 1. Tipi Belirle
                 const typeLabel = c.contentType === 'blog' ? 'Blog' : 'Kitap';
-
-                // 2. Başlığı Bul (Backend'de 'title' kaydettiysen onu alır, yoksa URL slug'ını (relatedId) gösterir)
                 const postTitle = c.title || c.relatedId || 'Bilinmeyen Yazı';
-
-                // 3. Tıklanabilir Link Oluştur
                 const postLink = c.contentType === 'blog' ? `/blog/${c.relatedId}` : `/kitap/${c.relatedId}`;
 
                 html += `
-<div class="flex items-start gap-4 bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark p-5 rounded-xl hover:border-accent transition-all">
-    <div class="w-10 h-10 bg-accent/10 text-accent rounded-lg flex items-center justify-center text-xl shrink-0 mt-0.5">
-        <i class="ph-fill ph-chat-centered-text"></i>
-    </div>
-    <div class="flex-1">
-        <a href="${postLink}" class="inline-block mb-2 group">
-            <span class="text-accent font-bold text-sm group-hover:text-accent2 transition-colors">
-                <i class="ph-bold ph-link text-xs"></i> ${typeLabel}: ${postTitle.length > 30 ? postTitle.substring(0, 30) + '...' : postTitle}
-            </span>
-            <span class="text-mutedLight dark:text-mutedDark text-[11px] ml-2 font-medium">• ${date}</span>
-        </a>
-        <p class="text-inkLight dark:text-inkDark text-sm m-0 leading-relaxed font-serif italic border-l-2 border-accent/30 pl-3">"${c.content}"</p>
-    </div>
-</div>
-`;
+                <div class="flex items-start gap-4 bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark p-5 rounded-xl hover:border-accent transition-all">
+                    <div class="w-10 h-10 bg-accent/10 text-accent rounded-lg flex items-center justify-center text-xl shrink-0 mt-0.5">
+                        <i class="ph-fill ph-chat-centered-text"></i>
+                    </div>
+                    <div class="flex-1">
+                        <a href="${postLink}" class="inline-block mb-2 group">
+                            <span class="text-accent font-bold text-sm group-hover:text-accent2 transition-colors">
+                                <i class="ph-bold ph-link text-xs"></i> ${typeLabel}: ${postTitle.length > 35 ? postTitle.substring(0, 35) + '...' : postTitle}
+                            </span>
+                            <span class="text-mutedLight dark:text-mutedDark text-[11px] ml-2 font-medium">• ${date}</span>
+                        </a>
+                        <p class="text-inkLight dark:text-inkDark text-sm m-0 leading-relaxed font-serif italic border-l-2 border-accent/30 pl-3">"${c.content}"</p>
+                    </div>
+                </div>
+                `;
             });
             container.innerHTML = html;
         }
-    } catch (e) {
-        console.error("Yorumlar çekilemedi:", e);
-    }
+    } catch (e) { console.error("Yorumlar çekilemedi:", e); }
 }
