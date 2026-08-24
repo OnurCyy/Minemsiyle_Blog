@@ -5,192 +5,345 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Okur Kimliğim | Minemsiyle</title>
-
-    <!-- ========= Tema: Sayfa yüklenmeden önce темаyı uygula ========= -->
-    <script>
-        (function () {
-            var savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            if (savedTheme === 'light') document.documentElement.classList.add('light-mode');
-        })();
-    </script>
+    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
 
     <!-- ========= Harici Kütüphaneler ========= -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <!-- Yeni Kütüphane: Şık Bildirimler İçin SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- ========= Stil Dosyaları ========= -->
-    <link rel="stylesheet" href="/css/profile.css">
-    <link rel="icon" href="/assets/images/Logo.png" type="image/png">
+    <!-- ========= Tailwind CSS ve Tema Yapılandırması ========= -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Karanlık temayı 'class' (kodu) ile yöneteceğiz
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Libre Baskerville', 'serif'],
+                    },
+                    colors: {
+                        // Açık Tema Renkleri
+                        bgLight: '#f4efe3',
+                        panelLight: '#fbf6ea',
+                        inkLight: '#2c2c2c',
+                        mutedLight: '#666666',
+                        lineLight: 'rgba(44, 44, 44, 0.12)',
+
+                        // Karanlık Tema Renkleri
+                        bgDark: '#171412',
+                        panelDark: '#211d1a',
+                        inkDark: '#ede6e1',
+                        mutedDark: '#968c86',
+                        lineDark: 'rgba(237, 230, 225, 0.1)',
+
+                        // Ortak Vurgular
+                        accent: '#c07d56',
+                        accent2: '#7a8264',
+                        danger: '#ef4444'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- ========= Tema Kontrolü (Sayfa Yüklenmeden Önce Titremeyi Önler) ========= -->
+    <script>
+            (function () {
+                var savedTheme = localStorage.getItem('theme') || 'dark';
+                if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+            })();
+    </script>
+
+    <!-- ========= Minimal Özel CSS (Sadece Animasyonlar ve Switch İçin) ========= -->
+    <style>
+        /* Sekme İçeriklerinin Yumuşak Açılması */
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-pane.active-pane {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cropper Modalı */
+        #cropperModal {
+            display: none;
+        }
+
+        #cropperModal.open {
+            display: flex;
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-bgLight text-inkLight dark:bg-bgDark dark:text-inkDark transition-colors duration-300 min-h-screen">
 
-    <!-- ========= HEADER: Logo, Navigasyon, Tema Butonu ========= -->
-    <header>
-        <div class="container">
-            <a class="brand" href="/" aria-label="Ana Sayfa">
-                <img src="/assets/images/Logo.png" alt="Minemsiyle.com">
+    <!-- ========= HEADER ========= -->
+    <header
+        class="sticky top-0 z-50 bg-panelLight dark:bg-panelDark border-b border-lineLight dark:border-lineDark shadow-sm py-4">
+        <div class="max-w-6xl mx-auto px-5 flex justify-between items-center">
+            <a href="/" aria-label="Ana Sayfa" class="block">
+                <img src="/assets/images/Logo.png" alt="Minemsiyle.com" class="h-12 w-auto object-contain">
             </a>
-            <nav class="nav-links">
-                <a href="/">Kütüphane</a>
+            <nav class="hidden md:block">
+                <a href="/"
+                    class="text-sm font-medium text-mutedLight dark:text-mutedDark hover:text-accent transition-colors">Kütüphane</a>
             </nav>
-            <div class="switch-container">
-                <label class="theme-switch">
-                    <input type="checkbox" id="themeCheckbox" onchange="toggleThemeSwitch()">
-                    <span class="slider">
-                        <i class="ph-fill ph-moon" style="font-size: 14px; color: #ccc;"></i>
-                        <i class="ph-fill ph-sun" style="font-size: 14px; color: #fff;"></i>
-                    </span>
-                </label>
-            </div>
+
+            <!-- Gece Gündüz Switch'i (Tailwind ile yazıldı) -->
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="themeCheckbox" class="sr-only peer" onchange="toggleThemeSwitch()">
+                <div
+                    class="w-14 h-7 bg-lineLight dark:bg-lineDark rounded-full peer peer-checked:bg-accent after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 flex items-center justify-between px-1.5">
+                    <i class="ph-fill ph-moon text-xs text-gray-400"></i>
+                    <i class="ph-fill ph-sun text-xs text-white"></i>
+                </div>
+            </label>
         </div>
     </header>
 
-    <!-- ========= ANA LAYOUT: Sol Sidebar + Sağ İçerik ========= -->
-    <div class="profile-layout">
+    <!-- ========= ANA LAYOUT ========= -->
+    <div class="max-w-6xl mx-auto px-5 my-10 flex flex-col md:flex-row gap-8 items-start">
 
         <!-- ========= SOL PANEL: Profil Kartı ========= -->
-        <aside class="profile-sidebar">
-            <div class="profile-card">
+        <aside
+            class="w-full md:w-[320px] md:sticky md:top-24 bg-panelLight dark:bg-panelDark rounded-2xl border border-lineLight dark:border-lineDark shadow-lg overflow-hidden">
 
-                <!-- ========= Avatar Alanı ========= -->
-                <div class="card-header"></div>
-                <div class="avatar-container">
-                    <img id="avatarDisplay" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar">
-                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-                    <label for="avatarInput" class="edit-avatar-btn" id="avatarEditIcon" style="display: none;">
-                        <i class="ph-bold ph-camera"></i>
-                    </label>
-                </div>
+            <div class="h-20 bg-accent"></div>
 
-                <!-- ========= Kullanıcı Bilgileri ========= -->
-                <h3 id="displayName">Kullanıcı Aranıyor...</h3>
-                <p class="user-handle" id="displayEmail">@...</p>
-                <div class="user-tags" id="userTagsContainer" style="margin-top: 10px;"></div>
-                <div class="bio-quote">
+            <!-- Avatar Alanı -->
+            <div class="relative w-[120px] h-[120px] -mt-[60px] mx-auto mb-4">
+                <img id="avatarDisplay" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar"
+                    class="w-full h-full rounded-full border-4 border-panelLight dark:border-panelDark object-cover bg-bgLight dark:bg-bgDark">
+                <input type="file" id="avatarInput" accept="image/*" class="hidden">
+                <label for="avatarInput" id="avatarEditIcon"
+                    class="hidden absolute bottom-1 right-1 bg-accent text-white w-9 h-9 rounded-full items-center justify-center cursor-pointer shadow-md hover:scale-110 hover:bg-accent2 transition-transform">
+                    <i class="ph-bold ph-camera text-lg"></i>
+                </label>
+            </div>
+
+            <!-- Kullanıcı Bilgileri -->
+            <div class="text-center px-5 pb-5">
+                <h3 id="displayName" class="text-2xl font-serif font-bold m-0">Kullanıcı Aranıyor...</h3>
+                <p id="displayEmail" class="text-accent text-sm mt-1">@...</p>
+                <div id="userTagsContainer" class="flex flex-wrap justify-center gap-1.5 mt-3"></div>
+
+                <div
+                    class="border-y border-lineLight dark:border-lineDark py-5 my-5 font-serif italic text-mutedLight dark:text-mutedDark text-sm">
                     <p id="displayBio">"Henüz bir dize yazılmamış..."</p>
                 </div>
 
-                <!-- ========= İstatistikler ========= -->
-                <div class="profile-stats">
-                    <div class="stat-box">
-                        <span class="stat-num" id="statSaved">0</span>
-                        <span class="stat-label">Kaydedilen</span>
+                <!-- İstatistikler -->
+                <div class="flex justify-around bg-bgLight dark:bg-bgDark py-5 rounded-lg">
+                    <div class="flex flex-col items-center">
+                        <span id="statSaved" class="text-2xl font-bold font-serif">0</span>
+                        <span
+                            class="text-[11px] uppercase tracking-wider text-mutedLight dark:text-mutedDark">Kaydedilen</span>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-num" id="statComments">0</span>
-                        <span class="stat-label">Yorum</span>
+                    <div class="flex flex-col items-center">
+                        <span id="statComments" class="text-2xl font-bold font-serif">0</span>
+                        <span
+                            class="text-[11px] uppercase tracking-wider text-mutedLight dark:text-mutedDark">Yorum</span>
                     </div>
                 </div>
 
-                <!-- ========= Admin Panel Butonu (JS ile doldurulur) ========= -->
-                <div id="adminPanelBtnArea" style="padding: 10px;"></div>
-
-                <!-- ========= Çıkış Butonu (JS ile görünür yapılır) ========= -->
-                <div class="actions" id="logoutArea" style="display: none; padding: 15px;">
-                    <button class="btn-full logout-btn" onclick="logout()">Güvenli Çıkış 🚪</button>
+                <!-- Butonlar -->
+                <div id="adminPanelBtnArea" class="mt-4"></div>
+                <div id="logoutArea" class="hidden mt-4">
+                    <button onclick="logout()"
+                        class="w-full bg-transparent border border-lineLight dark:border-lineDark text-mutedLight dark:text-mutedDark hover:border-danger hover:text-danger py-3 rounded-lg font-semibold transition-colors flex justify-center items-center gap-2">
+                        Güvenli Çıkış <i class="ph-bold ph-sign-out"></i>
+                    </button>
                 </div>
-
             </div>
         </aside>
 
         <!-- ========= SAĞ PANEL: Sekmeler ve İçerik ========= -->
-        <main class="profile-main">
+        <main
+            class="flex-1 w-full bg-panelLight dark:bg-panelDark rounded-2xl border border-lineLight dark:border-lineDark shadow-lg p-6 md:p-8 min-h-[500px]">
 
-            <!-- ========= Sekme Butonları ========= -->
-            <div class="content-tabs">
-                <button class="content-tab active" onclick="switchProfileTab('saved', this)">
+            <!-- Sekme Butonları -->
+            <div
+                class="flex gap-2 border-b-2 border-lineLight dark:border-lineDark mb-8 pb-3 overflow-x-auto whitespace-nowrap">
+                <button onclick="switchProfileTab('saved', this)"
+                    class="content-tab active px-4 py-2.5 rounded-t-lg font-semibold text-sm flex items-center gap-2 transition-colors text-accent border-b-2 border-accent bg-bgLight dark:bg-bgDark">
                     <i class="ph-fill ph-bookmark-simple"></i> Kaydettiklerim
                 </button>
-                <button class="content-tab" onclick="switchProfileTab('comments', this)">
+                <button onclick="switchProfileTab('comments', this)"
+                    class="content-tab px-4 py-2.5 rounded-t-lg font-semibold text-sm flex items-center gap-2 transition-colors text-mutedLight dark:text-mutedDark hover:text-inkLight dark:hover:text-inkDark hover:bg-bgLight dark:hover:bg-bgDark">
                     <i class="ph-fill ph-chat-text"></i> Yorumlarım
                 </button>
-                <button class="content-tab" onclick="switchProfileTab('settings', this)" id="settingsTabBtn">
+                <button onclick="switchProfileTab('settings', this)" id="settingsTabBtn"
+                    class="content-tab px-4 py-2.5 rounded-t-lg font-semibold text-sm flex items-center gap-2 transition-colors text-mutedLight dark:text-mutedDark hover:text-inkLight dark:hover:text-inkDark hover:bg-bgLight dark:hover:bg-bgDark hidden">
                     <i class="ph-fill ph-gear"></i> Ayarlar
                 </button>
             </div>
 
-            <!-- ========= Kaydettiklerim Sekmesi ========= -->
+            <!-- Kaydettiklerim Sekmesi -->
             <div id="saved-tab" class="tab-pane active-pane">
-                <div class="empty-state">
-                    <i class="ph-fill ph-books"></i>
+                <div class="text-center py-12 px-5 text-mutedLight dark:text-mutedDark">
+                    <i class="ph-fill ph-books text-5xl text-lineLight dark:text-lineDark mb-4 block"></i>
                     <p>Kütüphanen şu an boş. Hoşuna giden yazıları buraya kaydedebilirsin.</p>
                 </div>
             </div>
 
-            <!-- ========= Yorumlarım Sekmesi ========= -->
+            <!-- Yorumlarım Sekmesi -->
             <div id="comments-tab" class="tab-pane">
-                <div class="empty-state">
-                    <i class="ph-fill ph-chat-teardrop-text"></i>
+                <div class="text-center py-12 px-5 text-mutedLight dark:text-mutedDark">
+                    <i class="ph-fill ph-chat-teardrop-text text-5xl text-lineLight dark:text-lineDark mb-4 block"></i>
                     <p>Henüz hiçbir yazıya yorum yapmadın. Düşüncelerini paylaşmaktan çekinme!</p>
                 </div>
             </div>
 
-            <!-- ========= Ayarlar Sekmesi ========= -->
+            <!-- Ayarlar Sekmesi -->
             <div id="settings-tab" class="tab-pane">
-                <h3 class="pane-title">Profili Düzenle</h3>
-                <form id="profileSettingsForm" onsubmit="event.preventDefault(); saveSettings();">
+                <h3 class="font-serif text-xl mb-5">Profili Düzenle</h3>
+                <form id="profileSettingsForm" onsubmit="event.preventDefault(); saveSettings();"
+                    class="flex flex-col gap-5">
 
-                    <!-- Kullanıcı Adı -->
-                    <div class="input-group">
-                        <label>Kullanıcı Adı</label>
-                        <input type="text" id="editUsername" placeholder="Yeni kullanıcı adın">
+                    <div>
+                        <label
+                            class="block text-xs uppercase tracking-wide text-mutedLight dark:text-mutedDark mb-1.5">Kullanıcı
+                            Adı</label>
+                        <input type="text" id="editUsername" placeholder="Yeni kullanıcı adın"
+                            class="w-full bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark text-inkLight dark:text-inkDark px-4 py-3 rounded-lg focus:outline-none focus:border-accent transition-colors">
                     </div>
 
-                    <!-- Biyografi -->
-                    <div class="input-group">
-                        <label>Biyografi</label>
-                        <textarea id="editBio" placeholder="Kendinden bahset..." rows="3"></textarea>
+                    <div>
+                        <label
+                            class="block text-xs uppercase tracking-wide text-mutedLight dark:text-mutedDark mb-1.5">Biyografi</label>
+                        <textarea id="editBio" placeholder="Kendinden bahset..." rows="3"
+                            class="w-full bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark text-inkLight dark:text-inkDark px-4 py-3 rounded-lg focus:outline-none focus:border-accent transition-colors resize-y"></textarea>
                     </div>
 
-                    <!-- Şifre Değiştir Butonu -->
-                    <div class="input-group">
-                        <button type="button" class="btn-outline" onclick="togglePasswordSection()">
+                    <div>
+                        <button type="button" onclick="togglePasswordSection()"
+                            class="w-full flex items-center gap-2 bg-transparent border border-lineLight dark:border-lineDark text-mutedLight dark:text-mutedDark hover:text-accent hover:border-accent px-4 py-3 rounded-lg transition-colors text-sm text-left">
                             <i class="ph-fill ph-lock-key"></i> Şifremi Değiştir
                         </button>
                     </div>
 
-                    <!-- Şifre Alanı (Gizli, butona basınca açılır) -->
                     <div id="passwordSection"
-                        style="display: none; background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px dashed var(--line); margin-bottom: 15px;">
-                        <div class="input-group">
-                            <label>Yeni Şifre</label>
-                            <input type="password" id="newPass" placeholder="Yeni şifreni gir">
+                        class="hidden bg-black/5 p-4 rounded-lg border border-dashed border-lineLight dark:border-lineDark flex flex-col gap-4 mb-2">
+                        <div>
+                            <label
+                                class="block text-xs uppercase tracking-wide text-mutedLight dark:text-mutedDark mb-1.5">Yeni
+                                Şifre</label>
+                            <input type="password" id="newPass" placeholder="Yeni şifreni gir"
+                                class="w-full bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark text-inkLight dark:text-inkDark px-4 py-3 rounded-lg focus:outline-none focus:border-accent transition-colors">
                         </div>
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <label>Yeni Şifre (Tekrar)</label>
-                            <input type="password" id="confirmPass" placeholder="Yeni şifreni tekrar gir">
+                        <div>
+                            <label
+                                class="block text-xs uppercase tracking-wide text-mutedLight dark:text-mutedDark mb-1.5">Yeni
+                                Şifre (Tekrar)</label>
+                            <input type="password" id="confirmPass" placeholder="Yeni şifreni tekrar gir"
+                                class="w-full bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark text-inkLight dark:text-inkDark px-4 py-3 rounded-lg focus:outline-none focus:border-accent transition-colors">
                         </div>
                     </div>
 
-                    <!-- Kaydet Butonu -->
-                    <button type="submit" class="btn-full" style="margin-top: 15px;">Değişiklikleri Kaydet</button>
+                    <button type="submit"
+                        class="w-full bg-accent hover:bg-accent2 text-white font-semibold py-3.5 rounded-lg transition-colors">Değişiklikleri
+                        Kaydet</button>
                 </form>
             </div>
-
         </main>
     </div>
 
     <!-- ========= MODAL: Avatar Kırpma (Cropper) ========= -->
-    <div class="modal-overlay" id="cropperModal">
-        <div class="modal-box" style="max-width: 500px;">
-            <h2 style="margin-bottom: 15px; color: var(--accent);">Fotoğrafı Ayarla</h2>
-            <div class="cropper-container-box">
-                <img id="imageToCrop" src="" alt="Resim" style="max-width: 100%;">
+    <div id="cropperModal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+        <div
+            class="bg-panelLight dark:bg-panelDark p-6 md:p-8 rounded-2xl w-full max-w-lg border border-lineLight dark:border-lineDark text-center shadow-2xl">
+            <h2 class="text-accent font-serif text-xl mb-4">Fotoğrafı Ayarla</h2>
+            <div
+                class="max-h-[400px] bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark rounded-lg overflow-hidden mb-5">
+                <img id="imageToCrop" src="" alt="Resim" class="max-w-full">
             </div>
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn-full logout-btn" onclick="closeCropper()">Vazgeç</button>
-                <button class="btn-full" onclick="cropAndSave()">Böyle İyi ✅</button>
+            <div class="flex gap-3">
+                <button onclick="closeCropper()"
+                    class="flex-1 bg-transparent border border-lineLight dark:border-lineDark text-mutedLight dark:text-mutedDark py-3 rounded-lg hover:text-danger hover:border-danger transition-colors font-semibold">Vazgeç</button>
+                <button onclick="cropAndSave()"
+                    class="flex-1 bg-accent hover:bg-accent2 text-white py-3 rounded-lg transition-colors font-semibold">Böyle
+                    İyi ✅</button>
             </div>
         </div>
     </div>
 
-    <!-- ========= Harici JS Kütüphaneleri ========= -->
+    <!-- ========= JS Kütüphaneleri & Dosyaları ========= -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <!-- ========= Sayfa JS Dosyaları ========= -->
     <script src="/js/profile.js"></script>
 
+    <!-- Tailwind & JS Uyumu İçin Ufak Yamalar -->
+    <script>
+        // Tema Değiştirme Fonksiyonu
+        function toggleThemeSwitch() {
+            const isLight = document.getElementById('themeCheckbox').checked;
+            if (isLight) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Sayfa yüklendiğinde switch'in konumunu ayarla
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') !== 'dark') {
+                document.getElementById('themeCheckbox').checked = true;
+            }
+        });
+
+        // Sekme Değiştirme Fonksiyonu
+        window.switchProfileTab = function (tabId, btnElement) {
+            // Tüm içerikleri gizle
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active-pane'));
+            // Tıklanan içeriği göster
+            document.getElementById(tabId + '-tab').classList.add('active-pane');
+
+            // Tüm butonların stillerini sıfırla
+            document.querySelectorAll('.content-tab').forEach(tab => {
+                tab.className = "content-tab px-4 py-2.5 rounded-t-lg font-semibold text-sm flex items-center gap-2 transition-colors text-mutedLight dark:text-mutedDark hover:text-inkLight dark:hover:text-inkDark hover:bg-bgLight dark:hover:bg-bgDark";
+                if (tab.id === 'settingsTabBtn') tab.classList.add('hidden'); // Ayarları özel kontrol etmeliyiz (js'de var)
+            });
+
+            // Tıklanan butonun stilini ayarla
+            btnElement.className = "content-tab active px-4 py-2.5 rounded-t-lg font-semibold text-sm flex items-center gap-2 transition-colors text-accent border-b-2 border-accent bg-bgLight dark:bg-bgDark";
+        };
+
+        // Şifre Alanını Aç/Kapat (Tailwind hidden class'ı ile)
+        window.togglePasswordSection = function () {
+            const sec = document.getElementById('passwordSection');
+            if (sec.classList.contains('hidden')) {
+                sec.classList.remove('hidden');
+                sec.classList.add('flex');
+            } else {
+                sec.classList.add('hidden');
+                sec.classList.remove('flex');
+                document.getElementById('newPass').value = '';
+                document.getElementById('confirmPass').value = '';
+            }
+        };
+    </script>
 </body>
 
 </html>
