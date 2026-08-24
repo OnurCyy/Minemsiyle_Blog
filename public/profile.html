@@ -306,28 +306,33 @@
             }
         }
 
-        // Sayfa yüklendiğinde switch'in konumunu ayarla
+        // Sayfa yüklendiğinde switch'in konumunu GÜVENLİ ayarla (2 kere tıklama sorunu çözüldü)
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('theme') !== 'dark') {
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            if (currentTheme === 'light') {
                 document.getElementById('themeCheckbox').checked = true;
+            } else {
+                document.getElementById('themeCheckbox').checked = false;
             }
         });
 
-        // Sekme Değiştirme Fonksiyonu
+        // Sekme Değiştirme Fonksiyonu (Ayarlar butonunun kaybolma sorunu çözüldü)
         window.switchProfileTab = function (tabId, btnElement) {
             // Tüm içerikleri gizle
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active-pane'));
             // Tıklanan içeriği göster
             document.getElementById(tabId + '-tab').classList.add('active-pane');
 
-            // Tüm butonların stillerini sıfırla
+            // Tüm butonların stillerini sıfırla ama 'gizli' olanı koru
             document.querySelectorAll('.content-tab').forEach(tab => {
+                const isHidden = tab.classList.contains('hidden'); // Eğer gizliyse bunu hafızaya al
                 tab.className = "content-tab px-4 py-2.5 rounded-t-lg font-semibold text-sm flex items-center gap-2 transition-colors text-mutedLight dark:text-mutedDark hover:text-inkLight dark:hover:text-inkDark hover:bg-bgLight dark:hover:bg-bgDark";
-                if (tab.id === 'settingsTabBtn') tab.classList.add('hidden'); // Ayarları özel kontrol etmeliyiz (js'de var)
+                if (isHidden) tab.classList.add('hidden'); // Hafızadaki gizliliği geri ekle
             });
 
             // Tıklanan butonun stilini ayarla
             btnElement.className = "content-tab active px-4 py-2.5 rounded-t-lg font-semibold text-sm flex items-center gap-2 transition-colors text-accent border-b-2 border-accent bg-bgLight dark:bg-bgDark";
+            if (btnElement.id === 'settingsTabBtn') btnElement.classList.remove('hidden'); // Tıklanan ayarlar ise gizliliği kaldır
         };
 
         // Şifre Alanını Aç/Kapat (Tailwind hidden class'ı ile)
