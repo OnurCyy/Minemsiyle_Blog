@@ -255,24 +255,30 @@ app.post('/api/auth/send-reset-code', async (req, res) => {
 });
 
 app.post('/api/auth/verify-reset-code', async (req, res) => {
-    const { email, code, newPassword } = req.body;
+    // Maili küçük harfe çevir ve boşlukları sil
+    const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
+    const { code, newPassword } = req.body;
+
     try {
         const user = await User.findOne({ email });
-        if (!user || user.resetCode !== code) return res.status(400).json({ message: "Hatalı Kod!" });
+        if (!user || user.resetCode !== code) return res.status(400).json({ message: "Hatalı Kod veya E-posta!" });
 
-        // 🛡️ ŞİFREYİ HASLEYEREK KAYDET (Eksik parça burasıydı!)
+        // 🛡️ Şifreyi Hashle (Güvenlik)
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
 
         user.resetCode = null;
         await user.save();
 
-        // Discord'a haber uçuralım
-        sendToDiscord('AUTH', `🔑 **${user.username}** şifresini başarıyla sıfırladı.`, user.username);
+        // Discord'a haber uçuralım (Eğer sendToDiscord fonksiyonun varsa)
+        if (typeof sendToDiscord === 'function') {
+            sendToDiscord('AUTH', `🔑 **${user.username}** şifresini başarıyla sıfırladı.`, user.username);
+        }
 
         res.status(200).json({ message: "Şifren başarıyla yenilendi ve güvenli hale getirildi! 🎉" });
     } catch (error) {
-        console.error(error);
+        // ASIL HATAYI BURADA GÖRECEĞİZ
+        console.error("Şifre Sıfırlama Kodu Onay Hatası:", error);
         res.status(500).json({ message: "Hata oluştu." });
     }
 });
