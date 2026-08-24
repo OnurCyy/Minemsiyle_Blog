@@ -94,9 +94,12 @@ async function loadUserProfile() {
             if (avatarBtn) avatarBtn.style.display = 'flex';
             if (settingsTab) settingsTab.style.display = 'flex'; // Ayarlar sekmesi sadece ona görünsün
 
-            if (user.role === 'admin' || user.username === 'OnurCy') {
-                const adminBtn = document.getElementById('adminPanelBtnArea');
-                if (adminBtn) adminBtn.innerHTML = `<a href="adminPanel.html" class="btn-full" style="background:#ef4444; color:white; display:block; text-align:center;">👑 Yönetici Paneli</a>`;
+            const adminBtn = document.getElementById('adminPanelBtnArea');
+            if (adminBtn) {
+                adminBtn.innerHTML = `
+    <a href="adminPanel.html" class="w-full bg-danger hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-danger/20 mb-3">
+        <i class="ph-fill ph-crown text-lg"></i> Yönetici Paneli
+    </a>`;
             }
         } else {
             if (settingsTab) settingsTab.style.display = 'none';
@@ -116,9 +119,12 @@ function renderUserTags(user) {
     if (typeof tags === 'string') tags = tags.split(',');
 
     if (tags.length > 0) {
-        tagsBox.innerHTML = tags.map(tag => `<span class="user-tag">${tag.toUpperCase()}</span>`).join('');
+        // Tailwind ile şık hap (pill) tasarımı
+        tagsBox.innerHTML = tags.map(tag =>
+            `<span class="bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest border border-lineLight dark:border-lineDark shadow-sm">${tag.toUpperCase()}</span>`
+        ).join('');
     } else {
-        tagsBox.innerHTML = `<span class="user-tag">ÜYE</span>`;
+        tagsBox.innerHTML = `<span class="bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest border border-lineLight dark:border-lineDark">ÜYE</span>`;
     }
 }
 
@@ -287,17 +293,19 @@ async function loadSavedItems() {
                 const icon = item.type === 'blog' ? 'ph-article' : 'ph-book-open'; // Tipe göre ikon
 
                 html += `
-                <div class="saved-card">
-                    <div class="saved-icon"><i class="ph-fill ${icon}"></i></div>
-                    <a href="${item.url || '#'}" class="saved-info">
-                        <h4 class="saved-title">${item.title}</h4>
-                        <span class="saved-meta">Kaydedilme: ${date}</span>
-                    </a>
-                    <button class="remove-saved-btn" onclick="removeFromProfile('${item.itemId}')" title="Raftan Kaldır">
-                        <i class="ph-bold ph-trash"></i>
-                    </button>
-                </div>
-                `;
+<div class="flex items-center gap-4 bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark p-4 rounded-xl hover:border-accent transition-all group">
+    <div class="w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
+        <i class="ph-fill ${icon}"></i>
+    </div>
+    <a href="${item.url || '#'}" class="flex-1 flex flex-col">
+        <h4 class="text-inkLight dark:text-inkDark font-serif font-bold text-base m-0 leading-tight group-hover:text-accent transition-colors">${item.title}</h4>
+        <span class="text-mutedLight dark:text-mutedDark text-[11px] mt-1.5 uppercase tracking-wide">Kaydedilme: ${date}</span>
+    </a>
+    <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${item.itemId}')" title="Raftan Kaldır">
+        <i class="ph-bold ph-trash text-lg"></i>
+    </button>
+</div>
+`;
             });
             html += `</div>`;
             container.innerHTML = html;
@@ -389,20 +397,21 @@ async function loadMyComments() {
                 const postLink = c.contentType === 'blog' ? `/blog/${c.relatedId}` : `/kitap/${c.relatedId}`;
 
                 html += `
-                <div class="saved-card" style="align-items: flex-start;">
-                    <div class="saved-icon" style="background: rgba(136, 136, 136, 0.1); color: var(--muted);">
-                        <i class="ph-fill ph-chat-centered-text"></i>
-                    </div>
-                    <div class="saved-info">
-                        <a href="${postLink}" style="text-decoration:none; display:inline-block; margin-bottom:5px;">
-                            <span class="saved-meta" style="color: var(--accent); font-weight:bold; transition:0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--accent)'">
-                                🔗 ${typeLabel}: ${postTitle} • ${date}
-                            </span>
-                        </a>
-                        <p style="color: var(--ink); font-size: 14px; margin: 0; line-height: 1.6; font-style: italic;">"${c.content}"</p>
-                    </div>
-                </div>
-                `;
+<div class="flex items-start gap-4 bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark p-5 rounded-xl hover:border-accent transition-all">
+    <div class="w-10 h-10 bg-accent/10 text-accent rounded-lg flex items-center justify-center text-xl shrink-0 mt-0.5">
+        <i class="ph-fill ph-chat-centered-text"></i>
+    </div>
+    <div class="flex-1">
+        <a href="${postLink}" class="inline-block mb-2 group">
+            <span class="text-accent font-bold text-sm group-hover:text-accent2 transition-colors">
+                <i class="ph-bold ph-link text-xs"></i> ${typeLabel}: ${postTitle.length > 30 ? postTitle.substring(0, 30) + '...' : postTitle}
+            </span>
+            <span class="text-mutedLight dark:text-mutedDark text-[11px] ml-2 font-medium">• ${date}</span>
+        </a>
+        <p class="text-inkLight dark:text-inkDark text-sm m-0 leading-relaxed font-serif italic border-l-2 border-accent/30 pl-3">"${c.content}"</p>
+    </div>
+</div>
+`;
             });
             container.innerHTML = html;
         }
