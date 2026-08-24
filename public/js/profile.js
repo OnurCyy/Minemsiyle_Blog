@@ -106,16 +106,72 @@ async function loadUserProfile() {
 function renderUserTags(user) {
     const tagsBox = document.getElementById('userTagsContainer');
     if (!tagsBox) return;
+
     let tags = user.tags || user.badges || [];
     if (typeof tags === 'string') tags = tags.split(',');
 
-    if (tags.length > 0) {
-        tagsBox.innerHTML = tags.map(tag =>
-            `<span class="bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest border border-lineLight dark:border-lineDark shadow-sm">${tag.toUpperCase()}</span>`
-        ).join('');
-    } else {
-        tagsBox.innerHTML = `<span class="bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest border border-lineLight dark:border-lineDark">ÜYE</span>`;
+    // Eğer kullanıcının hiç rozeti yoksa, otomatik olarak "ÜYE" ekleyelim
+    if (tags.length === 0) {
+        tags = ['ÜYE'];
     }
+
+    // 🎨 ROZET TASARIM KÜTÜPHANESİ
+    const badgeStyles = {
+        // YÖNETİCİ (Zümrüt Yeşili)
+        'YÖNETİCİ': { icon: 'ph-fill ph-shield-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
+        'ADMIN': { icon: 'ph-fill ph-shield-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
+
+        // GELİŞTİRİCİ (Gül Kırmızısı)
+        'GELİŞTİRİCİ': { icon: 'ph-bold ph-code', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' },
+        'DEV': { icon: 'ph-bold ph-code', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' },
+
+        // MODERATÖR (Kehribar/Turuncu)
+        'MODERATÖR': { icon: 'ph-fill ph-hammer', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-500 border-amber-500/30' },
+        'MOD': { icon: 'ph-fill ph-hammer', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-500 border-amber-500/30' },
+
+        // VIP (Altın Sarısı)
+        'VIP': { icon: 'ph-fill ph-star', color: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30' },
+
+        // DESTEKÇİ (Pembe)
+        'DESTEKÇİ': { icon: 'ph-fill ph-heart', color: 'bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/30' },
+
+        // ONAYLI (Mavi)
+        'ONAYLI': { icon: 'ph-fill ph-check-circle', color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' },
+
+        // YAZAR (İndigo/Mor)
+        'YAZAR': { icon: 'ph-fill ph-pen-nib', color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30' },
+
+        // ŞAİR (Mor)
+        'ŞAİR': { icon: 'ph-fill ph-feather', color: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30' },
+
+        // BUG AVCISI (Turkuaz)
+        'BUG AVCISI': { icon: 'ph-fill ph-bug', color: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/30' },
+
+        // KİTAP KURDU (Açık Yeşil)
+        'KİTAP KURDU': { icon: 'ph-fill ph-book-open', color: 'bg-lime-500/15 text-lime-700 dark:text-lime-400 border-lime-500/30' },
+
+        // KAHVE SEVER (Kahverengi/Turuncu)
+        'KAHVE SEVER': { icon: 'ph-fill ph-coffee', color: 'bg-orange-700/15 text-orange-800 dark:text-orange-400 border-orange-700/30' },
+
+        // KEDİ SEVER (Gri/Slate)
+        'KEDİ SEVER': { icon: 'ph-fill ph-cat', color: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30' },
+
+        // VARSAYILAN / ÜYE (Standart Tema Rengi)
+        'DEFAULT': { icon: 'ph-fill ph-user', color: 'bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark border-lineLight dark:border-lineDark' }
+    };
+
+    tagsBox.innerHTML = tags.map(tag => {
+        const cleanTag = tag.trim().toUpperCase();
+
+        // Eğer rozet kütüphanede varsa onu al, yoksa DEFAULT tasarımı kullan
+        const style = badgeStyles[cleanTag] || badgeStyles['DEFAULT'];
+
+        return `
+        <span class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold tracking-widest border shadow-sm ${style.color}">
+            <i class="${style.icon} text-sm"></i> 
+            ${cleanTag}
+        </span>`;
+    }).join('');
 }
 
 // --- PROFİL GÜNCELLEME (SweetAlert2 Ekli) ---
