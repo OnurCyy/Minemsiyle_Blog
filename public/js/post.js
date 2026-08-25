@@ -28,16 +28,13 @@ let currentModalImageBase64 = null;
 // =========================================
 document.addEventListener("DOMContentLoaded", async () => {
 
-    // Yorum kutusunu kullanıcı durumuna göre ayarla
     checkUserLoginForComments();
 
-    // ID yoksa hata göster
     if (!currentRelatedId) {
         document.getElementById("articleArea").innerHTML = "<p style='text-align:center; margin-top:50px; color:var(--danger); font-size:20px;'>😔 Ops! Link hatalı veya yazı bulunamadı.</p>";
         return;
     }
 
-    // Backend'den yazıyı çek
     try {
         const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`);
         if (!res.ok) throw new Error("Yazı bulunamadı");
@@ -60,21 +57,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <div class="article-content">${formatContent(item.content || item.desc)}</div>
                 `;
 
-        // Durum kontrollerini başlat
         checkSaveStatus();
         checkLikeStatus();
         loadComments();
         incrementView();
         loadSeriesNavigation();
 
-        // Admin düzenleme butonunu göster
         const currentUserForEdit = JSON.parse(localStorage.getItem('user'));
         if (currentUserForEdit && (currentUserForEdit.username === 'OnurCy' || currentUserForEdit.username === 'Minemsi' || currentUserForEdit.role === 'admin')) {
             const editBtn = document.getElementById('adminEditBtn');
             if (editBtn) editBtn.style.display = 'flex';
         }
 
-        // Resim yükleme olayını bağla
         const inputContainer = document.getElementById('editImagePreviewArea');
         const fileInput = document.getElementById('editImageInput');
         if (inputContainer && fileInput) {
@@ -117,8 +111,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 // =========================================
 // 2. YORUM SİSTEMİ
 // =========================================
-
-// Kullanıcı giriş yapmamışsa yorum kutusunu değiştir
 function checkUserLoginForComments() {
     const user = JSON.parse(localStorage.getItem('user'));
     const commentBox = document.querySelector('.blog-comment-box');
@@ -132,7 +124,6 @@ function checkUserLoginForComments() {
     }
 }
 
-// Yorum gönder
 async function postComment() {
     const textArea = document.getElementById('commentText');
     if (!textArea) return;
@@ -166,14 +157,12 @@ async function postComment() {
         } else {
             alert("Yorum gönderilemedi.");
         }
-    } catch (err) {
-        console.error(err);
-    } finally {
+    } catch (err) { console.error(err); }
+    finally {
         if (btn) { btn.innerText = "Yorumu Yayınla"; btn.disabled = false; }
     }
 }
 
-// Yorumları yükle
 async function loadComments() {
     const list = document.getElementById('commentsList');
     const countSpan = document.getElementById('commentCount');
@@ -200,16 +189,24 @@ async function loadComments() {
             const isOwner = currentUser && (currentUser.username === c.username);
             const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.username === 'OnurCy');
             if (isOwner || isAdmin) {
-                deleteBtnHTML = `<button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="ph-bold ph-trash"></i> Sil</button>`;
+                deleteBtnHTML = `<button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer; margin-top:5px; font-size:13px;"><i class="ph-bold ph-trash"></i> Sil</button>`;
             }
 
+            // PROFİLE YÖNLENDİREN ANCHOR (<a href...>) EKLENDİ
             if (list) list.innerHTML += `
                     <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px;">
-                        <img src="${c.avatar || defaultAvatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <a href="/profile.html?u=${c.username}" style="flex-shrink:0;">
+                            <img src="${c.avatar || defaultAvatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid transparent; transition:border 0.3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+                        </a>
                         <div style="flex:1;">
-                            <h4 style="margin:0; display:flex; align-items:center;">${c.username} ${badgeHTML}</h4>
+                            <h4 style="margin:0; display:flex; align-items:center;">
+                                <a href="/profile.html?u=${c.username}" style="text-decoration:none; color:inherit; transition:color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">
+                                    ${c.username}
+                                </a> 
+                                ${badgeHTML}
+                            </h4>
                             <small style="color:#888;">${displayDate}</small>
-                            <p style="margin:5px 0 0 0;">${c.content}</p>
+                            <p style="margin:5px 0 0 0; line-height:1.5;">${c.content}</p>
                             ${deleteBtnHTML}
                         </div>
                     </div>`;
@@ -217,7 +214,6 @@ async function loadComments() {
     } catch (err) { console.error(err); }
 }
 
-// Yorum sil
 async function deleteComment(commentId) {
     if (!confirm("Bu yorumu gerçekten silmek istiyor musun?")) return;
     let token = localStorage.getItem('token') || localStorage.getItem('userToken');
@@ -234,67 +230,122 @@ async function deleteComment(commentId) {
 }
 
 // =========================================
-// 3. KAYDETME SİSTEMİ
+// 3. YENİ KAYDETME SİSTEMİ (OPTIMISTIC UI & SWEETALERT)
 // =========================================
 
 // Kaydetme durumunu kontrol et (sayfa açılınca)
 async function checkSaveStatus() {
-    const userString = localStorage.getItem('user');
-    if (!userString || !document.getElementById('saveBtn')) return;
-    const user = JSON.parse(userString);
+    let token = localStorage.getItem('token');
+    if (!token || !document.getElementById('saveBtn')) return;
+    token = token.replace(/"/g, '').trim();
 
     try {
-        const res = await fetch(`${API_BASE}/profile/saved/${user.username}`);
+        const res = await fetch(`${API_BASE}/users/profile/saved`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
         if (res.ok) {
-            const savedItems = await res.json();
-            if (savedItems && savedItems.some(item => item.itemId === currentRelatedId)) {
+            const data = await res.json();
+            const savedItems = data.savedItems || [];
+
+            if (savedItems.some(item => item.itemId === currentRelatedId)) {
                 const icon = document.getElementById('saveIcon');
                 const text = document.getElementById('saveText');
                 const btn = document.getElementById('saveBtn');
-                if (icon) { icon.style.fill = "var(--accent)"; icon.style.stroke = "var(--accent)"; }
+
+                if (icon) {
+                    icon.classList.remove('ph');
+                    icon.classList.add('ph-fill');
+                    icon.style.color = "var(--accent)";
+                }
                 if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
                 if (btn) btn.style.borderColor = "var(--accent)";
             }
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Kaydetme durumu çekilemedi:", e); }
 }
 
 // Kaydet / Kayıttan çıkar
 async function toggleSave() {
-    const userString = localStorage.getItem('user');
-    if (!userString) return alert("Giriş yapmalısın!");
-    const user = JSON.parse(userString);
+    let token = localStorage.getItem('token');
+
+    // Eğer SweetAlert2 kütüphanesi yoksa eski usül alert ver
+    const alertFunc = typeof Swal !== 'undefined' ?
+        (opt) => Swal.fire({ ...opt, background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea', color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c' }) :
+        (opt) => alert(opt.title);
+
+    if (!token) {
+        alertFunc({
+            toast: true, position: 'bottom-end', icon: 'warning',
+            title: 'Kütüphaneye eklemek için giriş yapmalısın.',
+            showConfirmButton: false, timer: 3000
+        });
+        return;
+    }
+    token = token.replace(/"/g, '').trim();
 
     const icon = document.getElementById('saveIcon');
     const text = document.getElementById('saveText');
     const btn = document.getElementById('saveBtn');
-    const pageTitle = document.querySelector('h1') ? document.querySelector('h1').innerText : document.title;
-    const isSaved = icon.style.fill !== "none" && icon.style.fill !== "";
 
-    if (!isSaved) {
-        icon.style.fill = "var(--accent)"; icon.style.stroke = "var(--accent)";
-        if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
-        if (btn) btn.style.borderColor = "var(--accent)";
-    } else {
-        icon.style.fill = "none"; icon.style.stroke = "currentColor";
+    // Mevcut durumu kontrol et
+    const isSaved = icon.classList.contains('ph-fill') || (icon.style.fill !== "none" && icon.style.fill !== "");
+
+    // 1. OPTIMISTIC UI: Beklemeden arayüzü anında değiştir
+    if (isSaved) {
+        if (icon) {
+            icon.classList.remove('ph-fill'); icon.classList.add('ph');
+            icon.style.color = ""; icon.style.fill = "none";
+        }
         if (text) { text.innerText = "Kaydet"; text.style.color = "var(--ink)"; }
         if (btn) btn.style.borderColor = "var(--line)";
+    } else {
+        if (icon) {
+            icon.classList.remove('ph'); icon.classList.add('ph-fill');
+            icon.style.color = "var(--accent)"; icon.style.fill = "var(--accent)";
+        }
+        if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
+        if (btn) btn.style.borderColor = "var(--accent)";
     }
 
+    if (btn) {
+        btn.style.transform = "scale(0.95)";
+        setTimeout(() => btn.style.transform = "scale(1)", 150);
+    }
+
+    // 2. Arka planda sunucuya isteği at
     try {
-        await fetch(`${API_BASE}/save`, {
+        const res = await fetch(`${API_BASE}/users/save`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: user.username, itemId: currentRelatedId, title: pageTitle, type: currentType })
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ itemId: currentRelatedId })
         });
-    } catch (e) { console.error(e); }
+
+        if (res.ok) {
+            alertFunc({
+                toast: true, position: 'bottom-end',
+                icon: isSaved ? 'info' : 'success',
+                title: isSaved ? 'Raftan kaldırıldı' : 'Kütüphaneye eklendi',
+                showConfirmButton: false, timer: 2000, timerProgressBar: true
+            });
+        } else {
+            // Hata olursa UI'ı gizlice eski haline getir
+            if (isSaved) {
+                if (icon) { icon.classList.remove('ph'); icon.classList.add('ph-fill'); icon.style.color = "var(--accent)"; icon.style.fill = "var(--accent)"; }
+                if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
+                if (btn) btn.style.borderColor = "var(--accent)";
+            } else {
+                if (icon) { icon.classList.remove('ph-fill'); icon.classList.add('ph'); icon.style.color = ""; icon.style.fill = "none"; }
+                if (text) { text.innerText = "Kaydet"; text.style.color = "var(--ink)"; }
+                if (btn) btn.style.borderColor = "var(--line)";
+            }
+        }
+    } catch (e) { console.error("Kaydetme işlemi başarısız:", e); }
 }
 
 // =========================================
 // 4. BEĞENİ SİSTEMİ
 // =========================================
-
-// Beğeni durumunu kontrol et (sayfa açılınca)
 async function checkLikeStatus() {
     const userString = localStorage.getItem('user');
     let currentUser = null;
@@ -319,7 +370,6 @@ async function checkLikeStatus() {
     } catch (e) { console.error(e); }
 }
 
-// Beğen / Beğeniyi geri al
 async function toggleLike() {
     const userString = localStorage.getItem('user');
     if (!userString) return alert("Beğenmek için giriş yapmalısın!");
@@ -353,7 +403,6 @@ async function toggleLike() {
     } catch (e) { console.error(e); }
 }
 
-// Beğenenleri listele
 async function showLikers() {
     const modal = document.getElementById('likersModal');
     const list = document.getElementById('likersList');
@@ -372,12 +421,14 @@ async function showLikers() {
             }
             data.likes.forEach(user => {
                 if (user == '0' || !user || String(user).trim() === '') return;
+
+                // Beğenenlerin de isimlerine profil linki ekledim
                 list.innerHTML += `
                         <li style="padding:12px 0; border-bottom:1px solid var(--line); color:var(--ink); font-weight:600; display:flex; align-items:center; gap:10px;">
                             <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#111; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
                                 ${String(user).charAt(0).toUpperCase()}
                             </div>
-                            ${user}
+                            <a href="/profile.html?u=${user}" style="text-decoration:none; color:inherit; transition:color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${user}</a>
                         </li>`;
             });
         }
@@ -386,7 +437,6 @@ async function showLikers() {
     }
 }
 
-// Beğenenler modalını kapat
 function closeLikersModal() {
     const modal = document.getElementById('likersModal');
     modal.style.opacity = '0';
@@ -412,12 +462,10 @@ async function shareContent() {
 // =========================================
 let currentAudio = null;
 
-// Paneli aç / kapat
 function toggleAmbiancePanel() {
     document.getElementById('ambiancePanel').classList.toggle('active');
 }
 
-// Ses çal / durdur
 function playAmbiance(type, element) {
     const audioElement = document.getElementById(`audio-${type}`);
     const volumeControl = document.getElementById('volumeControl');
@@ -436,13 +484,11 @@ function playAmbiance(type, element) {
     }
 }
 
-// Tüm sesleri durdur
 function stopAllSounds() {
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     document.querySelectorAll('.sound-item').forEach(item => item.classList.remove('active'));
 }
 
-// Ses seviyesi kontrolü
 const volCtrl = document.getElementById('volumeControl');
 if (volCtrl) volCtrl.addEventListener('input', (e) => { if (currentAudio) currentAudio.volume = e.target.value; });
 
@@ -517,8 +563,6 @@ async function loadSeriesNavigation() {
 // =========================================
 // 10. ADMIN — YAZI DÜZENLEME MODALİ
 // =========================================
-
-// Önizleme resmini modal içinde göster
 function setModalImagePreview(imageSrc) {
     const previewImg = document.getElementById('editImagePreview');
     const placeholder = document.getElementById('editImagePlaceholder');
@@ -538,7 +582,6 @@ function setModalImagePreview(imageSrc) {
     }
 }
 
-// Modalı aç, mevcut yazı verilerini doldur
 function openEditModal() {
     const currentTitle = document.querySelector('.article-title')?.innerText || '';
     const currentContent = document.querySelector('.article-content')?.innerText || '';
@@ -554,7 +597,6 @@ function openEditModal() {
     setTimeout(() => { modal.style.opacity = '1'; }, 10);
 }
 
-// Modalı kapat
 function closeEditModal() {
     const modal = document.getElementById('editModal');
     modal.style.opacity = '0';
@@ -565,7 +607,6 @@ function closeEditModal() {
     }, 300);
 }
 
-// Değişiklikleri backend'e gönder
 async function submitEdit() {
     const newTitle = document.getElementById('editTitle').value.trim();
     const newContent = document.getElementById('editContent').value.trim();
@@ -610,8 +651,6 @@ async function submitEdit() {
 // =========================================
 // YARDIMCI FONKSİYONLAR
 // =========================================
-
-// Düz metni paragraflara böl
 function formatContent(text) {
     if (!text) return "";
     if (!text.includes("<p>")) return text.split('\n').map(para => para.trim() ? `<p>${para}</p>` : "").join('');
