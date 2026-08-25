@@ -1,7 +1,7 @@
 const express = require("express");
 const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
-const MongoStore = require('connect-mongo');
+const MongoStore = require('connect-mongo'(session));
 const cors = require("cors");
 const dotenv = require("dotenv");
 const bcrypt = require('bcrypt');
@@ -42,15 +42,15 @@ app.use(maintenanceMiddleware);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'default_secure_key_change_this',
+    secret: process.env.SESSION_SECRET || 'gizli_anahtar',
     resave: false,
-    saveUninitialized: false, // true yerine false yapmak sunucuyu gereksiz çerez yükünden kurtarır
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI,
-        collectionName: 'sessions', // Veritabanında oturumlar için ayrı klasör açar
-        ttl: 14 * 24 * 60 * 60 // Oturumlar 14 gün aktif kalır, sonra otomatik silinir
+    saveUninitialized: false,
+    store: new MongoStore({
+        url: process.env.MONGO_URI,
+        collection: 'sessions'
     })
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
