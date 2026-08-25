@@ -5,7 +5,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const bcrypt = require('bcrypt');
 const session = require("express-session");
-const MongoStore = require('connect-mongo')(session);
+const MongoStore = require('connect-mongo');
 const passport = require("passport");
 const path = require('path');
 const axios = require('axios');
@@ -45,9 +45,9 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'gizli_anahtar',
     resave: false,
     saveUninitialized: false,
-    store: new MongoStore({
-        url: process.env.MONGO_URI,
-        collection: 'sessions'
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: 'sessions'
     })
 }));
 
