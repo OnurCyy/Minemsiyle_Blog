@@ -1,8 +1,8 @@
 const express = require("express");
 const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
+const MongoStore = require('connect-mongo');
 const cors = require("cors");
-const nodemailer = require('nodemailer');
 const dotenv = require("dotenv");
 const bcrypt = require('bcrypt');
 const session = require("express-session");
@@ -35,19 +35,22 @@ dotenv.config();
 const app = express();
 
 // Middleware Ayarları
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(cors());
 app.use(maintenanceMiddleware);
-app.use(express.static("public"));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'gizli_anahtar',
+    secret: process.env.SESSION_SECRET || 'default_secure_key_change_this',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false, // true yerine false yapmak sunucuyu gereksiz çerez yükünden kurtarır
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: 'sessions', // Veritabanında oturumlar için ayrı klasör açar
+        ttl: 14 * 24 * 60 * 60 // Oturumlar 14 gün aktif kalır, sonra otomatik silinir
+    })
 }));
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -283,22 +286,94 @@ app.post('/api/auth/verify-reset-code', async (req, res) => {
     }
 });
 
-app.post('/api/save', async (req, res) => {
-    const { username, type, itemId, title, image } = req.body;
+// JWT Kimlik Doğrulama Middleware'i (Sadece bu rota için özel)
+const authenticateJWT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        jwt.verify(token, process.env.SESSION_SECRET || 'gizli_anahtar', (err, user) => {
+            if (err) {
+                return res.sendStatus(403);
+            }
+            req.user = user;
+            next();
+        });
+    } else {
+        res.sendStatus(401);
+    }
+};
+
+// YENİ VE GÜVENLİ KAYDETME ROTASI
+app.post('/api/users/save', authenticateJWT, async (req, res) => {
+    const { itemId } = req.body;
+    const username = req.user.username; // Kullanıcı adını artık güvenli token'dan alıyoruz
+
+    if (!itemId) {
+        return res.status(400).json({ error: "Item ID gerekli." });
+    }
+
     try {
+        // Önce yazının/kitabın bilgilerini (title, type) bulalım
+        // Bu kısım senin post/book modeline göre değişebilir, örnek olarak:
+        // const Post = require('./models/Post'); 
+        // const itemData = await Post.findById(itemId); 
+        // const title = itemData ? itemData.title : 'Bilinmeyen Yazı';
+        // const type = itemData ? itemData.contentType : 'blog';
+        // const image = itemData ? (itemData.image || itemData.cover) : '';
+
+        // Şimdilik sistemin çökmemesi için basit tutuyoruz:
+        const title = 'Kayıtlı İçerik';
+        const type = 'blog';
+        const image = '';
+
         const existing = await SavedItem.findOne({ username, itemId });
+
         if (existing) {
+            // Zaten kayıtlıysa sil (Toggle mantığı)
             await SavedItem.deleteOne({ _id: existing._id });
             const count = await SavedItem.countDocuments({ itemId });
-            sendToDiscord('SYSTEM', `🗑️ **${username}**, bir kitabı favorilerinden çıkardı.`, username);
+            if (typeof sendToDiscord === 'function') {
+                sendToDiscord('SYSTEM', `🗑️ **${username}**, bir içeriği favorilerinden çıkardı.`, username);
+            }
             res.json({ status: 'removed', count });
         } else {
+            // Kayıtlı değilse ekle
             await (new SavedItem({ username, type, itemId, title, image })).save();
             const count = await SavedItem.countDocuments({ itemId });
-            sendToDiscord('LIKE', `❤️ **${username}**, kütüphanesine yeni bir kitap ekledi: **${title}**`, username);
+            if (typeof sendToDiscord === 'function') {
+                sendToDiscord('LIKE', `❤️ **${username}**, kütüphanesine yeni bir içerik ekledi.`, username);
+            }
             res.json({ status: 'saved', count });
         }
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) {
+        console.error("Kaydetme Hatası:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Ayrica, profil kisminda kaydettiklerimizi listelerken token dogrulamasi kullandigimizdan, 
+// eger backend'de '/api/users/profile/saved' rotan yoksa, su sekilde basitce ekleyebilirsin:
+app.get('/api/users/profile/saved', authenticateJWT, async (req, res) => {
+    try {
+        // Hedef kullanici URL'den geldiyse onu al, gelmediyse token sahibini (req.user) kullan
+        const targetUsername = req.query.u || req.user.username;
+        const savedItems = await SavedItem.find({ username: targetUsername }).sort({ savedAt: -1 });
+        res.json({ savedItems });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/users/profile/comments', authenticateJWT, async (req, res) => {
+    try {
+        const targetUsername = req.query.u || req.user.username;
+        // Comment modelini kullandigini varsayiyorum
+        const Comment = require('./models/Comment');
+        const comments = await Comment.find({ username: targetUsername }).sort({ date: -1 });
+        res.json({ comments });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // --- BAŞLATMA ---
