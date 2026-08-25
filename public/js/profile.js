@@ -110,66 +110,76 @@ function renderUserTags(user) {
     let tags = user.tags || user.badges || [];
     if (typeof tags === 'string') tags = tags.split(',');
 
-    // Eğer kullanıcının hiç rozeti yoksa, otomatik olarak "ÜYE" ekleyelim
     if (tags.length === 0) {
         tags = ['ÜYE'];
     }
 
-    // 🎨 ROZET TASARIM KÜTÜPHANESİ
+    // 🎨 ROZET TASARIM KÜTÜPHANESİ (İngilizce - Türkçe Çeviri Destekli)
     const badgeStyles = {
-        // YÖNETİCİ (Zümrüt Yeşili)
-        'YÖNETİCİ': { icon: 'ph-fill ph-shield-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
-        'ADMIN': { icon: 'ph-fill ph-shield-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
+        // YÖNETİCİ
+        'YÖNETİCİ': { label: 'YÖNETİCİ', icon: 'ph-fill ph-shield-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
+        'ADMIN': { label: 'ADMIN', icon: 'ph-fill ph-shield-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
 
-        // GELİŞTİRİCİ (Gül Kırmızısı)
-        'GELİŞTİRİCİ': { icon: 'ph-bold ph-code', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' },
-        'DEV': { icon: 'ph-bold ph-code', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' },
+        // GELİŞTİRİCİ
+        'GELİŞTİRİCİ': { label: 'GELİŞTİRİCİ', icon: 'ph-bold ph-code', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' },
+        'DEV': { label: 'DEV', icon: 'ph-bold ph-code', color: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30' },
 
-        // MODERATÖR (Kehribar/Turuncu)
-        'MODERATÖR': { icon: 'ph-fill ph-hammer', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-500 border-amber-500/30' },
-        'MOD': { icon: 'ph-fill ph-hammer', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-500 border-amber-500/30' },
+        // MODERATÖR
+        'MODERATÖR': { label: 'MODERATÖR', icon: 'ph-fill ph-hammer', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-500 border-amber-500/30' },
+        'MOD': { label: 'MOD', icon: 'ph-fill ph-hammer', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-500 border-amber-500/30' },
 
-        // VIP (Altın Sarısı)
-        'VIP': { icon: 'ph-fill ph-star', color: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30' },
+        // VIP
+        'VIP': { label: 'VIP', icon: 'ph-fill ph-star', color: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30' },
 
-        // DESTEKÇİ (Pembe)
-        'DESTEKÇİ': { icon: 'ph-fill ph-heart', color: 'bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/30' },
+        // DESTEKÇİ
+        'DESTEKÇİ': { label: 'DESTEKÇİ', icon: 'ph-fill ph-heart', color: 'bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/30' },
+        'SUPPORTER': { label: 'DESTEKÇİ', icon: 'ph-fill ph-heart', color: 'bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/30' },
 
-        // ONAYLI (Mavi)
-        'ONAYLI': { icon: 'ph-fill ph-check-circle', color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' },
+        // ONAYLI
+        'ONAYLI': { label: 'ONAYLI', icon: 'ph-fill ph-check-circle', color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' },
+        'VERIFIED': { label: 'ONAYLI', icon: 'ph-fill ph-check-circle', color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' },
 
-        // YAZAR (İndigo/Mor)
-        'YAZAR': { icon: 'ph-fill ph-pen-nib', color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30' },
+        // YAZAR
+        'YAZAR': { label: 'YAZAR', icon: 'ph-fill ph-pen-nib', color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30' },
+        'WRITER': { label: 'YAZAR', icon: 'ph-fill ph-pen-nib', color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30' },
 
-        // ŞAİR (Mor)
-        'ŞAİR': { icon: 'ph-fill ph-feather', color: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30' },
+        // ŞAİR
+        'ŞAİR': { label: 'ŞAİR', icon: 'ph-fill ph-feather', color: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30' },
+        'POET': { label: 'ŞAİR', icon: 'ph-fill ph-feather', color: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30' },
 
-        // BUG AVCISI (Turkuaz)
-        'BUG AVCISI': { icon: 'ph-fill ph-bug', color: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/30' },
+        // BUG AVCISI
+        'BUG AVCISI': { label: 'BUG AVCISI', icon: 'ph-fill ph-bug', color: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/30' },
+        'BUG_HUNTER': { label: 'BUG AVCISI', icon: 'ph-fill ph-bug', color: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/30' },
 
-        // KİTAP KURDU (Açık Yeşil)
-        'KİTAP KURDU': { icon: 'ph-fill ph-book-open', color: 'bg-lime-500/15 text-lime-700 dark:text-lime-400 border-lime-500/30' },
+        // KİTAP KURDU
+        'KİTAP KURDU': { label: 'KİTAP KURDU', icon: 'ph-fill ph-book-open', color: 'bg-lime-500/15 text-lime-700 dark:text-lime-400 border-lime-500/30' },
+        'BOOKWORM': { label: 'KİTAP KURDU', icon: 'ph-fill ph-book-open', color: 'bg-lime-500/15 text-lime-700 dark:text-lime-400 border-lime-500/30' },
 
-        // KAHVE SEVER (Kahverengi/Turuncu)
-        'KAHVE SEVER': { icon: 'ph-fill ph-coffee', color: 'bg-orange-700/15 text-orange-800 dark:text-orange-400 border-orange-700/30' },
+        // KAHVE SEVER
+        'KAHVE SEVER': { label: 'KAHVE SEVER', icon: 'ph-fill ph-coffee', color: 'bg-orange-700/15 text-orange-800 dark:text-orange-400 border-orange-700/30' },
+        'COFFEE': { label: 'KAHVE SEVER', icon: 'ph-fill ph-coffee', color: 'bg-orange-700/15 text-orange-800 dark:text-orange-400 border-orange-700/30' },
 
-        // KEDİ SEVER (Gri/Slate)
-        'KEDİ SEVER': { icon: 'ph-fill ph-cat', color: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30' },
+        // KEDİ SEVER
+        'KEDİ SEVER': { label: 'KEDİ SEVER', icon: 'ph-fill ph-cat', color: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30' },
+        'CAT_LOVER': { label: 'KEDİ SEVER', icon: 'ph-fill ph-cat', color: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30' },
 
-        // VARSAYILAN / ÜYE (Standart Tema Rengi)
-        'DEFAULT': { icon: 'ph-fill ph-user', color: 'bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark border-lineLight dark:border-lineDark' }
+        // VARSAYILAN / ÜYE
+        'DEFAULT': { label: 'ÜYE', icon: 'ph-fill ph-user', color: 'bg-black/5 dark:bg-white/5 text-inkLight dark:text-inkDark border-lineLight dark:border-lineDark' }
     };
 
     tagsBox.innerHTML = tags.map(tag => {
         const cleanTag = tag.trim().toUpperCase();
 
-        // Eğer rozet kütüphanede varsa onu al, yoksa DEFAULT tasarımı kullan
+        // Stili kütüphaneden çek, bulamazsan DEFAULT kullan
         const style = badgeStyles[cleanTag] || badgeStyles['DEFAULT'];
+
+        // Eğer kütüphanede tanımlanmamış yepyeni bir rozet gelirse alt tireleri silip yaz
+        const displayLabel = style.label || cleanTag.replace(/_/g, ' ');
 
         return `
         <span class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold tracking-widest border shadow-sm ${style.color}">
             <i class="${style.icon} text-sm"></i> 
-            ${cleanTag}
+            ${displayLabel}
         </span>`;
     }).join('');
 }
