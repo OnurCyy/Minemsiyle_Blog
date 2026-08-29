@@ -14,6 +14,24 @@ function parseJwt(token) {
     } catch (e) { return null; }
 }
 
+// --- HEDEF KULLANICIYI BUL (GLOBAL) ---
+let targetUsername = null;
+const pathParts = window.location.pathname.split('/');
+
+if (pathParts[1] && pathParts[1] !== 'profile.html') {
+    // URL www.minemsiyle.com/Minemsi şeklindeyse adresi buradan al
+    targetUsername = decodeURIComponent(pathParts[1]);
+} else {
+    // URL eski usül ?u=Minemsi şeklindeyse buradan al
+    const params = new URLSearchParams(window.location.search);
+    targetUsername = params.get('u');
+}
+
+// Hiçbiri yoksa kendi profiline girmiştir
+if (!targetUsername) {
+    const sessionUser = JSON.parse(localStorage.getItem('user'));
+    if (sessionUser) targetUsername = sessionUser.username;
+}
 // --- SAYFA YÜKLENİNCE ---
 document.addEventListener("DOMContentLoaded", () => {
     // Tema kontrolü artık HTML'in içindeki script'ten yapılıyor.

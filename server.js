@@ -179,6 +179,11 @@ app.get('/api/auth/twitter/callback', passport.authenticate('twitter', { failure
 app.get('/kitap/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/book.html')));
 app.get('/blog/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/post.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
+app.get('/:username', (req, res, next) => {
+    // Eğer linkte nokta varsa (.css, .png vb. bir dosyaysa) bunu profil sanma, atla
+    if (req.path.includes('.')) return next();
+    res.sendFile(path.join(__dirname, 'public/profile.html'));
+});
 
 // --- MAİL SİSTEMİ (YENİ RESEND MOTORU) ---
 const { Resend } = require('resend');
@@ -300,26 +305,20 @@ const authenticateJWT = (req, res, next) => {
 
 // YENİ VE GÜVENLİ KAYDETME ROTASI
 app.post('/api/users/save', authenticateJWT, async (req, res) => {
-    const { itemId } = req.body;
-    const username = req.user.username; // Kullanıcı adını artık güvenli token'dan alıyoruz
+    // 1. SADECE itemId DEĞİL, title VE type VERİLERİNİ DE YAKALIYORUZ
+    const { itemId, title, type } = req.body;
+    const username = req.user.username;
 
     if (!itemId) {
         return res.status(400).json({ error: "Item ID gerekli." });
     }
 
     try {
-        // Önce yazının/kitabın bilgilerini (title, type) bulalım
-        // Bu kısım senin post/book modeline göre değişebilir, örnek olarak:
-        // const Post = require('./models/Post'); 
-        // const itemData = await Post.findById(itemId); 
-        // const title = itemData ? itemData.title : 'Bilinmeyen Yazı';
-        // const type = itemData ? itemData.contentType : 'blog';
-        // const image = itemData ? (itemData.image || itemData.cover) : '';
-
-        // Şimdilik sistemin çökmemesi için basit tutuyoruz:
-        const title = 'Kayıtlı İçerik';
-        const type = 'blog';
-        const image = '';
+        // 2. ÖN TARAFTAN GELEN GERÇEK VERİLERİ KULLANIYORUZ
+        // Eğer ön taraftan veri gelmezse diye güvenlik amaçlı (fallback) varsayılan kelimeler ekliyoruz
+        const itemTitle = title || 'Kayıtlı İçerik';
+        const itemType = type || 'blog';
+        const itemImage = '';
 
         const existing = await SavedItem.findOne({ username, itemId });
 
@@ -332,11 +331,11 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
             }
             res.json({ status: 'removed', count });
         } else {
-            // Kayıtlı değilse ekle
-            await (new SavedItem({ username, type, itemId, title, image })).save();
+            // Kayıtlı değilse ekle (Artık gerçek itemType ve itemTitle kullanılıyor)
+            await (new SavedItem({ username, type: itemType, itemId, title: itemTitle, image: itemImage })).save();
             const count = await SavedItem.countDocuments({ itemId });
             if (typeof sendToDiscord === 'function') {
-                sendToDiscord('LIKE', `❤️ **${username}**, kütüphanesine yeni bir içerik ekledi.`, username);
+                sendToDiscord('LIKE', `❤️ **${username}**, kütüphanesine yeni bir içerik ekledi: **${itemTitle}**`, username);
             }
             res.json({ status: 'saved', count });
         }
