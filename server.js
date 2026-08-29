@@ -344,6 +344,21 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
     }
 });
 
+app.get('/api/users/public-profile', async (req, res) => {
+    try {
+        const target = req.query.u;
+        if (!target) return res.status(400).json({ error: "Kullanıcı adı eksik" });
+
+        // Veritabanından direkt URL'deki ismi buluyoruz
+        const user = await User.findOne({ username: target });
+        if (!user) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
+
+        res.json(user);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // KAYDEDİLENLERİ GETİR (URL'deki kullanıcıya göre)
 app.get('/api/users/profile/saved', async (req, res) => {
     try {

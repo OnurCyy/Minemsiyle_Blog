@@ -76,7 +76,7 @@ async function loadUserProfile() {
     }
 
     try {
-        const res = await fetch(`${API_BASE}/users/${targetUsername}`);
+        const res = await fetch(`/api/users/public-profile?u=${targetUsername}`);
         if (!res.ok) {
             document.getElementById('displayName').innerText = "Kullanıcı Bulunamadı";
             return;
