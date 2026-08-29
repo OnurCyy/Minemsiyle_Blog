@@ -344,25 +344,42 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
     }
 });
 
-// Ayrica, profil kisminda kaydettiklerimizi listelerken token dogrulamasi kullandigimizdan, 
-// eger backend'de '/api/users/profile/saved' rotan yoksa, su sekilde basitce ekleyebilirsin:
-app.get('/api/users/profile/saved', authenticateJWT, async (req, res) => {
+// KAYDEDİLENLERİ GETİR (URL'deki kullanıcıya göre)
+app.get('/api/users/profile/saved', async (req, res) => {
     try {
-        // Hedef kullanici URL'den geldiyse onu al, gelmediyse token sahibini (req.user) kullan
-        const targetUsername = req.query.u || req.user.username;
-        const savedItems = await SavedItem.find({ username: targetUsername }).sort({ savedAt: -1 });
+        // İstekte ?u=... geldiyse onu al, yoksa token'dan bulmaya çalış
+        let targetUser = req.query.u;
+
+        if (!targetUser && req.headers.authorization) {
+            const token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.SESSION_SECRET || 'gizli_anahtar');
+            targetUser = decoded.username;
+        }
+
+        if (!targetUser) return res.status(400).json({ error: "Kullanıcı belirtilmedi." });
+
+        const savedItems = await SavedItem.find({ username: targetUser }).sort({ savedAt: -1 });
         res.json({ savedItems });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-app.get('/api/users/profile/comments', authenticateJWT, async (req, res) => {
+// YORUMLARI GETİR (URL'deki kullanıcıya göre)
+app.get('/api/users/profile/comments', async (req, res) => {
     try {
-        const targetUsername = req.query.u || req.user.username;
-        // Comment modelini kullandigini varsayiyorum
+        let targetUser = req.query.u;
+
+        if (!targetUser && req.headers.authorization) {
+            const token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.SESSION_SECRET || 'gizli_anahtar');
+            targetUser = decoded.username;
+        }
+
+        if (!targetUser) return res.status(400).json({ error: "Kullanıcı belirtilmedi." });
+
         const Comment = require('./models/Comment');
-        const comments = await Comment.find({ username: targetUsername }).sort({ date: -1 });
+        const comments = await Comment.find({ username: targetUser }).sort({ date: -1 });
         res.json({ comments });
     } catch (error) {
         res.status(500).json({ error: error.message });

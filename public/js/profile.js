@@ -14,24 +14,31 @@ function parseJwt(token) {
     } catch (e) { return null; }
 }
 
-// --- HEDEF KULLANICIYI BUL (GLOBAL) ---
+// --- HEDEF KULLANICIYI URL'DEN TESPİT ET ---
 let targetUsername = null;
-const pathParts = window.location.pathname.split('/');
+const pathSegments = window.location.pathname.split('/').filter(Boolean); // Boşlukları temizle
 
-if (pathParts[1] && pathParts[1] !== 'profile.html') {
-    // URL www.minemsiyle.com/Minemsi şeklindeyse adresi buradan al
-    targetUsername = decodeURIComponent(pathParts[1]);
+if (pathSegments.length > 0 && pathSegments[0] !== 'profile.html') {
+    // URL örn: www.minemsiyle.com/Minemsi ise targetUsername = "Minemsi" olur
+    targetUsername = decodeURIComponent(pathSegments[0]);
 } else {
-    // URL eski usül ?u=Minemsi şeklindeyse buradan al
+    // Eski usül ?u=... kalmışsa oradan al
     const params = new URLSearchParams(window.location.search);
     targetUsername = params.get('u');
 }
 
-// Hiçbiri yoksa kendi profiline girmiştir
+// Eğer hala bulunamadıysa (örneğin direkt /profile.html girildiyse) kendi adını al
 if (!targetUsername) {
     const sessionUser = JSON.parse(localStorage.getItem('user'));
     if (sessionUser) targetUsername = sessionUser.username;
 }
+
+// Adres çubuğunu şık bir şekilde /KullaniciAdi formatına sabitle
+if (targetUsername && window.location.pathname !== `/${targetUsername}`) {
+    window.history.replaceState({}, '', `/${targetUsername}`);
+}
+
+
 // --- SAYFA YÜKLENİNCE ---
 document.addEventListener("DOMContentLoaded", () => {
     // Tema kontrolü artık HTML'in içindeki script'ten yapılıyor.
@@ -40,10 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadMyComments();
 });
 
-// Adres çubuğunu tarayıcıyı yenilemeden /Minemsi formatına çevir
-if (targetUsername && window.location.pathname !== `/${targetUsername}`) {
-    window.history.replaceState({}, '', `/${targetUsername}`);
-}
 
 // --- PROFİL YÜKLEME ---
 async function loadUserProfile() {
