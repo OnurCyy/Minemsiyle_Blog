@@ -40,6 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
     loadMyComments();
 });
 
+// Adres çubuğunu tarayıcıyı yenilemeden /Minemsi formatına çevir
+if (targetUsername && window.location.pathname !== `/${targetUsername}`) {
+    window.history.replaceState({}, '', `/${targetUsername}`);
+}
+
 // --- PROFİL YÜKLEME ---
 async function loadUserProfile() {
     const params = new URLSearchParams(window.location.search);

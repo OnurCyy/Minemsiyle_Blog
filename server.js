@@ -315,9 +315,8 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
 
     try {
         // 2. ÖN TARAFTAN GELEN GERÇEK VERİLERİ KULLANIYORUZ
-        // Eğer ön taraftan veri gelmezse diye güvenlik amaçlı (fallback) varsayılan kelimeler ekliyoruz
-        const itemTitle = title || 'Kayıtlı İçerik';
-        const itemType = type || 'blog';
+        const itemTitle = (title && title !== 'undefined' && title.trim() !== '') ? title : 'Kayıtlı İçerik';
+        const itemType = (type && type !== 'undefined') ? type : 'blog';
         const itemImage = '';
 
         const existing = await SavedItem.findOne({ username, itemId });
