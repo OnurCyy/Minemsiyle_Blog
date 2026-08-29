@@ -344,13 +344,16 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
     }
 });
 
-app.get('/api/users/public-profile', async (req, res) => {
+app.get('/api/public-user', async (req, res) => {
     try {
         const target = req.query.u;
         if (!target) return res.status(400).json({ error: "Kullanıcı adı eksik" });
 
-        // Veritabanından direkt URL'deki ismi buluyoruz
-        const user = await User.findOne({ username: target });
+        // RegExp (i) sayesinde "OnurCy" ile "onurcy" aynı kabul edilir
+        const user = await User.findOne({
+            username: { $regex: new RegExp('^' + target + '$', 'i') }
+        });
+
         if (!user) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
 
         res.json(user);
