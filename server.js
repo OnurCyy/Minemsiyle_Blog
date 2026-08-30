@@ -146,14 +146,20 @@ passport.use(new TwitterStrategy({
     } catch (err) { return done(err, null); }
 }));
 
-// 1. JWT Doğrulama Kilidi (JWT_SECRET Olarak Düzeltildi)
+// 1. JWT Doğrulama Kilidi (Joker Versiyon)
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.split(' ')[1];
-        // DÜZELTME: SESSION_SECRET yerine JWT_SECRET kullanıyoruz
-        jwt.verify(token, process.env.JWT_SECRET || 'gizli_anahtar', (err, user) => {
-            if (err) return res.status(403).json({ error: "Token geçersiz" });
+
+        // Sistemin daha önce hangi anahtarla şifrelediğini bilmediğimiz için hepsini kabul et diyoruz
+        const secretKey = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'gizli_anahtar';
+
+        jwt.verify(token, secretKey, (err, user) => {
+            if (err) {
+                console.log("Token Hatası Yakalandı:", err.message); // Hatayı Render loglarına yazdırır
+                return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş" });
+            }
             req.user = user;
             next();
         });
@@ -161,6 +167,7 @@ const authenticateJWT = (req, res, next) => {
         res.status(401).json({ error: "Yetkisiz erişim" });
     }
 };
+
 // 2. İçerik Kaydetme Rotası (Başlıkları ve türleri yakalar)
 app.post('/api/users/save', authenticateJWT, async (req, res) => {
     const { itemId, title, type } = req.body;
