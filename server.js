@@ -200,7 +200,7 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
 });
 
 // 3. Kesin Silme Rotası (Bozuk/Hayalet ID'leri direkt kazır)
-app.delete('/api/users/save/:dbId', authenticateJWT, async (req, res) => {
+app.delete('/api/remove-saved-item/:dbId', authenticateJWT, async (req, res) => {
     try {
         const docId = req.params.dbId;
         const username = req.user.username;
