@@ -406,9 +406,9 @@ async function loadSavedItems() {
                 const isOwner = currentUser && (currentUser.username === targetUsername);
 
                 const deleteBtn = isOwner ? `
-                <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${safeItemId}')" title="Raftan Kaldır">
-                    <i class="ph-bold ph-trash text-lg"></i>
-                </button>` : '';
+                               <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${item._id}')" title="Raftan Kaldır">
+                                <i class="ph-bold ph-trash text-lg"></i>
+                                </button>` : '';
 
                 html += `
                 <div class="flex items-center gap-4 bg-bgLight dark:bg-bgDark border border-lineLight dark:border-lineDark p-4 rounded-xl hover:border-accent transition-all group">
@@ -489,11 +489,9 @@ async function loadMyComments() {
     } catch (e) { console.error("Yorumlar çekilemedi:", e); }
 }
 
-// ==========================================
-// 🗑️ PROFİL İÇİNDEN KAYDEDİLENİ SİLME (Zırhlı Versiyon)
-// ==========================================
-async function removeFromProfile(itemId) {
-    if (!itemId || itemId === 'undefined') return; // Boş basılmaları engelle
+// 🗑️ PROFİL İÇİNDEN KAYDEDİLENİ SİLME (Kesin Silme Versiyonu)
+async function removeFromProfile(dbId) {
+    if (!dbId || dbId === 'undefined') return;
 
     Swal.fire({
         title: 'Emin misin?',
@@ -510,38 +508,29 @@ async function removeFromProfile(itemId) {
         if (result.isConfirmed) {
             let token = localStorage.getItem('token');
             if (!token) return;
-            token = token.replace(/"/g, '').trim();
 
             try {
-                const res = await fetch(`${API_BASE}/users/save`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    // Ön taraftan title/type gitmese de sunucunun silmesi için itemId yeterli
-                    body: JSON.stringify({ itemId: itemId })
+                // POST yerine direkt DELETE isteği atıyoruz
+                const res = await fetch(`${API_BASE}/users/save/${dbId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token.replace(/"/g, '').trim()}` }
                 });
 
                 if (res.ok) {
                     Swal.fire({
                         title: 'Kaldırıldı!',
-                        text: 'Yazı raftan indirildi.',
                         icon: 'success',
                         timer: 1500,
                         showConfirmButton: false,
                         background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea',
                         color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c'
                     });
-                    // Listeyi anında yenile
-                    setTimeout(() => loadSavedItems(), 300);
+                    loadSavedItems(); // Listeyi anında yenile
                 } else {
-                    const errorData = await res.json();
-                    Swal.fire('Hata!', errorData.error || 'Silinemedi.', 'error');
+                    Swal.fire('Hata!', 'Silinemedi.', 'error');
                 }
             } catch (e) {
                 console.error("Silme hatası:", e);
-                Swal.fire('Hata!', 'Bağlantı sorunu yaşandı.', 'error');
             }
         }
     });
