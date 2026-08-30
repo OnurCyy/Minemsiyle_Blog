@@ -50,11 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- PROFİL YÜKLEME ---
 async function loadUserProfile() {
-    const params = new URLSearchParams(window.location.search);
-    let targetUsername = params.get('u');
     const sessionUser = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
 
+    // Hedef kullanıcı global olarak zaten tanımlandı (targetUsername).
+    // Eğer kimse yoksa ve sen de giriş yapmadıysan login'e at.
     if (!targetUsername) {
         if (sessionUser && sessionUser.username) {
             targetUsername = sessionUser.username;
@@ -76,17 +76,23 @@ async function loadUserProfile() {
     }
 
     try {
+        // ARTIK SADECE HEDEF KULLANICIYI ÇEKİYORUZ
         const res = await fetch(`${API_BASE}/public-user?u=${targetUsername}`);
+
         if (!res.ok) {
             document.getElementById('displayName').innerText = "Kullanıcı Bulunamadı";
+            // Bulunamadıysa resmi ve bio'yu da temizle
+            document.getElementById('displayBio').innerText = '"Bu sayfa boş..."';
+            document.getElementById('displayEmail').innerText = "";
             return;
         }
-        const user = await res.json();
 
-        // Verileri Bas
+        const viewedUser = await res.json();
+
+        // 1. EKRANI ARTIK 'viewedUser' (Baktığımız Kişi) İLE DOLDURUYORUZ
         const avatarEl = document.getElementById('avatarDisplay');
         if (avatarEl) {
-            let finalAvatar = user.avatar;
+            let finalAvatar = viewedUser.avatar;
             if (!finalAvatar || finalAvatar === 'default_avatar.png' || finalAvatar.trim() === '') {
                 finalAvatar = defaultAvatar;
             }
@@ -94,23 +100,31 @@ async function loadUserProfile() {
             avatarEl.onerror = function () { this.onerror = null; this.src = defaultAvatar; };
         }
 
-        document.getElementById('displayName').innerText = user.username;
-        document.getElementById('displayBio').innerText = user.bio ? `"${user.bio}"` : '"Henüz bir dize yazılmamış..."';
-        document.getElementById('displayEmail').innerText = user.email || `@${user.username}`;
+        document.getElementById('displayName').innerText = viewedUser.username;
+        document.getElementById('displayBio').innerText = viewedUser.bio ? `"${viewedUser.bio}"` : '"Henüz bir dize yazılmamış..."';
 
-        // Yetki Kontrolleri (Kendi profilindeyse)
-        const isMyProfile = (token && parseJwt(token)?.username === user.username) || (sessionUser && sessionUser.username === user.username);
+        // Sadece admin ise veya kendi profilindeyse emaili göster, yoksa gizle veya sadece @kullaniciadi yaz
+        const isMyProfile = (token && parseJwt(token)?.username === viewedUser.username) || (sessionUser && sessionUser.username === viewedUser.username);
+        if (isMyProfile || (sessionUser && (sessionUser.role === 'admin' || sessionUser.username === 'OnurCy'))) {
+            document.getElementById('displayEmail').innerText = viewedUser.email || `@${viewedUser.username}`;
+        } else {
+            document.getElementById('displayEmail').innerText = `@${viewedUser.username}`;
+        }
+
+
+        // 2. YETKİ KONTROLLERİ (Sadece kendi profilindeyse düzenleme butonlarını göster)
         const actionsArea = document.getElementById('logoutArea');
         const avatarBtn = document.getElementById('avatarEditIcon');
         const settingsTab = document.getElementById('settingsTabBtn');
+        const adminBtn = document.getElementById('adminPanelBtnArea');
 
         if (isMyProfile) {
+            // Kendi profili: Ayarları ve düzenlemeleri aç
             if (actionsArea) actionsArea.classList.remove('hidden');
             if (avatarBtn) avatarBtn.classList.remove('hidden');
             if (settingsTab) settingsTab.classList.remove('hidden');
 
-            const adminBtn = document.getElementById('adminPanelBtnArea');
-            if (user.role === 'admin' || user.username === 'OnurCy') {
+            if (viewedUser.role === 'admin' || viewedUser.username === 'OnurCy') {
                 if (adminBtn) {
                     adminBtn.innerHTML = `
                     <a href="adminPanel.html" class="w-full bg-danger hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-danger/20 mb-3">
@@ -119,13 +133,19 @@ async function loadUserProfile() {
                 }
             }
         } else {
+            // Başkasının profili: Ayarları ve düzenlemeleri gizle
+            if (actionsArea) actionsArea.classList.add('hidden');
+            if (avatarBtn) avatarBtn.classList.add('hidden');
             if (settingsTab) settingsTab.classList.add('hidden');
+            if (adminBtn) adminBtn.innerHTML = ""; // Admin butonunu başkasında görme
         }
 
-        // Tagları Bas
-        renderUserTags(user);
+        // 3. ROZETLERİ HEDEF KULLANICIYA GÖRE BAS
+        renderUserTags(viewedUser);
 
-    } catch (error) { console.error(error); }
+    } catch (error) {
+        console.error("Profil Yükleme Hatası:", error);
+    }
 }
 
 // --- ETİKETLERİ BAS ---
