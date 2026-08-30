@@ -370,20 +370,13 @@ async function loadSavedItems() {
     const container = document.getElementById('saved-tab');
     if (!container) return;
 
-    // HANGİ PROFİLDEYİZ? URL'den hedef kullanıcıyı bul
-    const params = new URLSearchParams(window.location.search);
-    let targetUsername = params.get('u');
-    if (!targetUsername) {
-        const sessionUser = JSON.parse(localStorage.getItem('user'));
-        targetUsername = sessionUser ? sessionUser.username : null;
-    }
+    // ARTIK KENDİ BAŞINA ARAMIYOR, EN ÜSTTEKİ GLOBAL 'targetUsername'i KULLANIYOR
     if (!targetUsername) return;
 
     let token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token.replace(/"/g, '').trim()}` } : {};
 
     try {
-        // Backend'e "?u=kullaniciAdi" parametresini yolluyoruz
         const res = await fetch(`${API_BASE}/users/profile/saved?u=${targetUsername}`, { headers });
 
         if (res.ok) {
@@ -410,6 +403,7 @@ async function loadSavedItems() {
                 // Eğer başkasının profilindeysek silme butonunu gösterme
                 const currentUser = JSON.parse(localStorage.getItem('user'));
                 const isOwner = currentUser && (currentUser.username === targetUsername);
+
                 const deleteBtn = isOwner ? `
                 <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${item.itemId}')" title="Raftan Kaldır">
                     <i class="ph-bold ph-trash text-lg"></i>
@@ -440,20 +434,13 @@ async function loadMyComments() {
     const container = document.getElementById('comments-tab');
     if (!container) return;
 
-    // HANGİ PROFİLDEYİZ? URL'den hedef kullanıcıyı bul
-    const params = new URLSearchParams(window.location.search);
-    let targetUsername = params.get('u');
-    if (!targetUsername) {
-        const sessionUser = JSON.parse(localStorage.getItem('user'));
-        targetUsername = sessionUser ? sessionUser.username : null;
-    }
+    // ARTIK KENDİ BAŞINA ARAMIYOR, EN ÜSTTEKİ GLOBAL 'targetUsername'i KULLANIYOR
     if (!targetUsername) return;
 
     let token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token.replace(/"/g, '').trim()}` } : {};
 
     try {
-        // Backend'e "?u=kullaniciAdi" parametresini yolluyoruz
         const res = await fetch(`${API_BASE}/users/profile/comments?u=${targetUsername}`, { headers });
 
         if (res.ok) {
