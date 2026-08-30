@@ -377,7 +377,7 @@ async function loadSavedItems() {
     const headers = token ? { 'Authorization': `Bearer ${token.replace(/"/g, '').trim()}` } : {};
 
     try {
-        const res = await fetch(`${API_BASE}/users/profile/saved?u=${targetUsername}`, { headers });
+        const res = await fetch(`${API_BASE}/public-saved?u=${targetUsername}`, { headers });
 
         if (res.ok) {
             const data = await res.json();
@@ -441,7 +441,7 @@ async function loadMyComments() {
     const headers = token ? { 'Authorization': `Bearer ${token.replace(/"/g, '').trim()}` } : {};
 
     try {
-        const res = await fetch(`${API_BASE}/users/profile/comments?u=${targetUsername}`, { headers });
+        const res = await fetch(`${API_BASE}/public-comments?u=${targetUsername}`, { headers });
 
         if (res.ok) {
             const data = await res.json();

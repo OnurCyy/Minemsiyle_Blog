@@ -362,42 +362,34 @@ app.get('/api/public-user', async (req, res) => {
     }
 });
 
-// KAYDEDİLENLERİ GETİR (URL'deki kullanıcıya göre)
-app.get('/api/users/profile/saved', async (req, res) => {
+// HERKESE AÇIK: KAYDEDİLENLERİ GETİR (Harf duyarsız)
+app.get('/api/public-saved', async (req, res) => {
     try {
-        // İstekte ?u=... geldiyse onu al, yoksa token'dan bulmaya çalış
-        let targetUser = req.query.u;
-
-        if (!targetUser && req.headers.authorization) {
-            const token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.SESSION_SECRET || 'gizli_anahtar');
-            targetUser = decoded.username;
-        }
-
+        const targetUser = req.query.u;
         if (!targetUser) return res.status(400).json({ error: "Kullanıcı belirtilmedi." });
 
-        const savedItems = await SavedItem.find({ username: targetUser }).sort({ savedAt: -1 });
+        // $regex ve 'i' ile harf büyüklüğünü umursamadan arar
+        const savedItems = await SavedItem.find({
+            username: { $regex: new RegExp('^' + targetUser + '$', 'i') }
+        }).sort({ savedAt: -1 });
+
         res.json({ savedItems });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// YORUMLARI GETİR (URL'deki kullanıcıya göre)
-app.get('/api/users/profile/comments', async (req, res) => {
+// HERKESE AÇIK: YORUMLARI GETİR (Harf duyarsız)
+app.get('/api/public-comments', async (req, res) => {
     try {
-        let targetUser = req.query.u;
-
-        if (!targetUser && req.headers.authorization) {
-            const token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.SESSION_SECRET || 'gizli_anahtar');
-            targetUser = decoded.username;
-        }
-
+        const targetUser = req.query.u;
         if (!targetUser) return res.status(400).json({ error: "Kullanıcı belirtilmedi." });
 
         const Comment = require('./models/Comment');
-        const comments = await Comment.find({ username: targetUser }).sort({ date: -1 });
+        const comments = await Comment.find({
+            username: { $regex: new RegExp('^' + targetUser + '$', 'i') }
+        }).sort({ date: -1 });
+
         res.json({ comments });
     } catch (error) {
         res.status(500).json({ error: error.message });
