@@ -364,14 +364,11 @@ function logout() {
 }
 
 // ==========================================
-// 📚 KAYDEDİLEN YAZILARI PROFİLE ÇEKME
+// 📚 KAYDEDİLEN YAZILARI PROFİLE ÇEKME (Tarih ve ID Düzeltildi)
 // ==========================================
 async function loadSavedItems() {
     const container = document.getElementById('saved-tab');
-    if (!container) return;
-
-    // ARTIK KENDİ BAŞINA ARAMIYOR, EN ÜSTTEKİ GLOBAL 'targetUsername'i KULLANIYOR
-    if (!targetUsername) return;
+    if (!container || !targetUsername) return;
 
     let token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token.replace(/"/g, '').trim()}` } : {};
@@ -396,16 +393,20 @@ async function loadSavedItems() {
             }
 
             let html = `<div class="flex flex-col gap-4">`;
-            items.reverse().forEach(item => {
-                const date = new Date(item.savedAt).toLocaleDateString('tr-TR');
+            items.forEach(item => {
+                // TARIH DÜZELTMESİ: Veritabanındaki farklı tarih isimlerini (createdAt, savedAt, date) yakalar
+                const dateVal = item.createdAt || item.savedAt || item.date || Date.now();
+                const date = new Date(dateVal).toLocaleDateString('tr-TR');
                 const icon = item.type === 'blog' ? 'ph-article' : 'ph-book-open';
 
-                // Eğer başkasının profilindeysek silme butonunu gösterme
+                // ESKİ BOZUK ID'LERİ YAKALAMA DÜZELTMESİ
+                const safeItemId = item.itemId || item._id;
+
                 const currentUser = JSON.parse(localStorage.getItem('user'));
                 const isOwner = currentUser && (currentUser.username === targetUsername);
 
                 const deleteBtn = isOwner ? `
-                <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${item.itemId}')" title="Raftan Kaldır">
+                <button class="text-mutedLight dark:text-mutedDark hover:text-danger hover:bg-danger/10 p-2.5 rounded-full transition-colors flex items-center justify-center" onclick="removeFromProfile('${safeItemId}')" title="Raftan Kaldır">
                     <i class="ph-bold ph-trash text-lg"></i>
                 </button>` : '';
 
@@ -414,10 +415,10 @@ async function loadSavedItems() {
                     <div class="w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
                         <i class="ph-fill ${icon}"></i>
                     </div>
-                    <a href="${item.url || '#'}" class="flex-1 flex flex-col">
+                    <div class="flex-1 flex flex-col">
                         <h4 class="text-inkLight dark:text-inkDark font-serif font-bold text-base m-0 leading-tight group-hover:text-accent transition-colors">${item.title}</h4>
-                        <span class="text-mutedLight dark:text-mutedDark text-[11px] mt-1.5 uppercase tracking-wide">Kaydedilme: ${date}</span>
-                    </a>
+                        <span class="text-mutedLight dark:text-mutedDark text-[11px] mt-1.5 uppercase tracking-wide">KAYDEDİLME: ${date}</span>
+                    </div>
                     ${deleteBtn}
                 </div>`;
             });
@@ -488,8 +489,12 @@ async function loadMyComments() {
     } catch (e) { console.error("Yorumlar çekilemedi:", e); }
 }
 
-// 🗑️ PROFİL İÇİNDEN KAYDEDİLENİ SİLME
+// ==========================================
+// 🗑️ PROFİL İÇİNDEN KAYDEDİLENİ SİLME (Zırhlı Versiyon)
+// ==========================================
 async function removeFromProfile(itemId) {
+    if (!itemId || itemId === 'undefined') return; // Boş basılmaları engelle
+
     Swal.fire({
         title: 'Emin misin?',
         text: 'Bu yazıyı kütüphanenden kaldırmak istiyor musun?',
@@ -514,11 +519,11 @@ async function removeFromProfile(itemId) {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
+                    // Ön taraftan title/type gitmese de sunucunun silmesi için itemId yeterli
                     body: JSON.stringify({ itemId: itemId })
                 });
 
                 if (res.ok) {
-                    loadSavedItems();
                     Swal.fire({
                         title: 'Kaldırıldı!',
                         text: 'Yazı raftan indirildi.',
@@ -528,10 +533,17 @@ async function removeFromProfile(itemId) {
                         background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea',
                         color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c'
                     });
+                    // Listeyi anında yenile
+                    setTimeout(() => loadSavedItems(), 300);
+                } else {
+                    const errorData = await res.json();
+                    Swal.fire('Hata!', errorData.error || 'Silinemedi.', 'error');
                 }
-            } catch (e) { console.error("Silme hatası:", e); }
+            } catch (e) {
+                console.error("Silme hatası:", e);
+                Swal.fire('Hata!', 'Bağlantı sorunu yaşandı.', 'error');
+            }
         }
     });
 }
-
 
