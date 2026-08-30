@@ -16,7 +16,6 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 const User = require('./models/User');
 const SavedItem = require('./models/SavedItem');
 
-
 // Rotalar
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
@@ -146,6 +145,65 @@ passport.use(new TwitterStrategy({
         return done(null, user);
     } catch (err) { return done(err, null); }
 }));
+
+// 1. JWT Doğrulama Kilidi
+const authenticateJWT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        jwt.verify(token, process.env.SESSION_SECRET || 'gizli_anahtar', (err, user) => {
+            if (err) return res.status(403).json({ error: "Token geçersiz" });
+            req.user = user;
+            next();
+        });
+    } else {
+        res.status(401).json({ error: "Yetkisiz erişim" });
+    }
+};
+
+// 2. İçerik Kaydetme Rotası (Başlıkları ve türleri yakalar)
+app.post('/api/users/save', authenticateJWT, async (req, res) => {
+    const { itemId, title, type } = req.body;
+    const username = req.user.username;
+
+    if (!itemId) return res.status(400).json({ error: "Item ID gerekli." });
+
+    try {
+        const itemTitle = (title && title !== 'undefined' && title.trim() !== '') ? title : 'Kayıtlı İçerik';
+        const itemType = (type && type !== 'undefined') ? type : 'blog';
+        const itemImage = '';
+
+        const existing = await SavedItem.findOne({ username, itemId });
+
+        if (existing) {
+            await SavedItem.deleteOne({ _id: existing._id });
+            const count = await SavedItem.countDocuments({ itemId });
+            if (typeof sendToDiscord === 'function') sendToDiscord('SYSTEM', `🗑️ **${username}**, bir içeriği favorilerinden çıkardı.`, username);
+            res.json({ status: 'removed', count });
+        } else {
+            await (new SavedItem({ username, type: itemType, itemId, title: itemTitle, image: itemImage })).save();
+            const count = await SavedItem.countDocuments({ itemId });
+            if (typeof sendToDiscord === 'function') sendToDiscord('LIKE', `❤️ **${username}**, kütüphanesine yeni bir içerik ekledi: **${itemTitle}**`, username);
+            res.json({ status: 'saved', count });
+        }
+    } catch (error) {
+        console.error("Kaydetme Hatası:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 3. Kesin Silme Rotası (Bozuk/Hayalet ID'leri direkt kazır)
+app.delete('/api/users/save/:dbId', authenticateJWT, async (req, res) => {
+    try {
+        const docId = req.params.dbId;
+        const username = req.user.username;
+
+        await SavedItem.findOneAndDelete({ _id: docId, username: username });
+        res.json({ message: 'Başarıyla silindi' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // --- ROTALAR  -------------------------------------------
 app.use("/api/auth", authRoutes);
@@ -286,77 +344,7 @@ app.post('/api/auth/verify-reset-code', async (req, res) => {
     }
 });
 
-// JWT Kimlik Doğrulama Middleware'i (Sadece bu rota için özel)
-const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        jwt.verify(token, process.env.SESSION_SECRET || 'gizli_anahtar', (err, user) => {
-            if (err) {
-                return res.sendStatus(403);
-            }
-            req.user = user;
-            next();
-        });
-    } else {
-        res.sendStatus(401);
-    }
-};
 
-// YENİ VE GÜVENLİ KAYDETME ROTASI
-app.post('/api/users/save', authenticateJWT, async (req, res) => {
-    // 1. SADECE itemId DEĞİL, title VE type VERİLERİNİ DE YAKALIYORUZ
-    const { itemId, title, type } = req.body;
-    const username = req.user.username;
-
-    if (!itemId) {
-        return res.status(400).json({ error: "Item ID gerekli." });
-    }
-
-    try {
-        // 2. ÖN TARAFTAN GELEN GERÇEK VERİLERİ KULLANIYORUZ
-        const itemTitle = (title && title !== 'undefined' && title.trim() !== '') ? title : 'Kayıtlı İçerik';
-        const itemType = (type && type !== 'undefined') ? type : 'blog';
-        const itemImage = '';
-
-        const existing = await SavedItem.findOne({ username, itemId });
-
-        if (existing) {
-            // Zaten kayıtlıysa sil (Toggle mantığı)
-            await SavedItem.deleteOne({ _id: existing._id });
-            const count = await SavedItem.countDocuments({ itemId });
-            if (typeof sendToDiscord === 'function') {
-                sendToDiscord('SYSTEM', `🗑️ **${username}**, bir içeriği favorilerinden çıkardı.`, username);
-            }
-            res.json({ status: 'removed', count });
-        } else {
-            // Kayıtlı değilse ekle (Artık gerçek itemType ve itemTitle kullanılıyor)
-            await (new SavedItem({ username, type: itemType, itemId, title: itemTitle, image: itemImage })).save();
-            const count = await SavedItem.countDocuments({ itemId });
-            if (typeof sendToDiscord === 'function') {
-                sendToDiscord('LIKE', `❤️ **${username}**, kütüphanesine yeni bir içerik ekledi: **${itemTitle}**`, username);
-            }
-            res.json({ status: 'saved', count });
-        }
-    } catch (error) {
-        console.error("Kaydetme Hatası:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// KESİN SİLME ROTASI (Hayalet ve bozuk kayıtları anında yok eder)
-app.delete('/api/users/save/:dbId', authenticateJWT, async (req, res) => {
-    try {
-        const docId = req.params.dbId;
-        const username = req.user.username;
-
-        // Direkt olarak veritabanındaki benzersiz _id ile bulup siliyoruz
-        await SavedItem.findOneAndDelete({ _id: docId, username: username });
-        res.json({ message: 'Başarıyla silindi' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 app.get('/api/public-user', async (req, res) => {
     try {
