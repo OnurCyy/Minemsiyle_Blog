@@ -344,6 +344,20 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
     }
 });
 
+// KESİN SİLME ROTASI (Hayalet ve bozuk kayıtları anında yok eder)
+app.delete('/api/users/save/:dbId', authenticateJWT, async (req, res) => {
+    try {
+        const docId = req.params.dbId;
+        const username = req.user.username;
+
+        // Direkt olarak veritabanındaki benzersiz _id ile bulup siliyoruz
+        await SavedItem.findOneAndDelete({ _id: docId, username: username });
+        res.json({ message: 'Başarıyla silindi' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/api/public-user', async (req, res) => {
     try {
         const target = req.query.u;
