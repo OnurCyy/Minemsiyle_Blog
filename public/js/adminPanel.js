@@ -640,6 +640,38 @@ async function banUser(id, isCurrentlyBanned) {
 }
 
 // =========================================
+// KULLANICI ARAMA MOTORU (CANLI FİLTRELEME)
+// =========================================
+function searchUsers() {
+    const input = document.getElementById('userSearchInput');
+    if (!input) return;
+
+    // Türkçe karakter uyumlu (İ, ı, ş, ğ vb.) arama
+    const query = input.value.toLocaleLowerCase('tr').trim();
+    const rows = document.querySelectorAll('#usersTableBody tr');
+
+    rows.forEach(row => {
+        // Eğer yükleniyor/kullanıcı yok yazısıysa dokunma
+        if (row.cells.length < 2) return;
+
+        const usernameText = row.cells[0]?.textContent?.toLocaleLowerCase('tr') || '';
+        const emailText = row.cells[1]?.textContent?.toLocaleLowerCase('tr') || '';
+
+        if (usernameText.includes(query) || emailText.includes(query)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Input alanını garantiye alacak dinleyici
+document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'userSearchInput') {
+        searchUsers();
+    }
+});
+// =========================================
 // 7. SİSTEM AYARLARI & DASHBOARD
 // =========================================
 async function loadSystemSettings() {
