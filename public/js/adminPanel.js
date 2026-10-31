@@ -424,50 +424,52 @@ window.allUsersData = [];
 let selectedUserId = null;
 let currentSelectedBadges = [];
 
-// Kullanıcı tablosunu oluştur
+// Kullanıcı Tablosunu Yükle
 async function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#a1a1aa;">Kullanıcılar getiriliyor... ⏳</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:25px; color:#a1a1aa;">Kullanıcılar yükleniyor... ⏳</td></tr>';
 
     try {
         const res = await fetch(`${API_URL}/users`);
         const users = await res.json();
-        window.allUsersData = users;
+        window.allUsersData = Array.isArray(users) ? users : (users.users || []);
 
         const countBadge = document.getElementById('statTotalUsers');
-        if (countBadge) countBadge.innerText = users.length;
+        if (countBadge) countBadge.innerText = window.allUsersData.length;
 
-        if (!Array.isArray(users) || users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#a1a1aa;">Kayıtlı kullanıcı bulunamadı.</td></tr>';
+        if (window.allUsersData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:25px; color:#71717a;">Kayıtlı kullanıcı bulunamadı.</td></tr>';
             return;
         }
 
-        tbody.innerHTML = users.map(user => {
+        tbody.innerHTML = window.allUsersData.map(user => {
             const userId = user._id || user.id;
-            const isBanned = !!user.isBanned;
+            const isBanned = (user.isBanned === true || user.isBanned === 'true');
 
-            // 1. BAN DURUMU VE SEBEBİ
+            // 1. BAN DURUMU VE NEDENİ (Belirgin görünüm)
             let statusHTML = '';
             if (isBanned) {
-                const reason = user.banReason || 'Belirtilmedi';
+                const reason = user.banReason && user.banReason.trim() !== '' ? user.banReason : 'Neden belirtilmedi';
                 statusHTML = `
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <span style="color:var(--danger, #ef4444); font-weight:700; font-size:0.85rem;">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span style="color:#ef4444; font-weight:700; font-size:0.85rem; display:inline-flex; align-items:center; gap:5px;">
                             <i class="ph-bold ph-prohibit"></i> Banlı
                         </span>
-                        <span style="font-size:0.75rem; color:#9c948e; font-style:italic;" title="${reason}">
-                            "${reason.length > 25 ? reason.substring(0, 25) + '...' : reason}"
+                        <span style="font-size:0.75rem; color:#fca5a5; background:rgba(239,68,68,0.1); padding:2px 6px; border-radius:4px; border:1px dashed rgba(239,68,68,0.3); max-width:180px; word-break:break-word;">
+                            Sebep: "${reason}"
                         </span>
                     </div>`;
             } else {
                 statusHTML = `<span style="color:#10b981; font-weight:700; font-size:0.85rem;">● Aktif</span>`;
             }
 
-            // 2. RENKLİ VE İKONLU TÜRKÇE ROZETLER
-            let badgesHTML = '<div style="display:flex; gap:6px; flex-wrap:wrap;">';
-            if (user.badges && user.badges.length > 0) {
-                user.badges.forEach(badgeId => {
+            // 2. TÜRKÇE & RENKLİ ROZETLER
+            let badgesHTML = '<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">';
+            const userBadges = Array.isArray(user.badges) ? user.badges : [];
+
+            if (userBadges.length > 0) {
+                userBadges.forEach(badgeId => {
                     const badgeInfo = AVAILABLE_BADGES.find(b => b.id === badgeId);
                     if (badgeInfo) {
                         badgesHTML += `
@@ -484,17 +486,17 @@ async function loadUsers() {
             badgesHTML += '</div>';
 
             return `
-                <tr style="${isBanned ? 'opacity: 0.65;' : ''}">
+                <tr style="${isBanned ? 'background:rgba(239,68,68,0.03);' : ''}">
                     <td><strong>${user.username}</strong></td>
                     <td style="color:#a1a1aa;">${user.email || '-'}</td>
                     <td>${badgesHTML}</td>
                     <td>${statusHTML}</td>
                     <td style="text-align:right;">
                         <div style="display:inline-flex; gap:8px;">
-                            <button class="action-btn" style="background:#6366f1; padding:7px 12px; border-radius:6px;" onclick="openBadgeModal('${userId}')" title="Rozetleri Düzenle">
+                            <button type="button" class="action-btn" style="background:#6366f1; padding:7px 12px; border-radius:6px; cursor:pointer;" onclick="openBadgeModal('${userId}')" title="Rozetleri Seç">
                                 <i class="ph-bold ph-medal"></i>
                             </button>
-                            <button class="action-btn" style="background:${isBanned ? '#3b82f6' : 'var(--danger, #ef4444)'}; padding:7px 12px; border-radius:6px;" onclick="banUser('${userId}', ${isBanned})" title="${isBanned ? 'Banı Kaldır' : 'Kullanıcıyı Banla'}">
+                            <button type="button" class="action-btn" style="background:${isBanned ? '#3b82f6' : '#ef4444'}; padding:7px 12px; border-radius:6px; cursor:pointer;" onclick="banUser('${userId}', ${isBanned})" title="${isBanned ? 'Banı Kaldır' : 'Banla'}">
                                 <i class="ph-bold ${isBanned ? 'ph-arrow-u-up-left' : 'ph-prohibit'}"></i>
                             </button>
                         </div>
@@ -503,29 +505,35 @@ async function loadUsers() {
             `;
         }).join('');
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444; padding:20px;">Kullanıcı verileri çekilemedi!</td></tr>';
+        console.error("loadUsers hatası:", e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444; padding:20px;">Kullanıcı verisi alınırken hata oluştu.</td></tr>';
     }
 }
 
-// 3. ROZET MODALI AÇMA / KAPATMA / KAYDETME
+// Rozet Modalı Açma
 function openBadgeModal(userId) {
     selectedUserId = userId;
     const user = window.allUsersData.find(u => (u._id || u.id) === userId);
-    if (!user) return;
+    if (!user) {
+        showToast("Kullanıcı verisi bulunamadı!", "error");
+        return;
+    }
 
-    currentSelectedBadges = [...(user.badges || [])];
+    currentSelectedBadges = Array.isArray(user.badges) ? [...user.badges] : [];
 
     const list = document.getElementById('badgeOptionsList');
     if (list) {
         list.innerHTML = AVAILABLE_BADGES.map(badge => {
             const isSelected = currentSelectedBadges.includes(badge.id);
             return `
-                <div class="badge-option ${isSelected ? 'selected' : ''}" onclick="toggleBadgeSelection('${badge.id}', this)">
+                <div class="badge-option ${isSelected ? 'selected' : ''}" 
+                     style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#181615; border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border-color)'}; border-radius:8px; cursor:pointer;"
+                     onclick="toggleBadgeSelection('${badge.id}', this)">
                     <span class="custom-badge ${badge.class}">
                         <i class="ph-bold ${badge.icon}"></i> ${badge.label}
                     </span>
-                    <span style="font-size:1.1rem; color:${isSelected ? 'var(--accent, #c07d56)' : '#71717a'};">
-                        ${isSelected ? '✅' : '○'}
+                    <span style="font-size:1.1rem; color:${isSelected ? 'var(--accent)' : '#71717a'}; font-weight:bold;">
+                        ${isSelected ? '✓' : '○'}
                     </span>
                 </div>
             `;
@@ -534,17 +542,19 @@ function openBadgeModal(userId) {
 
     const modal = document.getElementById('badgeModal');
     if (modal) {
-        modal.classList.add('open');
         modal.style.display = 'flex';
+        modal.classList.add('open');
     }
 }
 
+// Rozet Seç / Kaldır
 function toggleBadgeSelection(badgeId, element) {
     const idx = currentSelectedBadges.indexOf(badgeId);
     const indicator = element.querySelector('span:last-child');
     if (idx > -1) {
         currentSelectedBadges.splice(idx, 1);
         element.classList.remove('selected');
+        element.style.borderColor = 'var(--border-color)';
         if (indicator) {
             indicator.textContent = '○';
             indicator.style.color = '#71717a';
@@ -552,21 +562,24 @@ function toggleBadgeSelection(badgeId, element) {
     } else {
         currentSelectedBadges.push(badgeId);
         element.classList.add('selected');
+        element.style.borderColor = 'var(--accent)';
         if (indicator) {
-            indicator.textContent = '✅';
-            indicator.style.color = 'var(--accent, #c07d56)';
+            indicator.textContent = '✓';
+            indicator.style.color = 'var(--accent)';
         }
     }
 }
 
+// Modalı Kapat
 function closeBadgeModal() {
     const modal = document.getElementById('badgeModal');
     if (modal) {
-        modal.classList.remove('open');
         modal.style.display = 'none';
+        modal.classList.remove('open');
     }
 }
 
+// Rozetleri Kaydet
 async function saveBadges() {
     if (!selectedUserId) return;
     const token = getAuthToken();
@@ -582,26 +595,26 @@ async function saveBadges() {
         });
 
         if (res.ok) {
-            showToast("Rozetler güncellendi! 🎖️");
+            showToast("Rozetler başarıyla güncellendi! 🎖️");
             closeBadgeModal();
             loadUsers();
         } else {
-            showToast("Rozetler kaydedilemedi!", "error");
+            showToast("Rozetler sunucuya kaydedilemedi!", "error");
         }
     } catch (err) {
         showToast("Sunucu hatası!", "error");
     }
 }
 
-// 4. BAN İŞLEMİ (SEBEP KAYDETME)
+// Ban İşlemi
 async function banUser(id, isCurrentlyBanned) {
     let reason = "";
     if (!isCurrentlyBanned) {
-        reason = prompt("🚫 Bu kullanıcıyı neden banlıyorsun? (Kullanıcı durumunda görünecek)");
+        reason = prompt("🚫 Bu kullanıcıyı neden uzaklaştırıyorsunuz? (Admin panelinde sebep görünecektir):");
         if (reason === null) return;
         if (reason.trim() === "") reason = "Yönetici tarafından uzaklaştırıldı.";
     } else {
-        if (!confirm("Kullanıcının banını kaldırmak istiyor musun?")) return;
+        if (!confirm("Kullanıcının engelini kaldırmak istediğinize emin misiniz?")) return;
     }
 
     const token = getAuthToken();
@@ -616,13 +629,13 @@ async function banUser(id, isCurrentlyBanned) {
         });
 
         if (res.ok) {
-            showToast(isCurrentlyBanned ? "Ban kaldırıldı." : "Kullanıcı banlandı.");
+            showToast(isCurrentlyBanned ? "Engel kaldırıldı." : "Kullanıcı engellendi.");
             loadUsers();
         } else {
-            showToast("İşlem başarısız oldu!", "error");
+            showToast("İşlem başarısız!", "error");
         }
     } catch (e) {
-        showToast("Sunucu hatası!", "error");
+        showToast("Sunucuya ulaşılamadı!", "error");
     }
 }
 
