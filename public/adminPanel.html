@@ -6,446 +6,520 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli | Minemsiyle</title>
 
-    <!-- ========= Harici Kütüphaneler ========= -->
+    <!-- Font & İkonlar -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- SweetAlert2 (Modern Bildirimler İçin) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="icon" href="/assets/images/Logo.png" type="image/png">
 
-    <!-- ========= Stil Dosyaları ========= -->
+    <!-- CSS -->
     <link rel="stylesheet" href="/css/adminPanel.css">
 </head>
 
 <body>
 
-    <!-- ========= GİRİŞ EKRANI (Admin değilse gösterilir) ========= -->
-    <div id="login-screen"
-        style="display:none; position:fixed; inset:0; background: radial-gradient(circle at center, #1f1f23 0%, #0f0f13 100%); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
-        <div
-            style="background:#18181b; padding:40px; border-radius:20px; border:1px solid #2e2e33; width:90%; max-width:400px;">
-            <h2 style="text-align:center; color:#d4a373; margin-bottom:30px; font-size:1.5rem;">🔐 Yönetici Girişi</h2>
-            <div style="margin-bottom:15px;">
-                <label style="display:block; color:#a1a1aa; font-size:0.85rem; margin-bottom:8px;">E-Posta</label>
-                <input type="email" id="emailInput" placeholder="admin@mail.com"
-                    style="width:100%; padding:14px; background:#27272a; border:1px solid #2e2e33; border-radius:8px; color:white; font-family:inherit;">
+    <!-- =========================================
+         GİRİŞ EKRANI (Admin Değilse)
+    ========================================= -->
+    <div id="login-screen" class="login-overlay" style="display:none;">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-icon">
+                    <i class="ph-bold ph-shield-check"></i>
+                </div>
+                <h2>Yönetici Girişi</h2>
+                <p>Mümine'msi Kütüphanesi Kontrol Merkezi</p>
             </div>
-            <div style="margin-bottom:25px;">
-                <label style="display:block; color:#a1a1aa; font-size:0.85rem; margin-bottom:8px;">Şifre</label>
-                <input type="password" id="passwordInput" placeholder="••••••••"
-                    style="width:100%; padding:14px; background:#27272a; border:1px solid #2e2e33; border-radius:8px; color:white; font-family:inherit;">
-            </div>
-            <button id="loginBtn"
-                style="width:100%; padding:14px; background:#d4a373; border:none; border-radius:8px; color:#121212; font-weight:700; font-size:1rem; cursor:pointer;">Giriş
-                Yap</button>
+
+            <form id="adminLoginForm" onsubmit="event.preventDefault();">
+                <div class="form-group">
+                    <label class="form-label" for="emailInput">E-Posta Adresi</label>
+                    <input type="email" id="emailInput" class="form-control" placeholder="admin@minemsiyle.com" required
+                        autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="passwordInput">Parola</label>
+                    <input type="password" id="passwordInput" class="form-control" placeholder="••••••••" required
+                        autocomplete="current-password">
+                </div>
+                <button type="submit" id="loginBtn" class="action-btn full-width">
+                    <i class="ph-bold ph-sign-in"></i> Güvenli Giriş Yap
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- ========= TOAST BİLDİRİM ALANI ========= -->
+    <!-- Bildirim Konteyneri (Fallback) -->
     <div id="toast-container"></div>
 
-    <!-- ========= SIDEBAR: Sol Menü ========= -->
-    <aside class="sidebar">
-        <div class="brand">
-            <i class="ph-bold ph-shield-check"></i>
-            <span>Admin Panel</span>
-        </div>
-
-        <!-- ========= Menü Butonları ========= -->
-        <div class="menu-item active" id="btn-dashboard">
-            <i class="ph-bold ph-squares-four"></i> <span>Dashboard</span>
-        </div>
-        <div class="menu-item" id="btn-blog">
-            <i class="ph-bold ph-article"></i> <span>Yazılar</span>
-        </div>
-        <div class="menu-item" id="btn-book">
-            <i class="ph-bold ph-books"></i> <span>Kitaplar</span>
-        </div>
-        <div class="menu-item" id="btn-widget">
-            <i class="ph-bold ph-sidebar"></i> <span>Sidebar & Widget</span>
-        </div>
-        <div class="menu-item" id="btn-users">
-            <i class="ph-bold ph-users-three"></i> <span>Kullanıcılar</span>
-        </div>
-        <div class="menu-item" id="btn-settings">
-            <i class="ph-bold ph-gear"></i> <span>Site Ayarları</span>
-        </div>
-
-        <!-- ========= Çıkış Butonu ========= -->
-        <button class="logout-btn" onclick="logout()">
-            <i class="ph-bold ph-sign-out"></i> Güvenli Çıkış
-        </button>
-    </aside>
-
-    <!-- ========= ANA İÇERİK ALANI ========= -->
-    <main class="main-content">
-
-        <!-- ========= DASHBOARD SEKMESİ ========= -->
-        <div id="page-dashboard" class="tab-content">
-            <header>
-                <div>
-                    <h1>Dashboard</h1>
-                    <div class="breadcrumb" id="adminWelcomeText">Hoş geldin 👋</div>
-                </div>
-            </header>
-
-            <!-- İstatistik Kutucukları -->
-            <div
-                style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px;">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="ph ph-users"></i></div>
-                    <div class="stat-value" id="statTotalUsers">-</div>
-                    <div class="stat-label">Toplam Kullanıcı</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="ph ph-article"></i></div>
-                    <div class="stat-value" id="statTotalBlogs">-</div>
-                    <div class="stat-label">Yazılar</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="ph ph-books"></i></div>
-                    <div class="stat-value" id="statTotalBooks">-</div>
-                    <div class="stat-label">Kitap</div>
+    <div class="app-layout">
+        <!-- =========================================
+             SIDEBAR: Sol Menü
+        ========================================= -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="ph-bold ph-shield-star brand-icon"></i>
+                <div class="brand-text">
+                    <span class="brand-title">Minemsiyle</span>
+                    <span class="brand-badge">ADMIN</span>
                 </div>
             </div>
 
-            <!-- Son Hareketler -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <h3>Son Hareketler</h3>
+            <nav class="nav-menu">
+                <div class="menu-item active" id="btn-dashboard">
+                    <i class="ph-bold ph-squares-four"></i> <span>Dashboard</span>
                 </div>
-                <div class="recent-activities-list"></div>
+                <div class="menu-item" id="btn-blog">
+                    <i class="ph-bold ph-article"></i> <span>Yazılar</span>
+                </div>
+                <div class="menu-item" id="btn-book">
+                    <i class="ph-bold ph-books"></i> <span>Kitaplar</span>
+                </div>
+                <div class="menu-item" id="btn-widget">
+                    <i class="ph-bold ph-sidebar"></i> <span>Sidebar & Widget</span>
+                </div>
+                <div class="menu-item" id="btn-users">
+                    <i class="ph-bold ph-users-three"></i> <span>Kullanıcılar</span>
+                </div>
+                <div class="menu-item" id="btn-settings">
+                    <i class="ph-bold ph-gear"></i> <span>Site Ayarları</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button type="button" class="logout-btn" onclick="logout()">
+                    <i class="ph-bold ph-sign-out"></i> Güvenli Çıkış
+                </button>
             </div>
-        </div>
+        </aside>
 
-        <!-- ========= BLOG SEKMESİ ========= -->
-        <div id="page-blog" class="tab-content" style="display:none;">
-            <header>
-                <div>
-                    <h1>Yazılar Ekle</h1>
-                    <div class="breadcrumb">İçerik Yönetimi > Yeni Yazı</div>
-                </div>
-            </header>
+        <!-- =========================================
+             ANA İÇERİK ALANI
+        ========================================= -->
+        <main class="main-content">
 
-            <div class="card">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Başlık</label>
-                        <input type="text" id="postTitle" class="form-control" placeholder="Yazının başlığı">
+            <!-- ========= 1. DASHBOARD ========= -->
+            <section id="page-dashboard" class="tab-content">
+                <header class="page-header">
+                    <div>
+                        <h1>Genel Bakış</h1>
+                        <div class="breadcrumb" id="adminWelcomeText">Hoş geldin 👋</div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Kategori</label>
-                        <input type="text" id="postCategory" class="form-control" placeholder="Örn: Deneme, Günlük">
+                </header>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon users"><i class="ph-fill ph-users"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="statTotalUsers">0</div>
+                            <div class="stat-label">Toplam Kullanıcı</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Seri Adı (Opsiyonel)</label>
-                        <input type="text" id="postSeriesName" class="form-control"
-                            placeholder="Örn: Avrupa Turu Anıları">
+                    <div class="stat-card">
+                        <div class="stat-icon blogs"><i class="ph-fill ph-article"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="statTotalBlogs">0</div>
+                            <div class="stat-label">Yayınlanan Yazı</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Seri Sırası (Opsiyonel)</label>
-                        <input type="number" id="postSeriesOrder" class="form-control" placeholder="Örn: 1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Kapak Resmi URL</label>
-                        <input type="text" id="postImage" class="form-control" placeholder="https://...">
-                    </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label class="form-label">İçerik</label>
-                        <textarea id="postContent" class="form-control" style="min-height:250px;"
-                            placeholder="Yazını buraya dök..."></textarea>
+                    <div class="stat-card">
+                        <div class="stat-icon books"><i class="ph-fill ph-books"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="statTotalBooks">0</div>
+                            <div class="stat-label">Kütüphanedeki Kitap</div>
+                        </div>
                     </div>
                 </div>
-                <div style="margin-top:25px; text-align:right;">
-                    <button class="action-btn" id="savePostBtn">
-                        <i class="ph ph-paper-plane-right"></i> Yayına Al
+
+                <div class="card dashboard-card">
+                    <div class="card-header">
+                        <h3><i class="ph-bold ph-clock-counter-clockwise"></i> Son Sistem Hareketleri</h3>
+                    </div>
+                    <div class="recent-activities-list"></div>
+                </div>
+            </section>
+
+            <!-- ========= 2. BLOG YÖNETİMİ ========= -->
+            <section id="page-blog" class="tab-content" style="display:none;">
+                <header class="page-header">
+                    <div>
+                        <h1>Yazı Yönetimi</h1>
+                        <div class="breadcrumb">İçerik Stüdyosu > Yeni Yazı Yayınla</div>
+                    </div>
+                </header>
+
+                <div class="card">
+                    <form id="postForm" onsubmit="event.preventDefault();">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="postTitle">Başlık</label>
+                                <input type="text" id="postTitle" class="form-control"
+                                    placeholder="Yazının etkileyici başlığı..." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="postCategory">Kategori</label>
+                                <input type="text" id="postCategory" class="form-control"
+                                    placeholder="Örn: Deneme, Felsefe, Şiir">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="postSeriesName">Seri Adı (Opsiyonel)</label>
+                                <input type="text" id="postSeriesName" class="form-control"
+                                    placeholder="Örn: Gece Düşünceleri">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="postSeriesOrder">Seri Sırası</label>
+                                <input type="number" id="postSeriesOrder" class="form-control" placeholder="Örn: 1"
+                                    min="1">
+                            </div>
+                            <div class="form-group span-2">
+                                <label class="form-label" for="postImage">Kapak Resmi URL</label>
+                                <input type="url" id="postImage" class="form-control"
+                                    placeholder="https://images.unsplash.com/...">
+                            </div>
+                            <div class="form-group span-2">
+                                <label class="form-label" for="postContent">İçerik Metni</label>
+                                <textarea id="postContent" class="form-control post-textarea"
+                                    placeholder="İçeriğinizi buraya dökün..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="action-btn" id="savePostBtn">
+                                <i class="ph-bold ph-paper-plane-right"></i> Yazıyı Yayına Al
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="sub-table-card">
+                        <div class="table-header">
+                            <h3><i class="ph-bold ph-list-dashes"></i> Yayındaki Yazılar</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Yazı Başlığı</th>
+                                        <th style="width: 120px; text-align:right;">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="postsListBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========= 3. KİTAP YÖNETİMİ ========= -->
+            <section id="page-book" class="tab-content" style="display:none;">
+                <header class="page-header">
+                    <div>
+                        <h1>Kitaplık Yönetimi</h1>
+                        <div class="breadcrumb">Kütüphane > Yeni Eser Ekle</div>
+                    </div>
+                </header>
+
+                <div class="card">
+                    <form id="bookForm" onsubmit="event.preventDefault();">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="bookTitle">Kitap Adı</label>
+                                <input type="text" id="bookTitle" class="form-control" placeholder="Kitabın adı..."
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bookAuthor">Yazar</label>
+                                <input type="text" id="bookAuthor" class="form-control" placeholder="Yazarın adı..."
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bookPublisher">Yayınevi</label>
+                                <input type="text" id="bookPublisher" class="form-control"
+                                    placeholder="Örn: İthaki, Can Yayınları">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bookYear">Basım Yılı</label>
+                                <input type="number" id="bookYear" class="form-control" placeholder="2026">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bookPageCount">Sayfa Sayısı</label>
+                                <input type="number" id="bookPageCount" class="form-control" placeholder="Örn: 280">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bookTag">Edebi Tür</label>
+                                <select id="bookTag" class="form-control">
+                                    <option>Roman</option>
+                                    <option>Felsefe</option>
+                                    <option>Tarih</option>
+                                    <option>Şiir</option>
+                                    <option>Kişisel Gelişim</option>
+                                    <option>Bilim Kurgu</option>
+                                </select>
+                            </div>
+                            <div class="form-group span-2">
+                                <label class="form-label" for="bookImage">Kapak Görsel URL</label>
+                                <input type="url" id="bookImage" class="form-control" placeholder="https://...">
+                            </div>
+                            <div class="form-group span-2">
+                                <label class="form-label" for="bookContent">Açıklama / Alıntı / İnceleme</label>
+                                <textarea id="bookContent" class="form-control" rows="4"
+                                    placeholder="Kitap hakkında kısa bir not..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="action-btn" id="saveBookBtn">
+                                <i class="ph-bold ph-plus-circle"></i> Kütüphaneye Ekle
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="sub-table-card">
+                        <div class="table-header">
+                            <h3><i class="ph-bold ph-books"></i> Kütüphanedeki Kitaplar</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Eser</th>
+                                        <th>Yazar</th>
+                                        <th style="width: 120px; text-align:right;">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="booksListBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========= 4. SIDEBAR & WIDGET (SÖZ HAVUZU) ========= -->
+            <section id="page-widget" class="tab-content" style="display:none;">
+                <header class="page-header">
+                    <div>
+                        <h1>Sidebar & Widget Kontrolü</h1>
+                        <div class="breadcrumb">Görünüm > Yan Menü & Günün Sözü</div>
+                    </div>
+                </header>
+
+                <!-- Günün Sözleri Havuzu -->
+                <div class="card">
+                    <div class="card-header-styled">
+                        <div>
+                            <h3><i class="ph-bold ph-quotes"></i> Günün Sözleri Havuzu</h3>
+                            <p class="section-desc">Buraya eklenen sözler ana sayfada ziyaretçilere rastgele gösterilir.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="quote-creator-box">
+                        <div class="form-group">
+                            <label class="form-label" for="newQuoteText">Söz Metni</label>
+                            <textarea id="newQuoteText" class="form-control" rows="2"
+                                placeholder="Unutulmaz bir dize veya alıntı girin..."></textarea>
+                        </div>
+                        <div class="quote-creator-inline">
+                            <div class="form-group inline-input">
+                                <label class="form-label" for="newQuoteAuthor">Söyleyen / Yazar</label>
+                                <input type="text" id="newQuoteAuthor" class="form-control"
+                                    placeholder="Örn: Franz Kafka">
+                            </div>
+                            <button type="button" id="addQuoteBtn" class="action-btn">
+                                <i class="ph-bold ph-plus"></i> Havuza Ekle
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="quote-list-wrapper">
+                        <h4><i class="ph-bold ph-list-checks"></i> Havuzdaki Sözler</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Alıntı</th>
+                                        <th style="width: 200px;">Yazar</th>
+                                        <th style="width: 80px; text-align:right;">Sil</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quoteListBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Şu An Masamda Okuma Durumu -->
+                <div class="card">
+                    <div class="card-header-styled">
+                        <div>
+                            <h3><i class="ph-bold ph-book-open"></i> Şu An Masamda</h3>
+                            <p class="section-desc">Ziyaretçilere şu an hangi kitabı okuduğunuzu ve ilerlemenizi
+                                gösterir.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="widgetBookTitle">Mevcut Kitap</label>
+                            <input type="text" id="widgetBookTitle" class="form-control" placeholder="Kitap adı">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="widgetBookAuthor">Yazar</label>
+                            <input type="text" id="widgetBookAuthor" class="form-control" placeholder="Yazar">
+                        </div>
+                        <div class="form-group span-2">
+                            <label class="form-label">Kapak Görseli Yükle</label>
+                            <input type="file" id="bookCoverInput" class="file-input-hidden" accept="image/*">
+                            <label for="bookCoverInput" class="file-upload-label">
+                                <i class="ph-bold ph-cloud-arrow-up"></i>
+                                <span>Kapak resmi seçmek için tıklayın...</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="widgetTotalPage">Toplam Sayfa</label>
+                            <input type="number" id="widgetTotalPage" class="form-control" placeholder="Örn: 350">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="widgetCurrentPage">Okunan Sayfa</label>
+                            <input type="number" id="widgetCurrentPage" class="form-control" placeholder="Örn: 120">
+                        </div>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-bar-bg">
+                            <div id="widgetProgressBar" class="progress-bar-fill"></div>
+                        </div>
+                        <div id="widgetPercentText" class="progress-text">%0 Tamamlandı</div>
+                    </div>
+
+                    <div class="widget-action-group">
+                        <button type="button" class="action-btn" onclick="saveWidgets()">
+                            <i class="ph-bold ph-floppy-disk"></i> Ayarları Güncelle
+                        </button>
+                        <button type="button" class="action-btn success-btn" onclick="finishBook()">
+                            <i class="ph-bold ph-check"></i> Kitabı Bitirdim!
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2026 Okuma Hedefi -->
+                <div class="card">
+                    <div class="card-header-styled">
+                        <div>
+                            <h3><i class="ph-bold ph-target"></i> 2026 Okuma Hedefi</h3>
+                            <p class="section-desc">Yıllık tamamlanan ve hedeflenen kitap sayıları.</p>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="widgetGoalTarget">Yıllık Hedef (Kitap Sayısı)</label>
+                            <input type="number" id="widgetGoalTarget" class="form-control" placeholder="Örn: 30">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="widgetGoalCurrent">Tamamlanan Kitap</label>
+                            <input type="number" id="widgetGoalCurrent" class="form-control" placeholder="Örn: 12">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="action-btn" onclick="saveWidgets()">
+                            <i class="ph-bold ph-arrows-clockwise"></i> Hedefi Güncelle
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========= 5. KULLANICI YÖNETİMİ ========= -->
+            <section id="page-users" class="tab-content" style="display:none;">
+                <header class="page-header header-with-action">
+                    <div>
+                        <h1>Kullanıcı Topluluğu</h1>
+                        <div class="breadcrumb">Topluluk > Üyeler ve Rozetler</div>
+                    </div>
+                    <button type="button" class="action-btn secondary-btn" onclick="loadUsers()">
+                        <i class="ph-bold ph-arrows-clockwise"></i> Listeyi Yenile
                     </button>
-                </div>
+                </header>
 
-                <!-- Mevcut Yazıları Listesi -->
-                <div class="card" style="margin-top:30px; background:rgba(0,0,0,0.2);">
-                    <h3>Yayındaki Yazılarım </h3>
+                <div class="card table-card">
+                    <div class="table-search-bar">
+                        <i class="ph-bold ph-magnifying-glass search-icon"></i>
+                        <input type="text" id="userSearchInput" onkeyup="searchUsers()"
+                            class="form-control search-input" placeholder="Kullanıcı adı veya e-posta ile ara...">
+                    </div>
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Başlık</th>
-                                    <th>İşlem</th>
+                                    <th>Kullanıcı</th>
+                                    <th>E-Posta</th>
+                                    <th>Rozetler</th>
+                                    <th style="width: 120px;">Durum</th>
+                                    <th style="width: 140px; text-align:right;">İşlemler</th>
                                 </tr>
                             </thead>
-                            <tbody id="postsListBody"></tbody>
+                            <tbody id="usersTableBody"></tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- ========= KİTAP SEKMESİ ========= -->
-        <div id="page-book" class="tab-content" style="display:none;">
-            <header>
-                <div>
-                    <h1>Kütüphaneye Kitap Ekle</h1>
-                    <div class="breadcrumb">İçerik Yönetimi > Yeni Kitap</div>
-                </div>
-            </header>
+            <!-- ========= 6. SİTE AYARLARI ========= -->
+            <section id="page-settings" class="tab-content" style="display:none;">
+                <header class="page-header">
+                    <div>
+                        <h1>Sistem Ayarları</h1>
+                        <div class="breadcrumb">Yapılandırma > Bakım Modu</div>
+                    </div>
+                </header>
 
-            <div class="card">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Kitap Adı</label>
-                        <input type="text" id="bookTitle" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Yazar</label>
-                        <input type="text" id="bookAuthor" class="form-control">
-                    </div>
-                    <div style="display:flex; gap:15px; grid-column:span 2;">
-                        <div class="form-group" style="flex:1;">
-                            <label class="form-label">Yayınevi</label>
-                            <input type="text" id="bookPublisher" class="form-control" placeholder="Örn: Can Yayınları">
+                <div class="card">
+                    <div class="maintenance-box">
+                        <div class="maintenance-info">
+                            <div class="maintenance-icon">
+                                <i class="ph-bold ph-warning-octagon"></i>
+                            </div>
+                            <div>
+                                <h3>Bakım Modu (Tadilat)</h3>
+                                <p>Aktif edildiğinde yönetim paneli dışındaki tüm ziyaretçilere bakım ekranı sunulur.
+                                </p>
+                            </div>
                         </div>
-                        <div class="form-group" style="flex:1;">
-                            <label class="form-label">Basım Yılı</label>
-                            <input type="number" id="bookYear" class="form-control" placeholder="2024">
-                        </div>
-                        <div class="form-group" style="flex:1;">
-                            <label class="form-label">Sayfa Sayısı</label>
-                            <input type="number" id="bookPageCount" class="form-control" placeholder="320">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tür</label>
-                        <select id="bookTag" class="form-control" style="background-color:var(--bg-input);">
-                            <option>Roman</option>
-                            <option>Tarih</option>
-                            <option>Kişisel Gelişim</option>
-                            <option>Şiir</option>
-                            <option>Bilim Kurgu</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Kapak Resmi URL</label>
-                        <input type="text" id="bookImage" class="form-control" placeholder="https://...">
-                    </div>
-                    <div class="form-group" style="grid-column:span 2;">
-                        <label class="form-label">Açıklama / İnceleme</label>
-                        <textarea id="bookContent" class="form-control" rows="4"></textarea>
-                    </div>
-                </div>
-                <div style="margin-top:25px; text-align:right;">
-                    <button class="action-btn" id="saveBookBtn">
-                        <i class="ph ph-plus"></i> Kütüphaneye Ekle
-                    </button>
-                </div>
-
-                <!-- Mevcut Kitaplar Listesi -->
-                <div class="card" style="margin-top:30px; background:rgba(0,0,0,0.2);">
-                    <h3>Kütüphanedeki Kitaplar</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Kitap Adı</th>
-                                    <th>Yazar</th>
-                                    <th>İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody id="booksListBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========= WİDGET SEKMESİ ========= -->
-        <div id="page-widget" class="tab-content" style="display:none;">
-            <header>
-                <div>
-                    <h1>Sidebar & Widget Yönetimi</h1>
-                    <div class="breadcrumb">Görünüm > Yan Menü</div>
-                </div>
-            </header>
-
-            <!-- Günün Sözleri -->
-            <div class="card" style="margin-bottom:20px;">
-                <h3>💬 Günün Sözleri Havuzu</h3>
-                <p style="color:gray; font-size:0.9rem; margin-bottom:15px;">Buraya birden fazla söz ekleyebilirsin. Ana
-                    sayfada her yenilemede rastgele biri çıkar.</p>
-                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
-                    <div class="form-group">
-                        <label class="form-label">Yeni Söz</label>
-                        <textarea id="newQuoteText" class="form-control" rows="2"
-                            placeholder="Sözü buraya yaz..."></textarea>
-                    </div>
-                    <div style="display:flex; gap:10px; align-items:flex-end;">
-                        <div class="form-group" style="flex:1; margin-bottom:0;">
-                            <label class="form-label">Söyleyen (Yazar)</label>
-                            <input type="text" id="newQuoteAuthor" class="form-control" placeholder="Örn: Kafka">
-                        </div>
-                        <button class="action-btn" onclick="addQuote()">➕ Listeye Ekle</button>
-                    </div>
-                </div>
-                <h4 style="margin-bottom:10px;">📋 Ekli Sözler</h4>
-                <div style="max-height:250px; overflow-y:auto; background:rgba(0,0,0,0.2); border-radius:8px;">
-                    <table style="width:100%; border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:rgba(255,255,255,0.05); color:var(--accent); text-align:left;">
-                                <th style="padding:10px;">Söz</th>
-                                <th style="padding:10px;">Yazar</th>
-                                <th style="padding:10px; width:50px;">Sil</th>
-                            </tr>
-                        </thead>
-                        <tbody id="quoteListBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Şu An Masamda -->
-            <div class="card" style="margin-top:20px;">
-                <h3>📖 Şu An Masamda</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Kitap Adı</label>
-                        <input type="text" id="widgetBookTitle" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Yazar</label>
-                        <input type="text" id="widgetBookAuthor" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Kapak Resmi Yükle</label>
-                        <input type="file" id="bookCoverInput" class="file-input-hidden" accept="image/*">
-                        <label for="bookCoverInput" class="file-upload-label">
-                            <i class="ph-bold ph-cloud-arrow-up"></i>
-                            <span>Bilgisayardan bir resim seç...</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="maintenanceToggle">
+                            <span class="slider"></span>
                         </label>
                     </div>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Toplam Sayfa</label>
-                        <input type="number" id="widgetTotalPage" class="form-control" oninput="calcWidgetPercent()">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Okunan Sayfa</label>
-                        <input type="number" id="widgetCurrentPage" class="form-control" oninput="calcWidgetPercent()">
+
+                    <div class="form-actions">
+                        <button type="button" class="action-btn" onclick="saveSystemSettings()">
+                            <i class="ph-bold ph-floppy-disk"></i> Sistem Durumunu Kaydet
+                        </button>
                     </div>
                 </div>
-                <div style="background:#333; height:10px; border-radius:5px; margin:10px 0; overflow:hidden;">
-                    <div id="widgetProgressBar"
-                        style="width:0%; height:100%; background:var(--accent); transition:0.3s;"></div>
-                </div>
-                <p id="widgetPercentText" style="text-align:right; font-size:12px; color:gray;">%0 Tamamlandı</p>
-                <div style="display:flex; justify-content:space-between; margin-top:15px;">
-                    <button class="action-btn" onclick="saveWidgets()">Güncelle</button>
-                    <button class="action-btn" style="background:var(--success);" onclick="finishBook()">🎉 Kitabı
-                        Bitirdim!</button>
-                </div>
-            </div>
+            </section>
 
-            <!-- 2026 Hedefi -->
-            <div class="card" style="margin-top:20px;">
-                <h3>🎯 2026 Hedefi</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Yıllık Hedef (Sayı)</label>
-                        <input type="number" id="widgetGoalTarget" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Şu Ana Kadar Biten</label>
-                        <input type="number" id="widgetGoalCurrent" class="form-control">
-                    </div>
-                </div>
-                <button class="action-btn" onclick="saveWidgets()">Hedefi Güncelle</button>
-            </div>
-        </div>
+        </main>
+    </div>
 
-        <!-- ========= KULLANICI SEKMESİ ========= -->
-        <div id="page-users" class="tab-content" style="display:none;">
-            <header>
-                <div>
-                    <h1>Kullanıcı Yönetimi</h1>
-                    <div class="breadcrumb">Topluluk > Üye Listesi</div>
-                </div>
-                <button class="action-btn" onclick="loadUsers()"
-                    style="background:var(--bg-input); border:1px solid var(--border-color); color:white;">
-                    <i class="ph ph-arrows-clockwise"></i> Yenile
-                </button>
-            </header>
-
-            <div class="card" style="padding:0; overflow:hidden;">
-                <div style="padding:20px; border-bottom:1px solid var(--border-color);">
-                    <!-- Düzeltildi: Tek onkeyup, doğru ID referansı -->
-                    <input type="text" id="userSearchInput" onkeyup="searchUsers()" class="form-control"
-                        placeholder="🔍 Kullanıcı adı veya e-posta ara..." style="max-width:400px;">
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Kullanıcı</th>
-                                <th>Email</th>
-                                <th>Rozetler</th>
-                                <th>Durum</th>
-                                <th>İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========= AYARLAR SEKMESİ ========= -->
-        <div id="page-settings" class="tab-content" style="display:none;">
-            <header>
-                <div>
-                    <h1>Site Ayarları</h1>
-                    <div class="breadcrumb">Sistem > Konfigürasyon</div>
-                </div>
-            </header>
-
-            <div class="card">
-                <!-- Bakım Modu -->
-                <div
-                    style="display:flex; align-items:center; justify-content:space-between; padding:20px; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2); border-radius:12px;">
-                    <div style="display:flex; gap:15px; align-items:center;">
-                        <div style="font-size:2rem; color:var(--danger);"><i class="ph ph-warning-octagon"></i></div>
-                        <div>
-                            <h3 style="color:var(--text-main); font-size:1.1rem; margin-bottom:5px;">Bakım Modu</h3>
-                            <p style="font-size:0.9rem; color:var(--text-muted);">Siteyi ziyaretçilere kapatır, sadece
-                                "Tadilattayız" sayfası görünür.</p>
-                        </div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="maintenanceToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div style="margin-top:30px; text-align:right;">
-                    <button class="action-btn" onclick="saveSystemSettings()">
-                        <i class="ph ph-floppy-disk"></i> Ayarları Kaydet
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- ========= MODAL: Rozet Düzenleme ========= -->
+    <!-- =========================================
+         MODAL: Rozet Yönetimi
+    ========================================= -->
     <div id="badgeModal" class="modal-overlay">
-        <div class="modal-content"
-            style="background:var(--bg-panel); padding:30px; border-radius:16px; width:90%; max-width:500px; border:1px solid var(--border-color);">
-            <h3 style="margin-bottom:15px;">🎖️ Rozetleri Düzenle</h3>
-            <p style="color:gray; font-size:0.9rem; margin-bottom:20px;">Kullanıcıya vermek istediğin rozetleri seç:</p>
-            <div id="badgeOptionsList"></div>
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button class="action-btn" style="background:#333;" onclick="closeBadgeModal()">İptal</button>
-                <button class="action-btn" onclick="saveBadges()">Kaydet</button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="ph-bold ph-medal"></i> Rozetleri Düzenle</h3>
+                <p>Kullanıcının profilinde sergilenecek rozetleri işaretleyin:</p>
+            </div>
+            <div id="badgeOptionsList" class="badge-grid"></div>
+            <div class="modal-footer">
+                <button type="button" class="action-btn secondary-btn" onclick="closeBadgeModal()">Vazgeç</button>
+                <button type="button" class="action-btn" onclick="saveBadges()">Rozetleri Tanımla</button>
             </div>
         </div>
     </div>
 
     <script src="/js/adminPanel.js"></script>
-
 </body>
 
 </html>
