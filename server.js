@@ -1,13 +1,16 @@
 const express = require("express");
+const dotenv = require("dotenv");
+dotenv.config(); // En başta çalışmalı ki tüm şifreleri motor tanısın
+
 const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const bcrypt = require('bcrypt');
 const session = require("express-session");
 const passport = require("passport");
 const path = require('path');
-const axios = require('axios');
+const { Resend } = require('resend');
+
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const DiscordStrategy = require("passport-discord").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
@@ -15,8 +18,9 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 // Modeller
 const User = require('./models/User');
 const SavedItem = require('./models/SavedItem');
+const Comment = require('./models/Comment');
 
-// Rotalar
+// Rotalar (subs kaldırıldı!)
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const adminRoutes = require("./routes/admin");
@@ -24,12 +28,10 @@ const settingsRoute = require("./routes/settings");
 const bookRoute = require("./routes/books");
 const postRoute = require("./routes/posts");
 const dashboardRoute = require("./routes/dashboard");
-const subRoute = require("./routes/subs");
 const commentRoute = require("./routes/comments");
 
 const maintenanceMiddleware = require("./middleware/miantenanceMiddleware");
 
-dotenv.config();
 const app = express();
 
 // Middleware Ayarları
@@ -146,18 +148,20 @@ passport.use(new TwitterStrategy({
     } catch (err) { return done(err, null); }
 }));
 
+// =======================================================
+// ÖZEL ROTALAR & GÜVENLİK
+// =======================================================
+
 // 1. JWT Doğrulama Kilidi (Joker Versiyon)
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.split(' ')[1];
-
-        // Sistemin daha önce hangi anahtarla şifrelediğini bilmediğimiz için hepsini kabul et diyoruz
         const secretKey = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'gizli_anahtar';
 
         jwt.verify(token, secretKey, (err, user) => {
             if (err) {
-                console.log("Token Hatası Yakalandı:", err.message); // Hatayı Render loglarına yazdırır
+                console.log("Token Hatası Yakalandı:", err.message);
                 return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş" });
             }
             req.user = user;
@@ -168,7 +172,7 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 
-// 2. İçerik Kaydetme Rotası (Başlıkları ve türleri yakalar)
+// 2. İçerik Kaydetme Rotası
 app.post('/api/users/save', authenticateJWT, async (req, res) => {
     const { itemId, title, type } = req.body;
     const username = req.user.username;
@@ -199,7 +203,7 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
     }
 });
 
-// 3. Kesin Silme Rotası (Bozuk/Hayalet ID'leri direkt kazır)
+// 3. Kesin Silme Rotası (VIP Yol - Profil sayfasıyla tam senkron)
 app.delete('/api/remove-saved-item/:dbId', authenticateJWT, async (req, res) => {
     try {
         const docId = req.params.dbId;
@@ -212,7 +216,7 @@ app.delete('/api/remove-saved-item/:dbId', authenticateJWT, async (req, res) => 
     }
 });
 
-// --- ROTALAR  -------------------------------------------
+// --- ROTALAR (subs tamamen kaldırıldı) ---
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
@@ -220,9 +224,9 @@ app.use("/api/books", bookRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/settings", settingsRoute);
 app.use("/api/dashboard", dashboardRoute);
-app.use("/api/subs", subRoute);
 app.use("/api/comments", commentRoute);
 
+// OAuth Girişleri
 app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' }));
 app.get('/api/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login.html' }), (req, res) => {
     const token = jwt.sign({ id: req.user._id, username: req.user.username }, process.env.SESSION_SECRET || 'gizli_anahtar', { expiresIn: '7d' });
@@ -241,65 +245,52 @@ app.get('/api/auth/twitter/callback', passport.authenticate('twitter', { failure
     res.redirect(`/login.html?token=${token}`);
 });
 
+// Sayfa Yönlendirmeleri
 app.get('/kitap/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/book.html')));
 app.get('/blog/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/post.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
 app.get('/:username', (req, res, next) => {
-    // Eğer linkte nokta varsa (.css, .png vb. bir dosyaysa) bunu profil sanma, atla
     if (req.path.includes('.')) return next();
     res.sendFile(path.join(__dirname, 'public/profile.html'));
 });
 
-// --- MAİL SİSTEMİ (YENİ RESEND MOTORU) ---
-const { Resend } = require('resend');
+// --- MAİL SİSTEMİ (RESEND) ---
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.post('/api/auth/send-reset-code', async (req, res) => {
-    // E-postayı küçük harfe çevir ve boşlukları temizle
     const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
-
     if (!email) return res.status(400).json({ message: "E-posta adresi gerekli." });
 
     try {
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: "Bu e-posta ile kayıtlı kullanıcı yok." });
 
-        // 6 Haneli Rastgele Kod Oluştur
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         user.resetCode = code;
         await user.save();
 
-        // Şekilli Şukullu HTML Mail Şablonu - RESEND İLE GÖNDERİM
         const { data, error } = await resend.emails.send({
             from: 'Minemsiyle <bilgi@minemsiyle.com>',
             to: email,
             subject: '🗝️ Kütüphaneye Giriş Anahtarın',
             html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #18181b; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <!-- Başlık Kısmı -->
                 <div style="background-color: #202024; padding: 30px; text-align: center; border-bottom: 2px solid #d4a373;">
                     <h1 style="color: #d4a373; margin: 0; font-size: 24px; letter-spacing: 1px;">MÜMİNE'MSİ KÜTÜPHANESİ</h1>
                     <p style="color: #a1a1aa; font-size: 14px; margin-top: 5px;">Şifre Sıfırlama Talebi</p>
                 </div>
-                
-                <!-- İçerik Kısmı -->
                 <div style="padding: 40px 30px; text-align: center;">
                     <h2 style="color: #e4e4e7; font-size: 20px; margin-bottom: 20px;">Merhaba ${user.username},</h2>
                     <p style="color: #a1a1aa; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
                         Kütüphane kapılarının kilidini açmak için yeni bir anahtar talep ettin. Aşağıdaki tek kullanımlık güvenlik kodunu kullanarak şifreni yenileyebilirsin.
                     </p>
-                    
-                    <!-- KOD KUTUSU -->
                     <div style="background-color: #27272a; border: 1px dashed #d4a373; border-radius: 10px; padding: 20px; display: inline-block; margin-bottom: 30px;">
                         <span style="font-size: 32px; font-weight: bold; color: #d4a373; letter-spacing: 5px;">${code}</span>
                     </div>
-                    
                     <p style="color: #71717a; font-size: 13px; margin-top: 10px;">
-                        Bu işlemi sen yapmadıysan, bu e-postayı görmezden gelebilirsin. Güvenliğin bizim için önemli.
+                        Bu işlemi sen yapmadıysan, bu e-postayı görmezden gelebilirsin.
                     </p>
                 </div>
-                
-                <!-- Alt Bilgi -->
                 <div style="background-color: #121214; padding: 20px; text-align: center;">
                     <p style="color: #52525b; font-size: 12px; margin: 0;">
                         © ${new Date().getFullYear()} Mümine'msi Kütüphanesi. Tüm hakları saklıdır.
@@ -315,7 +306,6 @@ app.post('/api/auth/send-reset-code', async (req, res) => {
         }
 
         res.status(200).json({ message: "Doğrulama kodu gönderildi! 📩 Lütfen mailini kontrol et." });
-
     } catch (error) {
         console.error("Mail Gönderme Hatası:", error);
         res.status(500).json({ message: "Sunucu hatası: Mail gönderilemedi." });
@@ -323,7 +313,6 @@ app.post('/api/auth/send-reset-code', async (req, res) => {
 });
 
 app.post('/api/auth/verify-reset-code', async (req, res) => {
-    // Maili küçük harfe çevir ve boşlukları sil
     const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
     const { code, newPassword } = req.body;
 
@@ -331,53 +320,44 @@ app.post('/api/auth/verify-reset-code', async (req, res) => {
         const user = await User.findOne({ email });
         if (!user || user.resetCode !== code) return res.status(400).json({ message: "Hatalı Kod veya E-posta!" });
 
-        // 🛡️ Şifreyi Hashle (Güvenlik)
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(newPassword, salt);
-
         user.resetCode = null;
         await user.save();
 
-        // Discord'a haber uçuralım (Eğer sendToDiscord fonksiyonun varsa)
         if (typeof sendToDiscord === 'function') {
             sendToDiscord('AUTH', `🔑 **${user.username}** şifresini başarıyla sıfırladı.`, user.username);
         }
 
         res.status(200).json({ message: "Şifren başarıyla yenilendi ve güvenli hale getirildi! 🎉" });
     } catch (error) {
-        // ASIL HATAYI BURADA GÖRECEĞİZ
         console.error("Şifre Sıfırlama Kodu Onay Hatası:", error);
         res.status(500).json({ message: "Hata oluştu." });
     }
 });
 
-
-
+// Genel Profil & Bilgi Uç Noktaları
 app.get('/api/public-user', async (req, res) => {
     try {
         const target = req.query.u;
         if (!target) return res.status(400).json({ error: "Kullanıcı adı eksik" });
 
-        // RegExp (i) sayesinde "OnurCy" ile "onurcy" aynı kabul edilir
         const user = await User.findOne({
             username: { $regex: new RegExp('^' + target + '$', 'i') }
         });
 
         if (!user) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
-
         res.json(user);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 });
 
-// HERKESE AÇIK: KAYDEDİLENLERİ GETİR (Harf duyarsız)
 app.get('/api/public-saved', async (req, res) => {
     try {
         const targetUser = req.query.u;
         if (!targetUser) return res.status(400).json({ error: "Kullanıcı belirtilmedi." });
 
-        // $regex ve 'i' ile harf büyüklüğünü umursamadan arar
         const savedItems = await SavedItem.find({
             username: { $regex: new RegExp('^' + targetUser + '$', 'i') }
         }).sort({ savedAt: -1 });
@@ -388,13 +368,11 @@ app.get('/api/public-saved', async (req, res) => {
     }
 });
 
-// HERKESE AÇIK: YORUMLARI GETİR (Harf duyarsız)
 app.get('/api/public-comments', async (req, res) => {
     try {
         const targetUser = req.query.u;
         if (!targetUser) return res.status(400).json({ error: "Kullanıcı belirtilmedi." });
 
-        const Comment = require('./models/Comment');
         const comments = await Comment.find({
             username: { $regex: new RegExp('^' + targetUser + '$', 'i') }
         }).sort({ date: -1 });
