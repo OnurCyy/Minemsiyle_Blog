@@ -9,7 +9,6 @@ router.get("/", async (req, res) => {
         // Eğer ayar yoksa varsayılanları oluştur
         if (!settings) {
             settings = new Settings({
-                // Varsayılan olarak 2 tane söz ekleyelim
                 quotes: [
                     { text: "Bir kitap, içimizdeki donmuş deniz için bir balta olmalıdır.", author: "Franz Kafka" },
                     { text: "Okumak iptiladır, müptelalara selam!", author: "Cemil Meriç" }
@@ -27,18 +26,16 @@ router.get("/", async (req, res) => {
 });
 
 // ======================================================
-// 2. AYARLARI GÜNCELLE (LOGLU VERSİYON 📝)
+// 2. AYARLARI GÜNCELLE
 // ======================================================
 router.put("/", async (req, res) => {
     try {
-        // KONSOLA BAK: Buraya veri düşüyor mu?
         console.log("📥 Admin Panelinden Gelen Veri:", JSON.stringify(req.body, null, 2));
 
-        // Tek bir kayıt olduğundan emin olmak için önce bulup güncelliyoruz
         const updatedSettings = await Settings.findOneAndUpdate(
             {},
             { $set: req.body },
-            { new: true, upsert: true } // Yoksa oluştur, varsa güncelle
+            { new: true, upsert: true }
         );
 
         console.log("✅ Veritabanı Güncellendi!");
@@ -70,6 +67,59 @@ router.post("/finish-book", async (req, res) => {
         }
     } catch (err) {
         res.status(500).json(err);
+    }
+});
+
+// ======================================================
+// 4. SÖZ HAVUZUNA YENİ SÖZ EKLE (POST /api/settings/quote)
+// ======================================================
+router.post("/quote", async (req, res) => {
+    try {
+        const { text, author } = req.body;
+        if (!text) return res.status(400).json({ message: "Söz metni boş olamaz!" });
+
+        let settings = await Settings.findOne();
+        if (!settings) {
+            settings = new Settings();
+        }
+
+        if (!settings.quotes) {
+            settings.quotes = [];
+        }
+
+        // Yeni eklenen sözü listenin en başına koy
+        settings.quotes.unshift({
+            text: text.trim(),
+            author: (author && author.trim()) ? author.trim() : "Anonim"
+        });
+
+        await settings.save();
+        res.status(200).json({ message: "Söz eklendi! ✨", quotes: settings.quotes });
+    } catch (err) {
+        console.error("Söz Ekleme Hatası:", err);
+        res.status(500).json({ message: "Sunucu hatası oluştu." });
+    }
+});
+
+// ======================================================
+// 5. SÖZ HAVUZUNDAN SÖZ SİL (DELETE /api/settings/quote/:index)
+// ======================================================
+router.delete("/quote/:index", async (req, res) => {
+    try {
+        const index = parseInt(req.params.index);
+        let settings = await Settings.findOne();
+
+        if (!settings || !settings.quotes || index < 0 || index >= settings.quotes.length) {
+            return res.status(404).json({ message: "Söz bulunamadı!" });
+        }
+
+        settings.quotes.splice(index, 1);
+        await settings.save();
+
+        res.status(200).json({ message: "Söz silindi.", quotes: settings.quotes });
+    } catch (err) {
+        console.error("Söz Silme Hatası:", err);
+        res.status(500).json({ message: "Sunucu hatası oluştu." });
     }
 });
 
