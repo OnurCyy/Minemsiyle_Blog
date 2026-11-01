@@ -350,6 +350,7 @@ app.get('/api/auth/twitter/callback', passport.authenticate('twitter', { failure
 app.get('/kitap/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/book.html')));
 app.get('/blog/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/post.html')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
+app.get('/kvkk', (req, res) => res.sendFile(path.join(__dirname, 'public/kvkk.html')));
 app.get('/:username', (req, res, next) => {
     if (req.path.includes('.')) return next();
     res.sendFile(path.join(__dirname, 'public/profile.html'));
