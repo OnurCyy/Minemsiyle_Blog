@@ -1,6 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
-dotenv.config(); // En başta çalışmalı ki tüm şifreleri motor tanısın
+dotenv.config(); // En başta çalışmalı ki tüm ortam değişkenlerini motor tanısın
 
 const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
@@ -11,6 +11,11 @@ const passport = require("passport");
 const path = require('path');
 const { Resend } = require('resend');
 
+// --- GÜVENLİK MODÜLLERİ ---
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const DiscordStrategy = require("passport-discord").Strategy;
 const TwitterStrategy = require("passport-twitter").Strategy;
@@ -20,7 +25,7 @@ const User = require('./models/User');
 const SavedItem = require('./models/SavedItem');
 const Comment = require('./models/Comment');
 
-// Rotalar (subs kaldırıldı!)
+// Rotalar
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const adminRoutes = require("./routes/admin");
@@ -34,10 +39,64 @@ const maintenanceMiddleware = require("./middleware/miantenanceMiddleware");
 
 const app = express();
 
-// Middleware Ayarları
+// 1. Altyapı Bilgisini Gizle (Saldırgan Express kullandığını görmesin)
+app.disable('x-powered-by');
+
+// 2. HTTP Security Headers (Security Headers Testini A yapar)
+app.use(helmet({
+    contentSecurityPolicy: false, // Font ve harici stil CDN'leri için esnek bırakıldı
+    crossOriginEmbedderPolicy: false
+}));
+
+// 3. CORS Sıkılaştırması (Yalnızca güvenli domainler)
+const allowedOrigins = [
+    'https://minemsiyle.com',
+    'https://www.minemsiyle.com',
+    'http://localhost:5000',
+    'http://127.0.0.1:5500'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS Güvenlik Engeli: Bu adresten istek atamazsınız!'));
+        }
+    },
+    credentials: true
+}));
+
+// 4. Gövde Boyut Sınırları
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
-app.use(cors());
+
+// 5. NoSQL Injection Koruması ($ ve . içeren kötü niyetli sorguları temizler)
+app.use(mongoSanitize());
+
+// 6. Rate Limiting (Kaba Kuvvet & Bot Koruması)
+// Genel API istek sınırı: 15 dakikada en fazla 300 istek
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Çok fazla istek gönderildi, lütfen biraz bekleyin." }
+});
+app.use('/api/', globalLimiter);
+
+// Giriş ve Şifre Sıfırlama için Hız Sınırı: 15 dakikada en fazla 10 deneme
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Çok fazla deneme yaptınız. Lütfen 15 dakika sonra tekrar deneyin." }
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/send-reset-code', authLimiter);
+
+// 7. Statik Dosyalar ve Bakım Modu
 app.use(maintenanceMiddleware);
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -152,7 +211,7 @@ passport.use(new TwitterStrategy({
 // ÖZEL ROTALAR & GÜVENLİK
 // =======================================================
 
-// 1. JWT Doğrulama Kilidi (Joker Versiyon)
+// 1. JWT Doğrulama Kilidi
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
@@ -203,7 +262,7 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
     }
 });
 
-// 3. Kesin Silme Rotası (VIP Yol - Profil sayfasıyla tam senkron)
+// 3. Kesin Silme Rotası (Profil Sayfası Uyumlu)
 app.delete('/api/remove-saved-item/:dbId', authenticateJWT, async (req, res) => {
     try {
         const docId = req.params.dbId;
@@ -216,7 +275,7 @@ app.delete('/api/remove-saved-item/:dbId', authenticateJWT, async (req, res) => 
     }
 });
 
-// --- ROTALAR (subs tamamen kaldırıldı) ---
+// --- ROTALAR ---
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
