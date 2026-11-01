@@ -71,8 +71,12 @@ app.use(cors({
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
-// 5. NoSQL Injection Koruması ($ ve . içeren kötü niyetli sorguları temizler)
-app.use(mongoSanitize());
+// req.query getter hatasını engellemek için sadece body ve params'ı temizle
+app.use((req, res, next) => {
+    mongoSanitize.sanitize(req.body);
+    mongoSanitize.sanitize(req.params);
+    next();
+});
 
 // 6. Rate Limiting (Kaba Kuvvet & Bot Koruması)
 // Genel API istek sınırı: 15 dakikada en fazla 300 istek
