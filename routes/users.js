@@ -104,6 +104,27 @@ router.post('/save', authMiddleware, async (req, res) => {
     }
 });
 
+//  KAYDEDİLENİ SİL (DELETE /api/users/save/:dbId)
+router.delete('/save/:dbId', authMiddleware, async (req, res) => {
+    try {
+        const docId = req.params.dbId;
+        const SavedItem = require('../models/SavedItem');
+
+        // 1. SavedItem koleksiyonundan sil (Ana sistem)
+        await SavedItem.findOneAndDelete({ _id: docId });
+
+        // 2. Eğer User dokümanı içinde de dizi olarak tutuyorsan ordan da temizle
+        await User.findByIdAndUpdate(req.user.id, {
+            $pull: { savedItems: { _id: docId } }
+        });
+
+        res.status(200).json({ message: "Başarıyla silindi" });
+    } catch (error) {
+        console.error("Silme Hatası:", error);
+        res.status(500).json({ message: "Silinirken hata oluştu" });
+    }
+});
+
 //  KAYITLI LİSTEYİ GETİR (Profil Sayfası İçin)
 router.get('/profile/saved', authMiddleware, async (req, res) => {
     try {
