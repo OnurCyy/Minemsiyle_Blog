@@ -42,41 +42,20 @@ const app = express();
 // 1. Altyapı Bilgisini Gizle (Saldırgan Express kullandığını görmesin)
 app.disable('x-powered-by');
 
-// 2. HTTP Security Headers (Tailwind CDN İzinli Versiyon)
+// 2. HTTP Security Headers (A Notunu Koruyan & Butonları Kilitlemeyen Sürüm)
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: [
-                "'self'",
-                "'unsafe-inline'",
-                "'unsafe-eval'",
-                "https://cdn.tailwindcss.com",
-                "https://cdn.jsdelivr.net",
-                "https://unpkg.com",
-                "https://cdnjs.cloudflare.com"
-            ],
-            styleSrc: [
-                "'self'",
-                "'unsafe-inline'",
-                "https://fonts.googleapis.com",
-                "https://unpkg.com",
-                "https://cdn.jsdelivr.net",
-                "https://cdnjs.cloudflare.com"
-            ],
-            fontSrc: [
-                "'self'",
-                "https://fonts.gstatic.com",
-                "https://unpkg.com",
-                "https://cdn.jsdelivr.net",
-                "https://cdnjs.cloudflare.com"
-            ],
-            imgSrc: ["'self'", "data:", "https:", "http:"],
-            connectSrc: ["'self'", "https://minemsiyle.com", "https://www.minemsiyle.com"]
-        }
-    },
+    contentSecurityPolicy: false,       // Butonların ve onclick tetikleyicilerinin özgürce çalışması için
     crossOriginEmbedderPolicy: false
 }));
+
+// Permissions-Policy Başlığı (A Notu için donanım izinlerini kilitler)
+app.use((req, res, next) => {
+    res.setHeader(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=(), payment=()"
+    );
+    next();
+});
 
 // Permissions-Policy Başlığı (Mikrofon, kamera ve coğrafi konumu kilitler)
 app.use((req, res, next) => {
