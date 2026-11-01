@@ -42,7 +42,7 @@ const app = express();
 // 1. Altyapı Bilgisini Gizle (Saldırgan Express kullandığını görmesin)
 app.disable('x-powered-by');
 
-// 2. HTTP Security Headers (A / A+ Seviyesi Zırh)
+// 2. HTTP Security Headers (Tailwind CDN İzinli Versiyon)
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -51,6 +51,7 @@ app.use(helmet({
                 "'self'",
                 "'unsafe-inline'",
                 "'unsafe-eval'",
+                "https://cdn.tailwindcss.com",
                 "https://cdn.jsdelivr.net",
                 "https://unpkg.com",
                 "https://cdnjs.cloudflare.com"
@@ -352,7 +353,8 @@ app.get('/blog/:slug', (req, res) => res.sendFile(path.join(__dirname, 'public/p
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
 app.get('/kvkk', (req, res) => res.sendFile(path.join(__dirname, 'public/kvkk.html')));
 app.get('/:username', (req, res, next) => {
-    if (req.path.includes('.')) return next();
+    // Eğer dosya uzantısı varsa (.css, .js, .png, .ico vb.) veya özel rotalarsa atla
+    if (req.path.includes('.') || req.params.username.startsWith('api')) return next();
     res.sendFile(path.join(__dirname, 'public/profile.html'));
 });
 
