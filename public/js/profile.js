@@ -536,3 +536,29 @@ async function removeFromProfile(dbId) {
     });
 }
 
+async function deleteMyAccount() {
+    const confirmation = confirm("⚠️ Hesabınızı ve tüm kayıtlı verilerinizi kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz!");
+    if (!confirmation) return;
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        const res = await fetch('/api/users/profile/me', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            alert(data.message);
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/';
+        } else {
+            alert(data.message || 'Hesap silinemedi.');
+        }
+    } catch (error) {
+        alert('Sunucu hatası oluştu.');
+    }
+}

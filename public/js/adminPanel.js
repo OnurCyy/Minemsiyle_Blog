@@ -491,16 +491,19 @@ async function loadUsers() {
                     <td style="color:#a1a1aa;">${user.email || '-'}</td>
                     <td>${badgesHTML}</td>
                     <td>${statusHTML}</td>
-                    <td style="text-align:right;">
-                        <div style="display:inline-flex; gap:8px;">
-                            <button type="button" class="action-btn" style="background:#6366f1; padding:7px 12px; border-radius:6px; cursor:pointer;" onclick="openBadgeModal('${userId}')" title="Rozetleri Seç">
-                                <i class="ph-bold ph-medal"></i>
-                            </button>
-                            <button type="button" class="action-btn" style="background:${isBanned ? '#3b82f6' : '#ef4444'}; padding:7px 12px; border-radius:6px; cursor:pointer;" onclick="banUser('${userId}', ${isBanned})" title="${isBanned ? 'Banı Kaldır' : 'Banla'}">
-                                <i class="ph-bold ${isBanned ? 'ph-arrow-u-up-left' : 'ph-prohibit'}"></i>
-                            </button>
-                        </div>
-                    </td>
+                   <td style="text-align:right;">
+    <div style="display:inline-flex; gap:8px;">
+        <button type="button" class="action-btn" style="background:#6366f1; padding:7px 12px; border-radius:6px; cursor:pointer;" onclick="openBadgeModal('${userId}')" title="Rozetleri Seç">
+            <i class="ph-bold ph-medal"></i>
+        </button>
+        <button type="button" class="action-btn" style="background:${isBanned ? '#3b82f6' : '#ef4444'}; padding:7px 12px; border-radius:6px; cursor:pointer;" onclick="banUser('${userId}', ${isBanned})" title="${isBanned ? 'Banı Kaldır' : 'Banla'}">
+            <i class="ph-bold ${isBanned ? 'ph-arrow-u-up-left' : 'ph-prohibit'}"></i>
+        </button>
+        <button type="button" class="action-btn" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:7px 12px; border-radius:6px; cursor:pointer;" onclick="deleteUserByAdmin('${userId}', '${user.username}')" title="Kullanıcıyı Tamamen Sil">
+            <i class="ph-bold ph-trash"></i>
+        </button>
+    </div>
+</td>
                 </tr>
             `;
         }).join('');
@@ -639,6 +642,30 @@ async function banUser(id, isCurrentlyBanned) {
     }
 }
 
+async function deleteUserByAdmin(userId, username) {
+    const confirmation = confirm(`🚨 DIKKAT: "${username}" kullanıcısını ve bu kullanıcıya ait tüm yorumları, kütüphane kayıtlarını veritabanından kalıcı olarak silmek istiyor musunuz?`);
+    if (!confirmation) return;
+
+    const token = getAuthToken();
+    try {
+        const res = await fetch(`${API_URL}/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message || 'Kullanıcı silindi! 🗑️');
+            loadUsers();
+        } else {
+            showToast(data.message || 'Silme işlemi başarısız!', 'error');
+        }
+    } catch (err) {
+        showToast('Sunucu hatası oluştu!', 'error');
+    }
+}
 // =========================================
 // KULLANICI ARAMA MOTORU (CANLI FİLTRELEME)
 // =========================================

@@ -208,4 +208,54 @@ router.put("/:id/badges", async (req, res) => {
     }
 });
 
+// ======================================================
+// 4. HESAP SİLME İŞLEMLERİ (KVKK & ADMİN)
+// ======================================================
+
+// A. KULLANICININ KENDİ HESABINI SİLMESİ (DELETE /api/users/profile/me)
+router.delete("/profile/me", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+
+        const SavedItem = require("../models/SavedItem");
+        const Comment = require("../models/Comment");
+
+        // Kullanıcıya ait tüm verileri süpür
+        await SavedItem.deleteMany({ username: user.username });
+        await Comment.deleteMany({ username: user.username });
+        await User.findByIdAndDelete(userId);
+
+        res.status(200).json({ message: "Hesabınız ve tüm verileriniz başarıyla silindi." });
+    } catch (error) {
+        console.error("Hesap Silme Hatası:", error);
+        res.status(500).json({ message: "Hesap silinirken sunucu hatası oluştu." });
+    }
+});
+
+// B. ADMİN: KULLANICIYI VE VERİLERİNİ SİSTEMDEN KAZIMA (DELETE /api/users/:id)
+router.delete("/:id", async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const user = await User.findById(targetUserId);
+
+        if (!user) return res.status(404).json({ message: "Silinecek kullanıcı bulunamadı." });
+
+        const SavedItem = require("../models/SavedItem");
+        const Comment = require("../models/Comment");
+
+        // Kullanıcının kayıtlı içeriklerini ve yorumlarını temizle
+        await SavedItem.deleteMany({ username: user.username });
+        await Comment.deleteMany({ username: user.username });
+        await User.findByIdAndDelete(targetUserId);
+
+        res.status(200).json({ message: `${user.username} hesabı ve tüm verileri silindi.` });
+    } catch (error) {
+        console.error("Admin Kullanıcı Silme Hatası:", error);
+        res.status(500).json({ message: "Kullanıcı silinemedi." });
+    }
+});
+
 module.exports = router;
