@@ -266,7 +266,7 @@ const authenticateJWT = (req, res, next) => {
         }
     }
 
-    jwt.verify(token, secretKey, (err, user) => {
+    jwt.verify(token, secretKeys, (err, user) => {
         if (err) {
             console.error("JWT Doğrulama Hatası Sebebi:", err.message); // <-- Render loglarında hatayı kabak gibi gösterir
             return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş", detail: err.message });
