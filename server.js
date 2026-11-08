@@ -276,8 +276,8 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
-// 2. İçerik Kaydetme Rotası (Hata Teşhisli Versiyon)
-app.post('/api/users/save', authenticateJWT, async (req, res) => {
+// --- İÇERİK KAYDETME ROTASI (GÜVENLİ & DOĞRUDAN) ---
+app.post('/api/save-item', authenticateJWT, async (req, res) => {
     try {
         const { itemId, title, type } = req.body;
 
@@ -292,16 +292,9 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
             return res.status(400).json({ error: "İçerik ID'si zorunludur." });
         }
 
-        // Model kontrolü: models/SavedItem dosyasını yükle
-        let SavedItem;
-        try {
-            SavedItem = require('./models/SavedItem');
-        } catch (mErr) {
-            console.error("SavedItem modeli yüklenemedi:", mErr);
-            return res.status(500).json({ error: "Model yükleme hatası", detail: mErr.message });
-        }
+        const SavedItem = require('./models/SavedItem');
 
-        // Daha önce kaydedilmiş mi kontrol et
+        // Kullanıcı bu içeriği zaten kaydetmiş mi?
         const existing = await SavedItem.findOne({ username: username, itemId: String(itemId) });
 
         if (existing) {
@@ -321,13 +314,8 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
             return res.status(201).json({ status: 'saved', message: "Kütüphaneye eklendi." });
         }
     } catch (error) {
-        console.error("KAYDETME PATLAMA DETAYI:", error);
-        // Hatayı doğrudan tarayıcıya bas ki neyin eksik olduğunu bilelim
-        return res.status(500).json({
-            error: "Sunucu hatası",
-            message: error.message,
-            stack: error.stack
-        });
+        console.error("Kayıt Hatası:", error);
+        return res.status(500).json({ error: error.message });
     }
 });
 

@@ -343,7 +343,7 @@ async function toggleSave() {
     const articleTitle = document.querySelector('.article-title')?.innerText || document.title.replace(' | Minemsiyle', '');
 
     try {
-        const res = await fetch(`${API_BASE}/users/save`, {
+        const res = await fetch(`${API_BASE}/save-item`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
