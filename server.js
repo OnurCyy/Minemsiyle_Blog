@@ -10,6 +10,7 @@ const session = require("express-session");
 const passport = require("passport");
 const path = require('path');
 const { Resend } = require('resend');
+const compression = require("compression");
 
 // --- GÜVENLİK MODÜLLERİ ---
 const helmet = require("helmet");
@@ -41,6 +42,10 @@ const app = express();
 
 // 1. Altyapı Bilgisini Gizle (Saldırgan Express kullandığını görmesin)
 app.disable('x-powered-by');
+
+app.use(compression({
+    threshold: 1024 // 1 KB'dan küçük verileri sıkıştırmakla vakit kaybetmesin
+}));
 
 // 2. HTTP Security Headers (A Notunu Koruyan & Butonları Kilitlemeyen Sürüm)
 app.use(helmet({
