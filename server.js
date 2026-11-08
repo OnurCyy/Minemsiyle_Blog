@@ -238,17 +238,29 @@ passport.use(new TwitterStrategy({
 // ÖZEL ROTALAR & GÜVENLİK
 // =======================================================
 
-// 1. JWT Doğrulama Kilidi
+// 1. JWT Doğrulama Kilidi (Joker Versiyon)
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        const secretKey = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'gizli_anahtar';
+        // Bearer kelimesini ve olası tırnakları temizle
+        const token = authHeader.replace('Bearer ', '').replace(/"/g, '').trim();
+
+        // Giriş yapılırken kullanılan anahtarların hepsini sırayla dener
+        const secretKey = process.env.SESSION_SECRET || process.env.JWT_SECRET || 'gizli_anahtar';
 
         jwt.verify(token, secretKey, (err, user) => {
             if (err) {
-                console.log("Token Hatası Yakalandı:", err.message);
-                return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş" });
+                // Eğer ilk anahtar tutmazsa yedek anahtarla bir kez daha dene
+                const fallbackKey = process.env.JWT_SECRET || 'gizli_anahtar';
+                jwt.verify(token, fallbackKey, (err2, user2) => {
+                    if (err2) {
+                        console.log("Token Hatası Yakalandı:", err.message);
+                        return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş" });
+                    }
+                    req.user = user2;
+                    next();
+                });
+                return;
             }
             req.user = user;
             next();
