@@ -238,36 +238,41 @@ passport.use(new TwitterStrategy({
 // ÖZEL ROTALAR & GÜVENLİK
 // =======================================================
 
-// 1. JWT Doğrulama Kilidi (Joker Versiyon)
+// 1. JWT Doğrulama Kilidi (Hatasız & Çift Secret Destekli)
 const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-        // Bearer kelimesini ve olası tırnakları temizle
-        const token = authHeader.replace('Bearer ', '').replace(/"/g, '').trim();
-
-        // Giriş yapılırken kullanılan anahtarların hepsini sırayla dener
-        const secretKey = process.env.SESSION_SECRET || process.env.JWT_SECRET || 'gizli_anahtar';
-
-        jwt.verify(token, secretKey, (err, user) => {
-            if (err) {
-                // Eğer ilk anahtar tutmazsa yedek anahtarla bir kez daha dene
-                const fallbackKey = process.env.JWT_SECRET || 'gizli_anahtar';
-                jwt.verify(token, fallbackKey, (err2, user2) => {
-                    if (err2) {
-                        console.log("Token Hatası Yakalandı:", err.message);
-                        return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş" });
-                    }
-                    req.user = user2;
-                    next();
-                });
-                return;
-            }
-            req.user = user;
-            next();
-        });
-    } else {
-        res.status(401).json({ error: "Yetkisiz erişim" });
+    let authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: "Yetkisiz erişim: Token bulunamadı" });
     }
+
+    // "Bearer " önekini ve olası çift tırnakları temizle
+    const token = authHeader.replace(/^Bearer\s+/i, '').replace(/"/g, '').trim();
+
+    // Sistemin kullandığı olası tüm anahtarları sırayla dene
+    const secretKeys = [
+        process.env.SESSION_SECRET,
+        process.env.JWT_SECRET,
+        'gizli_anahtar'
+    ].filter(Boolean);
+
+    let decodedUser = null;
+
+    for (const key of secretKeys) {
+        try {
+            decodedUser = jwt.verify(token, key);
+            if (decodedUser) break;
+        } catch (e) {
+            // Bir sonraki anahtara geç
+        }
+    }
+
+    if (!decodedUser) {
+        console.log("Token Çözülemedi! Gelen Token:", token.substring(0, 15) + "...");
+        return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş" });
+    }
+
+    req.user = decodedUser;
+    next();
 };
 
 // 2. İçerik Kaydetme Rotası
