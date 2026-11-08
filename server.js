@@ -276,25 +276,35 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
-// --- İÇERİK KAYDETME ROTASI (GÜVENLİ & DOĞRUDAN) ---
+// --- İÇERİK KAYDETME ROTASI (MODEL YOLU HATASIZ SÜRÜM) ---
 app.post('/api/save-item', authenticateJWT, async (req, res) => {
     try {
         const { itemId, title, type } = req.body;
 
-        // Token'dan gelen kullanıcı bilgileri
         const username = req.user?.username;
         const userId = req.user?.id || req.user?.userId || req.user?._id;
 
         if (!username) {
-            return res.status(400).json({ error: "Kullanıcı adı token içinde bulunamadı." });
+            return res.status(400).json({ error: "Kullanıcı adı bulunamadı." });
         }
         if (!itemId) {
             return res.status(400).json({ error: "İçerik ID'si zorunludur." });
         }
 
-        const SavedItem = require('./models/SavedItem');
+        // Mongoose hafızasındaki modeli güvenle al, yoksa require dene
+        const mongoose = require('mongoose');
+        let SavedItem;
+        try {
+            SavedItem = mongoose.model('SavedItem');
+        } catch (e) {
+            try {
+                SavedItem = require('./models/SavedItem');
+            } catch (err2) {
+                SavedItem = require('./models/savedItem');
+            }
+        }
 
-        // Kullanıcı bu içeriği zaten kaydetmiş mi?
+        // Kayıt var mı kontrolü
         const existing = await SavedItem.findOne({ username: username, itemId: String(itemId) });
 
         if (existing) {
@@ -314,7 +324,7 @@ app.post('/api/save-item', authenticateJWT, async (req, res) => {
             return res.status(201).json({ status: 'saved', message: "Kütüphaneye eklendi." });
         }
     } catch (error) {
-        console.error("Kayıt Hatası:", error);
+        console.error("Save-Item Hatası:", error);
         return res.status(500).json({ error: error.message });
     }
 });
