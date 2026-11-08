@@ -241,7 +241,7 @@ passport.use(new TwitterStrategy({
 // ÖZEL ROTALAR & GÜVENLİK
 // =======================================================
 
-// 1. JWT Doğrulama Kilidi (Patlamayan Sürüm)
+// 1. JWT Doğrulama Kilidi (Birebir Eşitlenmiş Sürüm)
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -250,9 +250,9 @@ const authenticateJWT = (req, res, next) => {
 
     const token = authHeader.replace(/^Bearer\s+/i, '').replace(/"/g, '').trim();
 
-    // Anahtarları garanti String tipine dönüştür
-    const primaryKey = String(process.env.JWT_SECRET || process.env.SESSION_SECRET || 'gizli_anahtar');
-    const fallbackKey = String(process.env.SESSION_SECRET || 'gizli_anahtar');
+    // Login tarafındakiyle TAMAMEN AYNI anahtarlar:
+    const primaryKey = String(process.env.JWT_SECRET || "gizlisifre");
+    const fallbackKey = String(process.env.SESSION_SECRET || "gizlisifre");
 
     jwt.verify(token, primaryKey, (err, user) => {
         if (err) {
