@@ -276,7 +276,7 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
-// --- İÇERİK KAYDETME ROTASI (MODEL YOLU HATASIZ SÜRÜM) ---
+// --- İÇERİK KAYDETME ROTASI (26. SATIRDAKİ SavedItem'I DOĞRUDAN KULLANIR) ---
 app.post('/api/save-item', authenticateJWT, async (req, res) => {
     try {
         const { itemId, title, type } = req.body;
@@ -291,20 +291,7 @@ app.post('/api/save-item', authenticateJWT, async (req, res) => {
             return res.status(400).json({ error: "İçerik ID'si zorunludur." });
         }
 
-        // Mongoose hafızasındaki modeli güvenle al, yoksa require dene
-        const mongoose = require('mongoose');
-        let SavedItem;
-        try {
-            SavedItem = mongoose.model('SavedItem');
-        } catch (e) {
-            try {
-                SavedItem = require('./models/SavedItem');
-            } catch (err2) {
-                SavedItem = require('./models/savedItem');
-            }
-        }
-
-        // Kayıt var mı kontrolü
+        // 26. satırda zaten tanımlı olan SavedItem modelini doğrudan çağırıyoruz
         const existing = await SavedItem.findOne({ username: username, itemId: String(itemId) });
 
         if (existing) {
