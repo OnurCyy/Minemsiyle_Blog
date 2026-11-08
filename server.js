@@ -266,13 +266,14 @@ const authenticateJWT = (req, res, next) => {
         }
     }
 
-    if (!decodedUser) {
-        console.log("Token Çözülemedi! Gelen Token:", token.substring(0, 15) + "...");
-        return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş" });
-    }
-
-    req.user = decodedUser;
-    next();
+    jwt.verify(token, secretKey, (err, user) => {
+        if (err) {
+            console.error("JWT Doğrulama Hatası Sebebi:", err.message); // <-- Render loglarında hatayı kabak gibi gösterir
+            return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş", detail: err.message });
+        }
+        req.user = user;
+        next();
+    });
 };
 
 // 2. İçerik Kaydetme Rotası
