@@ -276,34 +276,50 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
-// 2. İçerik Kaydetme Rotası
+// 2. İçerik Kaydetme Rotası (SavedItem Garantili Versiyon)
 app.post('/api/users/save', authenticateJWT, async (req, res) => {
-    const { itemId, title, type } = req.body;
-    const username = req.user.username;
-
-    if (!itemId) return res.status(400).json({ error: "Item ID gerekli." });
-
     try {
-        const itemTitle = (title && title !== 'undefined' && title.trim() !== '') ? title : 'Kayıtlı İçerik';
-        const itemType = (type && type !== 'undefined') ? type : 'blog';
-        const itemImage = '';
+        const { itemId, title, type } = req.body;
 
-        const existing = await SavedItem.findOne({ username, itemId });
+        // Token'dan kullanıcı adını ve id'sini al
+        const username = req.user.username;
+        const userId = req.user.id || req.user.userId || req.user._id;
+
+        if (!username) {
+            return res.status(400).json({ message: "Kullanıcı bilgisi token içinde bulunamadı." });
+        }
+
+        if (!itemId) {
+            return res.status(400).json({ message: "İçerik ID'si zorunludur." });
+        }
+
+        // Modeli güvenli şekilde çağır
+        const SavedItem = require('./models/SavedItem');
+
+        // Kullanıcı bu içeriği zaten kaydetmiş mi?
+        const existing = await SavedItem.findOne({ username: username, itemId: itemId });
 
         if (existing) {
-            await SavedItem.deleteOne({ _id: existing._id });
-            const count = await SavedItem.countDocuments({ itemId });
-            if (typeof sendToDiscord === 'function') sendToDiscord('SYSTEM', `🗑️ **${username}**, bir içeriği favorilerinden çıkardı.`, username);
-            res.json({ status: 'removed', count });
+            // Varsa kütüphaneden kaldır (Unsave)
+            await SavedItem.findByIdAndDelete(existing._id);
+            return res.status(200).json({ status: 'removed', message: "Kütüphaneden kaldırıldı." });
         } else {
-            await (new SavedItem({ username, type: itemType, itemId, title: itemTitle, image: itemImage })).save();
-            const count = await SavedItem.countDocuments({ itemId });
-            if (typeof sendToDiscord === 'function') sendToDiscord('LIKE', `❤️ **${username}**, kütüphanesine yeni bir içerik ekledi: **${itemTitle}**`, username);
-            res.json({ status: 'saved', count });
+            // Yoksa yeni kayıt oluştur
+            const newItem = new SavedItem({
+                userId: userId,
+                username: username,
+                itemId: itemId,
+                title: title || "Kayıtlı İçerik",
+                type: type || "blog",
+                createdAt: new Date()
+            });
+
+            await newItem.save();
+            return res.status(201).json({ status: 'saved', message: "Kütüphaneye eklendi." });
         }
     } catch (error) {
-        console.error("Kaydetme Hatası:", error);
-        res.status(500).json({ error: error.message });
+        console.error("Kaydetme Rotası Sunucu Hatası (500):", error);
+        res.status(500).json({ error: "Sunucu hatası", detail: error.message });
     }
 });
 
