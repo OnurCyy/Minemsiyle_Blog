@@ -40,6 +40,9 @@ const maintenanceMiddleware = require("./middleware/miantenanceMiddleware");
 
 const app = express();
 
+// Express reverse proxy desteği (Render / Cloudflare için zorunludur)
+app.set('trust proxy', 1);
+
 // 1. Altyapı Bilgisini Gizle (Saldırgan Express kullandığını görmesin)
 app.disable('x-powered-by');
 
@@ -238,38 +241,29 @@ passport.use(new TwitterStrategy({
 // ÖZEL ROTALAR & GÜVENLİK
 // =======================================================
 
-// 1. JWT Doğrulama Kilidi (Hatasız & Çift Secret Destekli)
+// 1. JWT Doğrulama Kilidi (Patlamayan Sürüm)
 const authenticateJWT = (req, res, next) => {
-    let authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization;
     if (!authHeader) {
-        return res.status(401).json({ error: "Yetkisiz erişim: Token bulunamadı" });
+        return res.status(401).json({ error: "Yetkisiz erişim: Token bulunamadı." });
     }
 
-    // "Bearer " önekini ve olası çift tırnakları temizle
     const token = authHeader.replace(/^Bearer\s+/i, '').replace(/"/g, '').trim();
 
-    // Sistemin kullandığı olası tüm anahtarları sırayla dene
-    const secretKeys = [
-        process.env.SESSION_SECRET,
-        process.env.JWT_SECRET,
-        'gizli_anahtar'
-    ].filter(Boolean);
+    // Anahtarları garanti String tipine dönüştür
+    const primaryKey = String(process.env.JWT_SECRET || process.env.SESSION_SECRET || 'gizli_anahtar');
+    const fallbackKey = String(process.env.SESSION_SECRET || 'gizli_anahtar');
 
-    let decodedUser = null;
-
-    for (const key of secretKeys) {
-        try {
-            decodedUser = jwt.verify(token, key);
-            if (decodedUser) break;
-        } catch (e) {
-            // Bir sonraki anahtara geç
-        }
-    }
-
-    jwt.verify(token, secretKeys, (err, user) => {
+    jwt.verify(token, primaryKey, (err, user) => {
         if (err) {
-            console.error("JWT Doğrulama Hatası Sebebi:", err.message); // <-- Render loglarında hatayı kabak gibi gösterir
-            return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş", detail: err.message });
+            return jwt.verify(token, fallbackKey, (err2, user2) => {
+                if (err2) {
+                    console.log("JWT Doğrulama Hatası:", err2.message);
+                    return res.status(403).json({ error: "Token geçersiz veya süresi dolmuş." });
+                }
+                req.user = user2;
+                next();
+            });
         }
         req.user = user;
         next();
