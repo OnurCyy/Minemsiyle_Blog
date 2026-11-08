@@ -12,11 +12,12 @@ const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('id')) {
     currentRelatedId = urlParams.get('id');
 } else {
-    const pathArr = window.location.pathname.split('/');
+    const pathArr = window.location.pathname.split('/').filter(Boolean);
     currentRelatedId = pathArr[pathArr.length - 1];
 }
-// Güvenlik: yanlışlıkla sayfa adı alındıysa temizle
-if (currentRelatedId === "blog" || currentRelatedId === "post" || currentRelatedId === "post.html") {
+
+// Güvenlik: yanlışlıkla sayfa adı veya kök alındıysa temizle
+if (currentRelatedId === "blog" || currentRelatedId === "post" || currentRelatedId === "post.html" || currentRelatedId === "") {
     currentRelatedId = null;
 }
 
@@ -27,11 +28,13 @@ let currentModalImageBase64 = null;
 // 1. SAYFA YÜKLENİNCE — Yazıyı Getir
 // =========================================
 document.addEventListener("DOMContentLoaded", async () => {
-
     checkUserLoginForComments();
 
     if (!currentRelatedId) {
-        document.getElementById("articleArea").innerHTML = "<p style='text-align:center; margin-top:50px; color:var(--danger); font-size:20px;'>😔 Ops! Link hatalı veya yazı bulunamadı.</p>";
+        const articleArea = document.getElementById("articleArea");
+        if (articleArea) {
+            articleArea.innerHTML = "<p style='text-align:center; margin-top:50px; color:var(--danger); font-size:20px;'>😔 Ops! Link hatalı veya yazı bulunamadı.</p>";
+        }
         return;
     }
 
@@ -46,16 +49,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.title = `${item.title} | Minemsiyle`;
 
         const realImage = item.image || item.cover || "";
-        let imgHTML = realImage.length > 5 ? `<img src="${realImage}" class="article-cover" alt="${item.title}">` : '';
+        const imgHTML = realImage.length > 5 ? `<img src="${realImage}" class="article-cover" alt="${item.title}">` : '';
 
-        document.getElementById("articleArea").innerHTML = `
-                    <div class="article-header">
-                        <div class="article-meta">${contentCategory} • ${date}</div>
-                        <h1 class="article-title">${item.title}</h1>
-                    </div>
-                    ${imgHTML}
-                    <div class="article-content">${formatContent(item.content || item.desc)}</div>
-                `;
+        const articleArea = document.getElementById("articleArea");
+        if (articleArea) {
+            articleArea.innerHTML = `
+                <div class="article-header">
+                    <div class="article-meta">${contentCategory} • ${date}</div>
+                    <h1 class="article-title">${item.title}</h1>
+                </div>
+                ${imgHTML}
+                <div class="article-content">${formatContent(item.content || item.desc)}</div>
+            `;
+        }
 
         checkSaveStatus();
         checkLikeStatus();
@@ -104,7 +110,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (err) {
         console.error("Hata:", err);
-        document.getElementById("articleArea").innerHTML = "<h3 style='text-align:center; margin-top:50px;'>😔 Yazı yüklenemedi.</h3>";
+        const articleArea = document.getElementById("articleArea");
+        if (articleArea) {
+            articleArea.innerHTML = "<h3 style='text-align:center; margin-top:50px;'>😔 Yazı yüklenemedi.</h3>";
+        }
     }
 });
 
@@ -117,10 +126,10 @@ function checkUserLoginForComments() {
     if (!commentBox) return;
     if (!user) {
         commentBox.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 120px;">
-                    <i class="ph-duotone ph-lock-key" style="font-size: 2rem; color: var(--accent);"></i>
-                    <span>Yorum yapmak için <a href="/login.html" style="color: var(--accent); font-weight: bold;">giriş yapmalısın</a>.</span>
-                </div>`;
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 120px;">
+                <i class="ph-duotone ph-lock-key" style="font-size: 2rem; color: var(--accent);"></i>
+                <span>Yorum yapmak için <a href="/login.html" style="color: var(--accent); font-weight: bold;">giriş yapmalısın</a>.</span>
+            </div>`;
     }
 }
 
@@ -142,7 +151,7 @@ async function postComment() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: user._id,
+                userId: user._id || user.id,
                 username: user.username,
                 avatar: user.avatar,
                 content: text,
@@ -157,8 +166,9 @@ async function postComment() {
         } else {
             alert("Yorum gönderilemedi.");
         }
-    } catch (err) { console.error(err); }
-    finally {
+    } catch (err) {
+        console.error(err);
+    } finally {
         if (btn) { btn.innerText = "Yorumu Yayınla"; btn.disabled = false; }
     }
 }
@@ -174,16 +184,16 @@ async function loadComments() {
         const comments = await res.json();
 
         if (list) list.innerHTML = "";
-        if (countSpan) countSpan.innerText = comments.length;
+        if (countSpan) countSpan.innerText = Array.isArray(comments) ? comments.length : 0;
 
-        if (comments.length === 0 && list) {
-            list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok.</p>";
+        if (!Array.isArray(comments) || comments.length === 0) {
+            if (list) list.innerHTML = "<p style='color:#888; font-style:italic; text-align:center;'>Henüz yorum yok.</p>";
             return;
         }
 
         for (const c of comments) {
-            const displayDate = new Date(c.date).toLocaleDateString('tr-TR');
-            let badgeHTML = (c.username === "Minemsi" || c.username === "OnurCy") ? `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>` : "";
+            const displayDate = new Date(c.date || c.createdAt || Date.now()).toLocaleDateString('tr-TR');
+            const badgeHTML = (c.username === "Minemsi" || c.username === "OnurCy") ? `<span style="background:#ffd700; color:#000; font-size:0.7rem; padding:3px 8px; border-radius:6px; margin-left:5px; font-weight:bold;">👑 Yönetici</span>` : "";
 
             let deleteBtnHTML = "";
             const isOwner = currentUser && (currentUser.username === c.username);
@@ -192,15 +202,15 @@ async function loadComments() {
                 deleteBtnHTML = `<button onclick="deleteComment('${c._id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer; margin-top:5px; font-size:13px;"><i class="ph-bold ph-trash"></i> Sil</button>`;
             }
 
-            // PROFİLE YÖNLENDİREN ANCHOR (<a href...>) EKLENDİ
-            if (list) list.innerHTML += `
+            if (list) {
+                list.innerHTML += `
                     <div class="single-comment" style="display:flex; gap:15px; margin-bottom:15px; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px;">
-                        <a href="/profile.html?u=${c.username}" style="flex-shrink:0;">
+                        <a href="/${c.username}" style="flex-shrink:0;">
                             <img src="${c.avatar || defaultAvatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid transparent; transition:border 0.3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
                         </a>
                         <div style="flex:1;">
                             <h4 style="margin:0; display:flex; align-items:center;">
-                                <a href="/profile.html?u=${c.username}" style="text-decoration:none; color:inherit; transition:color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">
+                                <a href="/${c.username}" style="text-decoration:none; color:inherit; transition:color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">
                                     ${c.username}
                                 </a> 
                                 ${badgeHTML}
@@ -210,8 +220,11 @@ async function loadComments() {
                             ${deleteBtnHTML}
                         </div>
                     </div>`;
+            }
         }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 async function deleteComment(commentId) {
@@ -226,21 +239,24 @@ async function deleteComment(commentId) {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) loadComments();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 // =========================================
-// 3. YENİ KAYDETME SİSTEMİ (OPTIMISTIC UI & SWEETALERT)
+// 3. SENKRON KAYDETME SİSTEMİ (SavedItem & Profil Uyumlu)
 // =========================================
-
-// Kaydetme durumunu kontrol et (sayfa açılınca)
 async function checkSaveStatus() {
     let token = localStorage.getItem('token');
-    if (!token || !document.getElementById('saveBtn')) return;
+    const userString = localStorage.getItem('user');
+    if (!token || !userString || !document.getElementById('saveBtn')) return;
+
+    const currentUser = JSON.parse(userString);
     token = token.replace(/"/g, '').trim();
 
     try {
-        const res = await fetch(`${API_BASE}/users/profile/saved`, {
+        const res = await fetch(`${API_BASE}/public-saved?u=${currentUser.username}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -248,7 +264,7 @@ async function checkSaveStatus() {
             const data = await res.json();
             const savedItems = data.savedItems || [];
 
-            if (savedItems.some(item => item.itemId === currentRelatedId)) {
+            if (savedItems.some(item => item.itemId === currentRelatedId || item._id === currentRelatedId)) {
                 const icon = document.getElementById('saveIcon');
                 const text = document.getElementById('saveText');
                 const btn = document.getElementById('saveBtn');
@@ -257,28 +273,35 @@ async function checkSaveStatus() {
                     icon.classList.remove('ph');
                     icon.classList.add('ph-fill');
                     icon.style.color = "var(--accent)";
+                    icon.style.fill = "var(--accent)";
                 }
-                if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
+                if (text) {
+                    text.innerText = "Kaydedildi";
+                    text.style.color = "var(--accent)";
+                }
                 if (btn) btn.style.borderColor = "var(--accent)";
             }
         }
-    } catch (e) { console.error("Kaydetme durumu çekilemedi:", e); }
+    } catch (e) {
+        console.error("Kaydetme durumu çekilemedi:", e);
+    }
 }
 
-// Kaydet / Kayıttan çıkar
 async function toggleSave() {
     let token = localStorage.getItem('token');
 
-    // Eğer SweetAlert2 kütüphanesi yoksa eski usül alert ver
     const alertFunc = typeof Swal !== 'undefined' ?
         (opt) => Swal.fire({ ...opt, background: document.documentElement.classList.contains('dark') ? '#211d1a' : '#fbf6ea', color: document.documentElement.classList.contains('dark') ? '#ede6e1' : '#2c2c2c' }) :
         (opt) => alert(opt.title);
 
     if (!token) {
         alertFunc({
-            toast: true, position: 'bottom-end', icon: 'warning',
+            toast: true,
+            position: 'bottom-end',
+            icon: 'warning',
             title: 'Kütüphaneye eklemek için giriş yapmalısın.',
-            showConfirmButton: false, timer: 3000
+            showConfirmButton: false,
+            timer: 3000
         });
         return;
     }
@@ -288,21 +311,24 @@ async function toggleSave() {
     const text = document.getElementById('saveText');
     const btn = document.getElementById('saveBtn');
 
-    // Mevcut durumu kontrol et
     const isSaved = icon.classList.contains('ph-fill') || (icon.style.fill !== "none" && icon.style.fill !== "");
 
-    // 1. OPTIMISTIC UI: Beklemeden arayüzü anında değiştir
+    // 1. Arayüzü anında değiştir (Optimistic UI)
     if (isSaved) {
         if (icon) {
-            icon.classList.remove('ph-fill'); icon.classList.add('ph');
-            icon.style.color = ""; icon.style.fill = "none";
+            icon.classList.remove('ph-fill');
+            icon.classList.add('ph');
+            icon.style.color = "";
+            icon.style.fill = "none";
         }
         if (text) { text.innerText = "Kaydet"; text.style.color = "var(--ink)"; }
         if (btn) btn.style.borderColor = "var(--line)";
     } else {
         if (icon) {
-            icon.classList.remove('ph'); icon.classList.add('ph-fill');
-            icon.style.color = "var(--accent)"; icon.style.fill = "var(--accent)";
+            icon.classList.remove('ph');
+            icon.classList.add('ph-fill');
+            icon.style.color = "var(--accent)";
+            icon.style.fill = "var(--accent)";
         }
         if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
         if (btn) btn.style.borderColor = "var(--accent)";
@@ -313,23 +339,38 @@ async function toggleSave() {
         setTimeout(() => btn.style.transform = "scale(1)", 150);
     }
 
-    // 2. Arka planda sunucuya isteği at
+    // 2. Backend'in beklediği tüm alanları (itemId, title, type) eksiksiz yolla
+    const articleTitle = document.querySelector('.article-title')?.innerText || document.title.replace(' | Minemsiyle', '');
+
     try {
         const res = await fetch(`${API_BASE}/users/save`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ itemId: currentRelatedId })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                itemId: currentRelatedId,
+                title: articleTitle,
+                type: currentType
+            })
         });
 
         if (res.ok) {
+            const result = await res.json();
+            const nowSaved = result.status === 'saved';
+
             alertFunc({
-                toast: true, position: 'bottom-end',
-                icon: isSaved ? 'info' : 'success',
-                title: isSaved ? 'Raftan kaldırıldı' : 'Kütüphaneye eklendi',
-                showConfirmButton: false, timer: 2000, timerProgressBar: true
+                toast: true,
+                position: 'bottom-end',
+                icon: nowSaved ? 'success' : 'info',
+                title: nowSaved ? 'Kütüphaneye eklendi' : 'Raftan kaldırıldı',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
             });
         } else {
-            // Hata olursa UI'ı gizlice eski haline getir
+            // Hata halinde arayüzü eski konumuna geri al
             if (isSaved) {
                 if (icon) { icon.classList.remove('ph'); icon.classList.add('ph-fill'); icon.style.color = "var(--accent)"; icon.style.fill = "var(--accent)"; }
                 if (text) { text.innerText = "Kaydedildi"; text.style.color = "var(--accent)"; }
@@ -340,7 +381,9 @@ async function toggleSave() {
                 if (btn) btn.style.borderColor = "var(--line)";
             }
         }
-    } catch (e) { console.error("Kaydetme işlemi başarısız:", e); }
+    } catch (e) {
+        console.error("Kaydetme işlemi başarısız:", e);
+    }
 }
 
 // =========================================
@@ -367,7 +410,9 @@ async function checkLikeStatus() {
                 if (btn) { btn.style.borderColor = "#e91e63"; btn.style.color = "#e91e63"; btn.style.background = "rgba(233, 30, 99, 0.08)"; }
             }
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function toggleLike() {
@@ -400,12 +445,16 @@ async function toggleLike() {
             }
             if (text) text.innerText = `${data.likesCount} Beğeni`;
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function showLikers() {
     const modal = document.getElementById('likersModal');
     const list = document.getElementById('likersList');
+    if (!modal || !list) return;
+
     list.innerHTML = '<li style="text-align:center; color:var(--muted); padding:20px 0;"><i class="ph-bold ph-spiral"></i> Yükleniyor...</li>';
     modal.style.display = 'flex';
     setTimeout(() => modal.style.opacity = '1', 10);
@@ -422,14 +471,13 @@ async function showLikers() {
             data.likes.forEach(user => {
                 if (user == '0' || !user || String(user).trim() === '') return;
 
-                // Beğenenlerin de isimlerine profil linki ekledim
                 list.innerHTML += `
-                        <li style="padding:12px 0; border-bottom:1px solid var(--line); color:var(--ink); font-weight:600; display:flex; align-items:center; gap:10px;">
-                            <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#111; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
-                                ${String(user).charAt(0).toUpperCase()}
-                            </div>
-                            <a href="/profile.html?u=${user}" style="text-decoration:none; color:inherit; transition:color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${user}</a>
-                        </li>`;
+                    <li style="padding:12px 0; border-bottom:1px solid var(--line); color:var(--ink); font-weight:600; display:flex; align-items:center; gap:10px;">
+                        <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); color:#111; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
+                            ${String(user).charAt(0).toUpperCase()}
+                        </div>
+                        <a href="/${user}" style="text-decoration:none; color:inherit; transition:color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${user}</a>
+                    </li>`;
             });
         }
     } catch (err) {
@@ -439,6 +487,7 @@ async function showLikers() {
 
 function closeLikersModal() {
     const modal = document.getElementById('likersModal');
+    if (!modal) return;
     modal.style.opacity = '0';
     setTimeout(() => modal.style.display = 'none', 300);
 }
@@ -463,7 +512,8 @@ async function shareContent() {
 let currentAudio = null;
 
 function toggleAmbiancePanel() {
-    document.getElementById('ambiancePanel').classList.toggle('active');
+    const panel = document.getElementById('ambiancePanel');
+    if (panel) panel.classList.toggle('active');
 }
 
 function playAmbiance(type, element) {
@@ -472,15 +522,19 @@ function playAmbiance(type, element) {
     const toggleBtn = document.querySelector('.ambiance-toggle');
 
     if (currentAudio === audioElement && !audioElement.paused) {
-        audioElement.pause(); element.classList.remove('active'); toggleBtn.classList.remove('playing');
-        currentAudio = null; return;
+        audioElement.pause();
+        if (element) element.classList.remove('active');
+        if (toggleBtn) toggleBtn.classList.remove('playing');
+        currentAudio = null;
+        return;
     }
     stopAllSounds();
     if (audioElement) {
-        audioElement.volume = volumeControl.value;
+        if (volumeControl) audioElement.volume = volumeControl.value;
         audioElement.play().catch(e => console.log(e));
         currentAudio = audioElement;
-        element.classList.add('active'); toggleBtn.classList.add('playing');
+        if (element) element.classList.add('active');
+        if (toggleBtn) toggleBtn.classList.add('playing');
     }
 }
 
@@ -527,7 +581,9 @@ async function incrementView() {
             const viewText = document.getElementById('viewCountText');
             if (viewText) viewText.innerText = `${data.views} Okunma`;
         }
-    } catch (e) { console.error("Görüntülenme kaydedilemedi:", e); }
+    } catch (e) {
+        console.error("Görüntülenme kaydedilemedi:", e);
+    }
 }
 
 // =========================================
@@ -544,20 +600,22 @@ async function loadSeriesNavigation() {
                 const prevBtn = document.getElementById('prevSeriesBtn');
                 const nextBtn = document.getElementById('nextSeriesBtn');
 
-                container.style.display = 'block';
-                title.innerText = `📚 ${data.seriesName} (Bölüm ${data.seriesOrder})`;
+                if (container) container.style.display = 'block';
+                if (title) title.innerText = `📚 ${data.seriesName} (Bölüm ${data.seriesOrder})`;
 
-                if (data.prevPost) {
+                if (data.prevPost && prevBtn) {
                     prevBtn.style.display = 'inline-block';
                     prevBtn.href = `/blog/${data.prevPost._id}`;
                 }
-                if (data.nextPost) {
+                if (data.nextPost && nextBtn) {
                     nextBtn.style.display = 'inline-block';
                     nextBtn.href = `/blog/${data.nextPost._id}`;
                 }
             }
         }
-    } catch (e) { console.error("Seri navigasyonu yüklenemedi:", e); }
+    } catch (e) {
+        console.error("Seri navigasyonu yüklenemedi:", e);
+    }
 }
 
 // =========================================
@@ -588,17 +646,22 @@ function openEditModal() {
     const currentPostImg = document.querySelector('.article-cover');
     currentModalImageBase64 = currentPostImg ? currentPostImg.src : null;
 
-    document.getElementById('editTitle').value = currentTitle;
-    document.getElementById('editContent').value = currentContent;
+    const titleInput = document.getElementById('editTitle');
+    const contentInput = document.getElementById('editContent');
+    if (titleInput) titleInput.value = currentTitle;
+    if (contentInput) contentInput.value = currentContent;
     setModalImagePreview(currentModalImageBase64);
 
     const modal = document.getElementById('editModal');
-    modal.style.display = 'flex';
-    setTimeout(() => { modal.style.opacity = '1'; }, 10);
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => { modal.style.opacity = '1'; }, 10);
+    }
 }
 
 function closeEditModal() {
     const modal = document.getElementById('editModal');
+    if (!modal) return;
     modal.style.opacity = '0';
     setTimeout(() => {
         modal.style.display = 'none';
@@ -608,17 +671,24 @@ function closeEditModal() {
 }
 
 async function submitEdit() {
-    const newTitle = document.getElementById('editTitle').value.trim();
-    const newContent = document.getElementById('editContent').value.trim();
-    const newSeriesName = document.getElementById('editSeriesName').value.trim();
-    const newSeriesOrder = parseInt(document.getElementById('editSeriesOrder').value) || 0;
+    const titleInput = document.getElementById('editTitle');
+    const contentInput = document.getElementById('editContent');
+    const seriesNameInput = document.getElementById('editSeriesName');
+    const seriesOrderInput = document.getElementById('editSeriesOrder');
     const btn = document.getElementById('editSubmitBtn');
+
+    const newTitle = titleInput ? titleInput.value.trim() : '';
+    const newContent = contentInput ? contentInput.value.trim() : '';
+    const newSeriesName = seriesNameInput ? seriesNameInput.value.trim() : '';
+    const newSeriesOrder = seriesOrderInput ? parseInt(seriesOrderInput.value) || 0 : 0;
 
     if (!newTitle || !newContent) return alert("Boş alan bırakma!");
 
-    const oldBtnHTML = btn.innerHTML;
-    btn.innerHTML = `⏳ Kaydediliyor...`;
-    btn.disabled = true;
+    const oldBtnHTML = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = `⏳ Kaydediliyor...`;
+        btn.disabled = true;
+    }
 
     try {
         const res = await fetch(`${API_BASE}/posts/${currentRelatedId}`, {
@@ -634,17 +704,17 @@ async function submitEdit() {
         });
 
         if (res.ok) {
-            btn.innerHTML = `<i class="ph-bold ph-check-circle"></i> TAMAMLANDI!`;
+            if (btn) btn.innerHTML = `<i class="ph-bold ph-check-circle"></i> TAMAMLANDI!`;
             setTimeout(() => location.reload(), 1000);
         } else {
             const data = await res.json();
             alert("Hata: " + (data.message || "Güncellenemedi."));
-            btn.innerHTML = oldBtnHTML; btn.disabled = false;
+            if (btn) { btn.innerHTML = oldBtnHTML; btn.disabled = false; }
         }
     } catch (err) {
         console.error(err);
         alert("Bağlantı hatası!");
-        btn.innerHTML = oldBtnHTML; btn.disabled = false;
+        if (btn) { btn.innerHTML = oldBtnHTML; btn.disabled = false; }
     }
 }
 
