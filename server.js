@@ -276,39 +276,42 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
-// 2. İçerik Kaydetme Rotası (SavedItem Garantili Versiyon)
+// 2. İçerik Kaydetme Rotası (Hata Teşhisli Versiyon)
 app.post('/api/users/save', authenticateJWT, async (req, res) => {
     try {
         const { itemId, title, type } = req.body;
 
-        // Token'dan kullanıcı adını ve id'sini al
-        const username = req.user.username;
-        const userId = req.user.id || req.user.userId || req.user._id;
+        // Token'dan gelen kullanıcı bilgileri
+        const username = req.user?.username;
+        const userId = req.user?.id || req.user?.userId || req.user?._id;
 
         if (!username) {
-            return res.status(400).json({ message: "Kullanıcı bilgisi token içinde bulunamadı." });
+            return res.status(400).json({ error: "Kullanıcı adı token içinde bulunamadı." });
         }
-
         if (!itemId) {
-            return res.status(400).json({ message: "İçerik ID'si zorunludur." });
+            return res.status(400).json({ error: "İçerik ID'si zorunludur." });
         }
 
-        // Modeli güvenli şekilde çağır
-        const SavedItem = require('./models/SavedItem');
+        // Model kontrolü: models/SavedItem dosyasını yükle
+        let SavedItem;
+        try {
+            SavedItem = require('./models/SavedItem');
+        } catch (mErr) {
+            console.error("SavedItem modeli yüklenemedi:", mErr);
+            return res.status(500).json({ error: "Model yükleme hatası", detail: mErr.message });
+        }
 
-        // Kullanıcı bu içeriği zaten kaydetmiş mi?
-        const existing = await SavedItem.findOne({ username: username, itemId: itemId });
+        // Daha önce kaydedilmiş mi kontrol et
+        const existing = await SavedItem.findOne({ username: username, itemId: String(itemId) });
 
         if (existing) {
-            // Varsa kütüphaneden kaldır (Unsave)
             await SavedItem.findByIdAndDelete(existing._id);
             return res.status(200).json({ status: 'removed', message: "Kütüphaneden kaldırıldı." });
         } else {
-            // Yoksa yeni kayıt oluştur
             const newItem = new SavedItem({
-                userId: userId,
+                userId: userId || undefined,
                 username: username,
-                itemId: itemId,
+                itemId: String(itemId),
                 title: title || "Kayıtlı İçerik",
                 type: type || "blog",
                 createdAt: new Date()
@@ -318,8 +321,13 @@ app.post('/api/users/save', authenticateJWT, async (req, res) => {
             return res.status(201).json({ status: 'saved', message: "Kütüphaneye eklendi." });
         }
     } catch (error) {
-        console.error("Kaydetme Rotası Sunucu Hatası (500):", error);
-        res.status(500).json({ error: "Sunucu hatası", detail: error.message });
+        console.error("KAYDETME PATLAMA DETAYI:", error);
+        // Hatayı doğrudan tarayıcıya bas ki neyin eksik olduğunu bilelim
+        return res.status(500).json({
+            error: "Sunucu hatası",
+            message: error.message,
+            stack: error.stack
+        });
     }
 });
 
