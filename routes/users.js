@@ -1,218 +1,93 @@
-const router = require("express").Router();
-const User = require("../models/User");
+const express = require("express");
+const router = express.Router();
 const bcrypt = require("bcryptjs");
+
+const User = require("../models/User");
 const Comment = require("../models/Comment");
-const jwt = require("jsonwebtoken");
+const SavedItem = require("../models/SavedItem");
+
 const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
 
 // ======================================================
-// 1. HERKESE AÇIK KULLANICI İŞLEMLERİ (PROFİL GÖRÜNTÜLEME)
-// ======================================================
-
-//  İSME GÖRE PROFİL GETİR
-router.get("/:username", async (req, res) => {
-    try {
-        // İsme göre bul ama şifresini gizle
-        const user = await User.findOne({ username: req.params.username }).select("-password");
-
-        if (!user) {
-            return res.status(404).json({ message: "Kullanıcı bulunamadı" });
-        }
-        res.status(200).json(user);
-    } catch (err) {
-        res.status(500).json({ message: "Sunucu hatası" });
-    }
-});
-
-// ======================================================
-// 2. OTURUM AÇMIŞ KULLANICI İŞLEMLERİ
+// 1. OTURUM AÇMIŞ KULLANICI PROFİL İŞLEMLERİ (/profile/*)
+// (ÖNEMLİ: /:username rotasından ÖNCE tanımlanmalıdır)
 // ======================================================
 
 // A. KENDİ PROFİLİMİ GETİR
 router.get("/profile/me", authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select("-password");
-        if (!user) return res.status(404).json({ message: "Kullanıcı yok" });
-        res.json(user);
+        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+        res.status(200).json(user);
     } catch (error) {
-        res.status(500).json({ message: "Sunucu hatası" });
+        res.status(500).json({ message: "Sunucu hatası", error: error.message });
     }
 });
 
-// B. PROFİL GÜNCELLE
+// B. KAYITLI İÇERİKLERİ GETİR
+router.get("/profile/saved", authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+
+        // Hem SavedItem koleksiyonundan hem kullanıcı belgesinden en güncel listeyi al
+        const items = await SavedItem.find({ username: user.username }).sort({ createdAt: -1 });
+        res.status(200).json({ savedItems: items.length > 0 ? items : (user.savedItems || []) });
+    } catch (error) {
+        res.status(500).json({ message: "Kayıtlı içerikler alınamadı.", error: error.message });
+    }
+});
+
+// C. KULLANICININ KENDİ YORUMLARINI GETİR
+router.get("/profile/comments", authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+
+        const userComments = await Comment.find({ username: user.username }).sort({ createdAt: -1 });
+        res.status(200).json({ comments: userComments });
+    } catch (error) {
+        res.status(500).json({ message: "Yorumlar alınamadı.", error: error.message });
+    }
+});
+
+// D. PROFİL BİLGİLERİNİ GÜNCELLE
 router.put("/update", authMiddleware, async (req, res) => {
     try {
         const { username, bio, avatar, profileImage, oldPassword, newPassword } = req.body;
         const user = await User.findById(req.user.id);
 
-        if (!user) return res.status(404).json({ message: "Kullanıcı yok" });
+        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
 
-        if (username) user.username = username;
-        if (bio) user.bio = bio;
+        if (username) user.username = username.trim();
+        if (bio !== undefined) user.bio = bio;
+        if (avatar || profileImage) user.avatar = avatar || profileImage;
 
-        if (avatar) user.avatar = avatar;
-        if (profileImage) user.avatar = profileImage;
-
-        // Şifre Değiştirme
-        if (newPassword && oldPassword) {
+        // Şifre Değiştirme Kontrolü
+        if (newPassword) {
+            if (!oldPassword) {
+                return res.status(400).json({ message: "Mevcut şifrenizi girmelisiniz." });
+            }
             const isMatch = await bcrypt.compare(oldPassword, user.password);
             if (!isMatch) {
-                return res.status(400).json({ message: "Eski şifren hatalı! ❌" });
+                return res.status(400).json({ message: "Eski şifreniz hatalı! ❌" });
             }
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(newPassword, salt);
         }
 
         await user.save();
-        res.json({ message: "Profil güncellendi! ✅", user });
+        res.status(200).json({ message: "Profil güncellendi! ✅", user });
     } catch (err) {
         if (err.code === 11000) {
-            return res.status(400).json({ message: "Bu kullanıcı adı zaten dolu!" });
+            return res.status(400).json({ message: "Bu kullanıcı adı zaten kullanımda." });
         }
-        res.status(500).json({ message: "Güncelleme hatası." });
+        res.status(500).json({ message: "Güncelleme hatası oluştu.", error: err.message });
     }
 });
 
-//  KAYDET / KAYDI KALDIR (TOGGLE)
-router.post('/save', authMiddleware, async (req, res) => {
-    try {
-        // authMiddleware sayesinde req.user.id elimizde hazır
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "Okur bulunamadı." });
-
-        // Frontend'den Gelen Kitap/Blog Verileri
-        const { itemId, title, type, url } = req.body;
-
-        // Bu yazı daha önce kaydedilmiş mi diye kontrol et
-        const existingIndex = user.savedItems.findIndex(item => item.itemId === itemId);
-
-        if (existingIndex !== -1) {
-            // VARSA LİSTEDEN SİL (Unsave)
-            user.savedItems.splice(existingIndex, 1);
-            await user.save();
-            return res.status(200).json({ message: "Kütüphaneden çıkarıldı.", status: "removed" });
-        } else {
-            // YOKSA LİSTEYE EKLE (Save)
-            user.savedItems.push({ itemId, title, type, url });
-            await user.save();
-            return res.status(200).json({ message: "Kütüphaneye eklendi!", status: "added" });
-        }
-
-    } catch (error) {
-        console.error("Kaydetme Hatası:", error);
-        res.status(500).json({ message: "Arka planda bir çark kırıldı." });
-    }
-});
-
-//  KAYDEDİLENİ SİL (DELETE /api/users/save/:dbId)
-router.delete('/save/:dbId', authMiddleware, async (req, res) => {
-    try {
-        const docId = req.params.dbId;
-        const SavedItem = require('../models/SavedItem');
-
-        // 1. SavedItem koleksiyonundan sil (Ana sistem)
-        await SavedItem.findOneAndDelete({ _id: docId });
-
-        // 2. Eğer User dokümanı içinde de dizi olarak tutuyorsan ordan da temizle
-        await User.findByIdAndUpdate(req.user.id, {
-            $pull: { savedItems: { _id: docId } }
-        });
-
-        res.status(200).json({ message: "Başarıyla silindi" });
-    } catch (error) {
-        console.error("Silme Hatası:", error);
-        res.status(500).json({ message: "Silinirken hata oluştu" });
-    }
-});
-
-//  KAYITLI LİSTEYİ GETİR (Profil Sayfası İçin)
-router.get('/profile/saved', authMiddleware, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "Okur bulunamadı." });
-
-        // Sadece savedItems array'ini yolla
-        res.json({ savedItems: user.savedItems || [] });
-
-    } catch (error) {
-        console.error("Kayıtları Çekme Hatası:", error);
-        res.status(500).json({ message: "Kayıtlı yazılar alınamadı." });
-    }
-});
-
-//  KULLANICININ YORUMLARINI GETİR (Profil Sayfası İçin)
-router.get('/profile/comments', authMiddleware, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: "Okur bulunamadı." });
-
-        // Veritabanındaki tüm yorumlar içinde 'username'i bu kullanıcı olanları bul
-        // ve en yeniler en üstte olacak şekilde sırala (-1)
-        const userComments = await Comment.find({ username: user.username }).sort({ createdAt: -1 });
-
-        res.json({ comments: userComments });
-
-    } catch (error) {
-        console.error("Yorumları Çekme Hatası:", error);
-        res.status(500).json({ message: "Yorumlar alınamadı." });
-    }
-});
-
-// ======================================================
-// 3. ADMİN İŞLEMLERİ
-// ======================================================
-
-// C. TÜM KULLANICILARI LİSTELE
-router.get("/", async (req, res) => {
-    try {
-        const users = await User.find().select("-password").sort({ createdAt: -1 });
-        res.status(200).json(users);
-    } catch (err) {
-        res.status(500).json(err);
-    }
-});
-
-// D. BANLAMA SİSTEMİ
-router.put("/:id/ban", async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id);
-        if (!user) return res.status(404).json("Kullanıcı bulunamadı");
-
-        if (user.isBanned) {
-            user.isBanned = false;
-            user.banReason = "";
-            await user.save();
-            return res.status(200).json({ message: "Ban kaldırıldı.", user });
-        } else {
-            const { reason } = req.body;
-            user.isBanned = true;
-            user.banReason = reason || "Sebep belirtilmedi.";
-            await user.save();
-            return res.status(200).json({ message: "Kullanıcı banlandı.", user });
-        }
-    } catch (err) {
-        res.status(500).json(err);
-    }
-});
-
-// E. ROZET SİSTEMİ
-router.put("/:id/badges", async (req, res) => {
-    try {
-        const { badges, tags } = req.body;
-        const newBadges = badges || tags;
-
-        const user = await User.findByIdAndUpdate(req.params.id, { badges: newBadges, tags: newBadges }, { new: true });
-        res.status(200).json({ message: "Rozetler güncellendi", user });
-    } catch (err) {
-        res.status(500).json(err);
-    }
-});
-
-// ======================================================
-// 4. HESAP SİLME İŞLEMLERİ (KVKK & ADMİN)
-// ======================================================
-
-// A. KULLANICININ KENDİ HESABINI SİLMESİ (DELETE /api/users/profile/me)
+// E. KULLANICININ KENDİ HESABINI SİLMESİ (KVKK)
 router.delete("/profile/me", authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -220,41 +95,105 @@ router.delete("/profile/me", authMiddleware, async (req, res) => {
 
         if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
 
-        const SavedItem = require("../models/SavedItem");
-        const Comment = require("../models/Comment");
-
-        // Kullanıcıya ait tüm verileri süpür
-        await SavedItem.deleteMany({ username: user.username });
-        await Comment.deleteMany({ username: user.username });
-        await User.findByIdAndDelete(userId);
+        await Promise.all([
+            SavedItem.deleteMany({ username: user.username }),
+            Comment.deleteMany({ username: user.username }),
+            User.findByIdAndDelete(userId)
+        ]);
 
         res.status(200).json({ message: "Hesabınız ve tüm verileriniz başarıyla silindi." });
     } catch (error) {
-        console.error("Hesap Silme Hatası:", error);
-        res.status(500).json({ message: "Hesap silinirken sunucu hatası oluştu." });
+        res.status(500).json({ message: "Hesap silinirken hata oluştu.", error: error.message });
     }
 });
 
-// B. ADMİN: KULLANICIYI VE VERİLERİNİ SİSTEMDEN KAZIMA (DELETE /api/users/:id)
-router.delete("/:id", async (req, res) => {
+// ======================================================
+// 2. KÜTÜPHANE / KAYIT İŞLEMLERİ (SAVE / UNSAVE)
+// ======================================================
+
+// KAYDET / KALDIR (TOGGLE)
+router.post("/save", authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+
+        const { itemId, title, type, url } = req.body;
+        if (!itemId) return res.status(400).json({ message: "İçerik ID'si zorunludur." });
+
+        const existing = await SavedItem.findOne({ username: user.username, itemId: String(itemId) });
+
+        if (existing) {
+            await SavedItem.findByIdAndDelete(existing._id);
+            return res.status(200).json({ message: "Kütüphaneden çıkarıldı.", status: "removed" });
+        } else {
+            const newItem = new SavedItem({
+                userId: user._id,
+                username: user.username,
+                itemId: String(itemId),
+                title: title || "Kayıtlı İçerik",
+                type: type || "blog",
+                url: url || "",
+                createdAt: new Date()
+            });
+            await newItem.save();
+            return res.status(201).json({ message: "Kütüphaneye eklendi!", status: "added" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Kaydetme işlemi başarısız.", error: error.message });
+    }
+});
+
+// KAYITLI İÇERİĞİ SİL (Tekli Silme)
+router.delete("/save/:dbId", authMiddleware, async (req, res) => {
+    try {
+        const docId = req.params.dbId;
+
+        await Promise.all([
+            SavedItem.findByIdAndDelete(docId),
+            User.findByIdAndUpdate(req.user.id, { $pull: { savedItems: { _id: docId } } })
+        ]);
+
+        res.status(200).json({ message: "Başarıyla silindi." });
+    } catch (error) {
+        res.status(500).json({ message: "Silinirken hata oluştu.", error: error.message });
+    }
+});
+
+// ======================================================
+// 3. ADMİN: KULLANICIYI VE VERİLERİNİ TEMİZLE
+// ======================================================
+router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const targetUserId = req.params.id;
         const user = await User.findById(targetUserId);
 
         if (!user) return res.status(404).json({ message: "Silinecek kullanıcı bulunamadı." });
 
-        const SavedItem = require("../models/SavedItem");
-        const Comment = require("../models/Comment");
-
-        // Kullanıcının kayıtlı içeriklerini ve yorumlarını temizle
-        await SavedItem.deleteMany({ username: user.username });
-        await Comment.deleteMany({ username: user.username });
-        await User.findByIdAndDelete(targetUserId);
+        await Promise.all([
+            SavedItem.deleteMany({ username: user.username }),
+            Comment.deleteMany({ username: user.username }),
+            User.findByIdAndDelete(targetUserId)
+        ]);
 
         res.status(200).json({ message: `${user.username} hesabı ve tüm verileri silindi.` });
     } catch (error) {
-        console.error("Admin Kullanıcı Silme Hatası:", error);
-        res.status(500).json({ message: "Kullanıcı silinemedi." });
+        res.status(500).json({ message: "Kullanıcı silinemedi.", error: error.message });
+    }
+});
+
+// ======================================================
+// 4. GENEL KULLANICI PROFİLİ GÖRÜNTÜLEME
+// (DİKKAT: Diğer tüm alt yolları ezmemesi için EN ALTA konulur)
+// ======================================================
+router.get("/:username", async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.params.username }).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+        }
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ message: "Sunucu hatası", error: err.message });
     }
 });
 

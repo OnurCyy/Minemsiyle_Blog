@@ -1,13 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
-// TEST ROTASI
-router.get("/test", (req, res) => {
-    res.json({ message: "Auth route çalışıyor..." });
-});
+const User = require("../models/User");
 
 // =====================================================
 // 1. KAYIT OL (REGISTER)
@@ -19,15 +14,22 @@ router.post("/register", async (req, res) => {
         const password = req.body.password;
 
         if (!username || !email || !password) {
-            return res.status(400).json({ message: "Tüm alanların doldurulması zorunludur" });
+            return res.status(400).json({ message: "Kullanıcı adı, e-posta ve şifre zorunludur." });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Şifre en az 6 karakter olmalıdır." });
         }
 
         const existingUser = await User.findOne({
-            $or: [{ email }, { username }],
+            $or: [{ email }, { username }]
         });
 
         if (existingUser) {
-            return res.status(400).json({ message: "Kullanıcı zaten mevcut" });
+            const isEmailTaken = existingUser.email === email;
+            return res.status(400).json({
+                message: isEmailTaken ? "Bu e-posta adresi zaten kullanımda." : "Bu kullanıcı adı zaten alınmış."
+            });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -36,57 +38,60 @@ router.post("/register", async (req, res) => {
         const newUser = new User({
             username,
             email,
-            password: hashedPassword,
+            password: hashedPassword
         });
 
         await newUser.save();
 
-
         res.status(201).json({
-            message: "Kullanıcı başarıyla oluşturuldu.",
+            message: "Kayıt başarılı! Giriş yapabilirsiniz."
         });
     } catch (error) {
-        res.status(500).json({ message: "Sunucu Hatası" });
+        res.status(500).json({ message: "Sunucu hatası", error: error.message });
     }
 });
 
 // =====================================================
-// 2. GİRİŞ YAP (LOGIN)
+// 2. GİRİŞ YAP (LOGIN - Email veya Kullanıcı Adı Destekli)
 // =====================================================
 router.post("/login", async (req, res) => {
     try {
-        const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
+        const identifier = (req.body.email || req.body.username || "").toLowerCase().trim();
         const password = req.body.password;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email ve şifre zorunlu" });
+        if (!identifier || !password) {
+            return res.status(400).json({ message: "Giriş bilgileri ve şifre zorunludur." });
         }
 
-        const user = await User.findOne({ email });
+        // Hem e-posta hem kullanıcı adı üzerinden sorgulama imkanı
+        const user = await User.findOne({
+            $or: [
+                { email: identifier },
+                { username: new RegExp(`^${identifier}$`, "i") }
+            ]
+        });
 
-        // 1️⃣ ÖNCE user var mı?
         if (!user) {
-            return res.status(400).json({ message: "Kullanıcı bulunamadı" });
+            return res.status(400).json({ message: "Kullanıcı bulunamadı." });
         }
 
-        // 2️⃣ SONRA banlı mı?
         if (user.isBanned) {
             return res.status(403).json({
-                message: "Bu kullanıcı banlanmıştır! 🚫",
-                reason: user.banReason
+                message: "Hesabınız erişime kapatılmıştır! 🚫",
+                reason: user.banReason || "Belirtilmedi"
             });
         }
 
-        // 3️⃣ Şifre kontrolü
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "Şifre yanlış" });
+            return res.status(400).json({ message: "Hatalı şifre girdiniz." });
         }
 
-        // 4️⃣ Token
+        // Token oluşturma (server.js ile tam senkron fallback)
+        const secretKey = String(process.env.JWT_SECRET || "gizlisifre");
         const token = jwt.sign(
             { id: user._id, role: user.role, username: user.username },
-            process.env.JWT_SECRET || "gizlisifre",
+            secretKey,
             { expiresIn: "7d" }
         );
 
@@ -101,45 +106,12 @@ router.post("/login", async (req, res) => {
                 avatar: user.avatar
             }
         });
-
     } catch (error) {
         res.status(500).json({
-            message: "Sunucu Hatası",
+            message: "Sunucu hatası",
             error: error.message
         });
     }
 });
 
-// =====================================================
-// 3. ŞİFRE SIFIRLAMA (FORGOT PASSWORD)
-// =====================================================
-router.post("/reset-password", async (req, res) => {
-    try {
-        const email = req.body.email ? req.body.email.toLowerCase().trim() : null;
-        const newPassword = req.body.newPassword;
-
-        if (!email || !newPassword) {
-            return res.status(400).json({ message: "E-posta ve yeni şifre gerekli!" });
-        }
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: "Kullanıcı bulunamadı." });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
-
-        user.resetCode = undefined;
-
-        await user.save();
-
-        res.json({ message: "Şifren başarıyla yenilendi! 🔑" });
-    } catch (error) {
-        console.error("Reset Hatası:", error);
-        res.status(500).json({ message: "Şifre sıfırlama hatası." });
-    }
-});
-
-// BU SATIR EN SONDA OLMALI!
 module.exports = router;

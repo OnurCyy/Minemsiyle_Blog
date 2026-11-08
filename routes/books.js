@@ -1,155 +1,166 @@
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
 const Book = require("../models/Book");
 
-// 1. TÜM KİTAPLARI GETİR
+// ==========================================
+// 1. TÜM KİTAPLARI LİSTELE
+// ==========================================
 router.get("/", async (req, res) => {
     try {
-        const books = await Book.find().sort({ createdAt: -1 }); // En yeni en üstte
+        const books = await Book.find().sort({ createdAt: -1 });
         res.status(200).json(books);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: "Kitaplar getirilemedi", error: err.message });
     }
 });
 
+// ==========================================
 // 2. TEK BİR KİTABI GETİR
+// ==========================================
 router.get("/:id", async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
-        if (!book) return res.status(404).json("Kitap bulunamadı");
+        if (!book) return res.status(404).json({ message: "Kitap bulunamadı." });
         res.status(200).json(book);
-    } catch (err) { res.status(500).json(err); }
+    } catch (err) {
+        res.status(500).json({ message: "Kitap getirilemedi", error: err.message });
+    }
 });
 
-// 3. KİTAP EKLE (İŞTE BURASI DEĞİŞTİ 🛠️)
+// ==========================================
+// 3. KİTAP EKLE
+// ==========================================
 router.post("/", async (req, res) => {
     try {
-        const { title, author, publisher, pageCount, desc, cover, tag, year, addedBy } = req.body;
+        const { title, author, publisher, pageCount, pages, desc, cover, tag, year, addedBy } = req.body;
 
-        // Yeni kitabı oluştururken ekleyeni de içine atıyoruz
+        if (!title || !author) {
+            return res.status(400).json({ message: "Kitap adı ve yazar alanları zorunludur." });
+        }
+
         const newBook = new Book({
             title,
             author,
             publisher,
-            pageCount,
+            pageCount: pageCount || pages || 0,
             desc,
             cover,
             tag,
             year,
-            addedBy: addedBy || "Anonim"
+            addedBy: addedBy || req.user?.username || "Anonim"
         });
+
         const savedBook = await newBook.save();
-        sendToDiscord('BOOK', `📚 Arşive yeni bir eser eklendi: **${savedBook.title}**`, req.user.username);
-        res.status(200).json(savedBook);
-    } catch (err) { res.status(500).json(err); }
-});
-
-// --- SİLME ROTASI (DELETE) ---
-router.delete("/:id", async (req, res) => {
-    try {
-        // Gelen ID'ye göre kitabı bul ve sil
-        const deletedBook = await Book.findByIdAndDelete(req.params.id);
-
-        // Eğer kitap zaten yoksa veya silinemezse
-        if (!deletedBook) {
-            return res.status(404).json("Silinecek kitap bulunamadı (Zaten silinmiş olabilir).");
-        }
-
-        res.status(200).json("Kitap başarıyla silindi.");
-
+        res.status(201).json(savedBook);
     } catch (err) {
-        // İşte 500 hatasını burası fırlatıyor.
-        console.log("HATA DETAYI:", err); // Terminale hatayı yazdıralım ki görelim
-        res.status(500).json(err);
+        res.status(500).json({ message: "Kitap kaydedilemedi", error: err.message });
     }
 });
 
-// 🔥 KİTAP DÜZENLEME ROTASI (V2.5) 🔥
+// ==========================================
+// 4. KİTAP DÜZENLE
+// ==========================================
 router.put("/:id", async (req, res) => {
     try {
-        // 1. Kitaplara özel verileri karşılıyoruz
-        const { title, author, tag, publisher, pages, desc, cover } = req.body;
+        const { title, author, tag, publisher, pages, pageCount, desc, cover, year } = req.body;
 
-        // 2. Post değil, 'Book' modelini güncelliyoruz! (Senin model ismin Book veya Kitap olabilir)
+        const updateData = {
+            ...(title && { title }),
+            ...(author && { author }),
+            ...(tag && { tag }),
+            ...(publisher && { publisher }),
+            ...((pages || pageCount) && { pageCount: pages || pageCount }),
+            ...(desc && { desc }),
+            ...(cover && { cover }),
+            ...(year && { year })
+        };
+
         const updatedBook = await Book.findByIdAndUpdate(
             req.params.id,
-            { title, author, tag, publisher, pages, desc, cover },
-            { new: true } // Güncellenmiş halini geri döndür
-        );
-
-        if (!updatedBook) return res.status(404).json({ message: "Kitap bulunamadı" });
-
-        res.json({ message: "Kitap başarıyla güncellendi!", book: updatedBook });
-
-    } catch (err) {
-        // 🔥 ALARM SİSTEMİ AÇIK 🔥
-        console.error("❌ KİTAP GÜNCELLEME HATASI:", err);
-        res.status(500).json({ message: "Güncelleme sırasında hata oluştu." });
-    }
-});
-
-// 🔥 V3.1 PREMIUM BEĞENİ MOTORU (BALYOZ VERSİYONU) 🔥
-router.post("/:id/like", async (req, res) => {
-    try {
-        const { username } = req.body;
-        if (!username) return res.status(400).json({ message: "Kullanıcı adı gerekli komutanım!" });
-
-        // 1. Kitabı buluyoruz
-        const book = await Book.findById(req.params.id);
-        if (!book) return res.status(404).json({ message: "Kitap bulunamadı" });
-
-        // Mongoose eski int veriyi okuyamayıp null döndürmüş olabilir, biz her ihtimale karşı jilet gibi bir liste oluşturuyoruz
-        let currentLikes = Array.isArray(book.likes) ? book.likes : [];
-        currentLikes = currentLikes.filter(u => u !== '0' && u !== null && String(u).trim() !== '');
-        // 2. Bu adam zaten beğenmiş mi kontrol et
-        const hasLiked = currentLikes.includes(username);
-
-        if (hasLiked) {
-            // Zaten beğenmişse, listeden çıkar
-            currentLikes = currentLikes.filter(user => user !== username);
-        } else {
-            // Beğenmemişse, adını listeye ekle
-            currentLikes.push(username);
-        }
-
-        // 🔥 KÖSTEBEĞİ EZEN BALYOZ VURUŞU 🔥
-        // .save() kullanmıyoruz! Veritabanına doğrudan "likes alanını komple sil ve yerine bu listeyi koy" diyoruz.
-        await Book.findByIdAndUpdate(
-            req.params.id,
-            { $set: { likes: currentLikes } }, // MongoDB'deki eski sayıyı acımadan ezer geçer!
+            updateData,
             { new: true }
         );
 
-        // 4. Ön cepheye güncel durumu raporla
-        res.json({
-            message: hasLiked ? "Beğeni geri alındı" : "Kitap beğenildi",
-            likesCount: currentLikes.length,
-            hasLiked: !hasLiked
-        });
+        if (!updatedBook) return res.status(404).json({ message: "Düzenlenecek kitap bulunamadı." });
 
+        res.json({ message: "Kitap başarıyla güncellendi!", book: updatedBook });
     } catch (err) {
-        console.error("❌ BEĞENİ MOTORU HATASI:", err);
-        res.status(500).json({ message: "Beğeni işlemi başarısız oldu." });
+        res.status(500).json({ message: "Güncelleme sırasında hata oluştu.", error: err.message });
     }
 });
 
-// 🔥 V4.0 GÖRÜNTÜLENME SAYACI ROTASI 🔥
+// ==========================================
+// 5. KİTAP SİL
+// ==========================================
+router.delete("/:id", async (req, res) => {
+    try {
+        const deletedBook = await Book.findByIdAndDelete(req.params.id);
+
+        if (!deletedBook) {
+            return res.status(404).json({ message: "Silinecek kitap bulunamadı." });
+        }
+
+        res.status(200).json({ message: "Kitap başarıyla silindi." });
+    } catch (err) {
+        res.status(500).json({ message: "Silme işlemi başarısız.", error: err.message });
+    }
+});
+
+// ==========================================
+// 6. BEĞENİ AÇ / KAPA (LIKE / UNLIKE)
+// ==========================================
+router.post("/:id/like", async (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) return res.status(400).json({ message: "Kullanıcı adı gereklidir." });
+
+        const book = await Book.findById(req.params.id);
+        if (!book) return res.status(404).json({ message: "Kitap bulunamadı." });
+
+        let currentLikes = Array.isArray(book.likes) ? book.likes : [];
+        currentLikes = currentLikes.filter(u => u && String(u).trim() !== '' && u !== '0');
+
+        const hasLiked = currentLikes.includes(username);
+
+        if (hasLiked) {
+            currentLikes = currentLikes.filter(u => u !== username);
+        } else {
+            currentLikes.push(username);
+        }
+
+        await Book.findByIdAndUpdate(
+            req.params.id,
+            { $set: { likes: currentLikes } },
+            { new: true }
+        );
+
+        res.json({
+            message: hasLiked ? "Beğeni geri alındı." : "Kitap beğenildi.",
+            likesCount: currentLikes.length,
+            hasLiked: !hasLiked
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Beğeni işlemi başarısız.", error: err.message });
+    }
+});
+
+// ==========================================
+// 7. GÖRÜNTÜLENME SAYACI (+1)
+// ==========================================
 router.post("/:id/view", async (req, res) => {
     try {
-        // $inc komutu MongoDB'nin sihirli değneğidir. Sayıyı anında 1 artırır!
         const item = await Book.findByIdAndUpdate(
             req.params.id,
             { $inc: { views: 1 } },
             { new: true }
         );
 
-        if (!item) return res.status(404).json({ message: "Bulunamadı" });
+        if (!item) return res.status(404).json({ message: "Kitap bulunamadı." });
 
         res.json({ views: item.views });
     } catch (err) {
-        console.error("Görüntülenme sayacı hatası:", err);
-        res.status(500).json({ message: "Sayaç artırılamadı" });
+        res.status(500).json({ message: "Sayaç artırılamadı.", error: err.message });
     }
 });
-
 
 module.exports = router;

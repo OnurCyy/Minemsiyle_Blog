@@ -1,12 +1,17 @@
-const router = require("express").Router();
-const Settings = require("../models/Settings"); // Dosya adı: Settings.js
+const express = require("express");
+const router = express.Router();
+const Settings = require("../models/Settings");
 
-// 1. AYARLARI GETİR
+const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
+
+// ======================================================
+// 1. AYARLARI GETİR (Herkese Açık)
+// ======================================================
 router.get("/", async (req, res) => {
     try {
         let settings = await Settings.findOne();
 
-        // Eğer ayar yoksa varsayılanları oluştur
         if (!settings) {
             settings = new Settings({
                 quotes: [
@@ -19,98 +24,101 @@ router.get("/", async (req, res) => {
             });
             await settings.save();
         }
+
         res.status(200).json(settings);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: "Ayarlar getirilemedi.", error: err.message });
     }
 });
 
 // ======================================================
-// 2. AYARLARI GÜNCELLE
+// 2. AYARLARI GÜNCELLE (Sadece Admin)
 // ======================================================
-router.put("/", async (req, res) => {
+router.put("/", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        console.log("📥 Admin Panelinden Gelen Veri:", JSON.stringify(req.body, null, 2));
-
         const updatedSettings = await Settings.findOneAndUpdate(
             {},
             { $set: req.body },
             { new: true, upsert: true }
         );
 
-        console.log("✅ Veritabanı Güncellendi!");
         res.status(200).json({ message: "Ayarlar güncellendi!", settings: updatedSettings });
     } catch (err) {
-        console.error("PUT Hatası:", err);
-        res.status(500).json(err);
+        res.status(500).json({ message: "Ayarlar güncellenemedi.", error: err.message });
     }
 });
 
 // ======================================================
-// 3. KİTABI BİTİR
+// 3. KİTABI BİTİR (Hedefi +1 Artır, Kitabı Sıfırla)
 // ======================================================
-router.post("/finish-book", async (req, res) => {
+router.post("/finish-book", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const settings = await Settings.findOne();
-        if (settings) {
-            settings.goal.current += 1;
-            settings.currentBook = {
-                title: "Yeni Kitap Seç",
-                author: "-",
-                cover: "https://placehold.co/150?text=Kitap",
-                totalPage: 100,
-                currentPage: 0,
-                percent: 0
-            };
-            await settings.save();
-            res.status(200).json(settings);
+        let settings = await Settings.findOne();
+
+        if (!settings) {
+            return res.status(404).json({ message: "Ayar kaydı bulunamadı." });
         }
+
+        if (!settings.goal) settings.goal = { target: 50, current: 0 };
+        settings.goal.current = (settings.goal.current || 0) + 1;
+
+        settings.currentBook = {
+            title: "Yeni Kitap Seç",
+            author: "-",
+            cover: "https://placehold.co/150?text=Kitap",
+            totalPage: 100,
+            currentPage: 0,
+            percent: 0
+        };
+
+        await settings.save();
+        res.status(200).json({ message: "Tebrikler! Kitap tamamlandı.", settings });
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: "İşlem başarısız.", error: err.message });
     }
 });
 
 // ======================================================
-// 4. SÖZ HAVUZUNA YENİ SÖZ EKLE (POST /api/settings/quote)
+// 4. SÖZ HAVUZUNA YENİ SÖZ EKLE
 // ======================================================
-router.post("/quote", async (req, res) => {
+router.post("/quote", authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const { text, author } = req.body;
-        if (!text) return res.status(400).json({ message: "Söz metni boş olamaz!" });
+        if (!text || !text.trim()) {
+            return res.status(400).json({ message: "Söz metni boş olamaz!" });
+        }
 
         let settings = await Settings.findOne();
         if (!settings) {
             settings = new Settings();
         }
 
-        if (!settings.quotes) {
+        if (!Array.isArray(settings.quotes)) {
             settings.quotes = [];
         }
 
-        // Yeni eklenen sözü listenin en başına koy
         settings.quotes.unshift({
             text: text.trim(),
-            author: (author && author.trim()) ? author.trim() : "Anonim"
+            author: author && author.trim() ? author.trim() : "Anonim"
         });
 
         await settings.save();
-        res.status(200).json({ message: "Söz eklendi! ✨", quotes: settings.quotes });
+        res.status(201).json({ message: "Söz eklendi! ✨", quotes: settings.quotes });
     } catch (err) {
-        console.error("Söz Ekleme Hatası:", err);
-        res.status(500).json({ message: "Sunucu hatası oluştu." });
+        res.status(500).json({ message: "Söz eklenirken hata oluştu.", error: err.message });
     }
 });
 
 // ======================================================
-// 5. SÖZ HAVUZUNDAN SÖZ SİL (DELETE /api/settings/quote/:index)
+// 5. SÖZ HAVUZUNDAN SÖZ SİL
 // ======================================================
-router.delete("/quote/:index", async (req, res) => {
+router.delete("/quote/:index", authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const index = parseInt(req.params.index);
+        const index = parseInt(req.params.index, 10);
         let settings = await Settings.findOne();
 
-        if (!settings || !settings.quotes || index < 0 || index >= settings.quotes.length) {
-            return res.status(404).json({ message: "Söz bulunamadı!" });
+        if (!settings || !Array.isArray(settings.quotes) || isNaN(index) || index < 0 || index >= settings.quotes.length) {
+            return res.status(404).json({ message: "Silinecek söz bulunamadı!" });
         }
 
         settings.quotes.splice(index, 1);
@@ -118,8 +126,7 @@ router.delete("/quote/:index", async (req, res) => {
 
         res.status(200).json({ message: "Söz silindi.", quotes: settings.quotes });
     } catch (err) {
-        console.error("Söz Silme Hatası:", err);
-        res.status(500).json({ message: "Sunucu hatası oluştu." });
+        res.status(500).json({ message: "Söz silinirken hata oluştu.", error: err.message });
     }
 });
 
